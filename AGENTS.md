@@ -275,9 +275,15 @@ kenzo-treasure/
 2. **Penyelidikan Konteks Terfokus:**
    - Baca hanya berkas yang relevan dengan tugas.
    - Hindari membaca folder besar, build artifacts (`.next`, `dist`, `node_modules`), atau lockfile secara utuh.
-3. **Dokumentasi & Komentar Kode yang Jelas (Rationale First):**
-   - Jaga integritas komentar dan docstring yang sudah ada di codebase.
-   - **PENTING:** Jika ada logika yang krusial, arsitektur non-obvious, kalkulasi finansial, atau alasan spesifik kenapa suatu solusi/pustaka dipilih, **SANGAT DIPERBOLEHKAN (dan dianjurkan)** menulis komentar yang panjang dan detail langsung di dalam kode untuk menjelaskan *alasan* (why) di balik implementasi tersebut.
+3. **Dokumentasi & Komentar Kode Mendalam (Standard Emas: Rationale-First Documentation):**
+   - Mengadopsi standar dokumentasi komprehensif, naratif, dan terstruktur rapi.
+   - **SANGAT DIPERBOLEHKAN DAN DIANJURKAN** menulis komentar docstring yang panjang, terstruktur, dan mendalam untuk setiap modul krusial (terutama di [`src/lib/financial-calculations.ts`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/src/lib/financial-calculations.ts), Server Actions, skema database, dan alur lifecycle mutasi).
+   - Format komentar yang dianjurkan mencakup:
+     - **Kenapa modul/fungsi ini ada (Rationale / Why):** Konteks latar belakang, alasan arsitektur, dan pencegahan potensi bug duplikasi.
+     - **Aturan Bisnis & Rumus Finansial:** Tabel markdown penjelasan rumus, breakdown nominal integer Rupiah, dan batasan logika.
+     - **Keamanan Eksekusi (Client vs Server Safety):** Menjelaskan batasan lingkungan runtime (misal: client-safe utility tanpa dependency Node.js).
+     - **Fail-Closed Fallback Rationale:** Alasan teknis di balik penentuan nilai fallback saat error terjadi.
+     - **Pemisah Visual Rapi:** Gunakan garis seksi visual (`/* ══════════ */` atau `── Judul Seksi ──`) agar mudah dibaca oleh manusia.
 
 ---
 

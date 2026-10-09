@@ -48,7 +48,7 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
   1. Spesifikasi komprehensif selesai di [`PRD.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PRD.md).
   2. ERD 9 tabel selesai digambar dan diverifikasi di [Excalidraw Live Canvas](https://excalidraw.com/#json=wQBlD5nMIr_tM9P1V-mf6,Mizngs7kMbgI26oOCHCTgQ).
   3. Kolom `password` di tabel `users` dan standarisasi `updated_at` di seluruh 9 tabel selesai diimplementasikan.
-  4. Penyusunan pedoman operasional AI di [`AGENTS.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/AGENTS.md) lengkap dengan adopsi 7 standar emas dari proyek Lamonte.
+  4. Penyusunan pedoman operasional AI di [`AGENTS.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/AGENTS.md) lengkap dengan adopsi 7 standar emas best practices (no browser alert, anti-halusinasi Tailwind, mobile `100dvh`, single source of truth rumus finansial, YAML frontmatter changelog).
   5. Audit & penguncian dependensi ke versi mutakhir di [`AGENTS.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/AGENTS.md#L45-L85).
   6. Blueprint peta direktori proyek lengkap (Project Directory Map) di [`AGENTS.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/AGENTS.md#L86-L185).
   7. Penambahan konfigurasi keamanan repositori [`.gitignore`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.gitignore).
@@ -57,6 +57,7 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
   10. Pemisahan konfigurasi singleton TanStack Query ke [`src/lib/query-client.ts`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/src/lib/query-client.ts).
   11. Penguncian aturan Providers Wrapper Bersih (zero state / client instances) di [`AGENTS.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/AGENTS.md#L224-L228).
   12. Standarisasi Clean Architecture & Anti-Campur Tanggung Jawab (Strict Single Responsibility) di [`AGENTS.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/AGENTS.md#L229-L236).
+  13. Pengadopsian standar emas dokumentasi kode naratif & mendalam (Rationale-First Documentation) di [`AGENTS.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/AGENTS.md#L278-L287).
 - **File Changelog:**
   - [`2026-10-09_initial_prd_and_rules.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-09_initial_prd_and_rules.md)
   - [`2026-10-09_phase_roadmap_and_gate_rules.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-09_phase_roadmap_and_gate_rules.md)
@@ -68,4 +69,5 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
   - [`2026-10-09_modular_query_client.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-09_modular_query_client.md)
   - [`2026-10-09_clean_providers_rule.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-09_clean_providers_rule.md)
   - [`2026-10-09_strict_clean_architecture_rule.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-09_strict_clean_architecture_rule.md)
+  - [`2026-10-09_adopted_deep_documentation_standard.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-09_adopted_deep_documentation_standard.md)
 - **Tindakan Berikutnya:** Menunggu Kenzo commit git manual, lalu bersiap untuk fase selanjutnya.

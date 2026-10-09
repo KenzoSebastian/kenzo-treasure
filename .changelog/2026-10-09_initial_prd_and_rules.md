@@ -1,14 +1,14 @@
 ---
 date: 2026-10-09
 task: Inisialisasi Spesifikasi, ERD, dan Panduan Operasional
-prompt: Perencanaan Kenzo Treasury, skema DB Excalidraw, PRD, dan adaptasi aturan kantor Lamonte
+prompt: Perencanaan Kenzo Treasury, skema DB Excalidraw, PRD, dan adaptasi aturan best practices
 author: Cecillia (Cil)
 ---
 
 # Changelog: Inisialisasi Spesifikasi, ERD, dan Panduan Operasional
 
 ## 📌 Ringkasan Perubahan
-Menyelesaikan fondasi perencanaan produk dan arsitektur data aplikasi Kenzo Treasury untuk menggantikan sistem Notion lama, mencakup PRD lengkap, diagram database ERD visual di Excalidraw, dokumen aturan operasional AI (`AGENTS.md`) dengan adopsi standar dari proyek Lamonte, serta dashboard pelaporan progres (`laporan.md`).
+Menyelesaikan fondasi perencanaan produk dan arsitektur data aplikasi Kenzo Treasury untuk menggantikan sistem Notion lama, mencakup PRD lengkap, diagram database ERD visual di Excalidraw, dokumen aturan operasional AI (`AGENTS.md`) dengan adopsi standar best practices, serta dashboard pelaporan progres (`laporan.md`).
 
 ---
 
@@ -30,7 +30,7 @@ Menyelesaikan fondasi perencanaan produk dan arsitektur data aplikasi Kenzo Trea
    - Menyeragamkan seluruh tabel agar memiliki `updated_at` untuk audit trail, cache invalidation, dan background sync queue offline di TanStack Query.
 4. **Form Stack (React Hook Form + Zod):**
    - Menggunakan kombinasi resmi Shadcn UI (`@hookform/resolvers/zod`) untuk performa tinggi tanpa re-render berlebih pada perangkat mobile.
-5. **Adopsi Standar Proyek Lamonte:**
+5. **Adopsi Standar Best Practices:**
    - Larangan `alert()`/`confirm()` browser bawaan (wajib Shadcn dialog & toast Sonner).
    - Anti-halusinasi Tailwind class & viewport `100dvh` mobile.
    - Single source of truth untuk rumus finansial (`src/lib/financial-calculations.ts`).
