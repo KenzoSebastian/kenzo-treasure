@@ -32,6 +32,7 @@
 | Layer | Teknologi | Justifikasi |
 |---|---|---|
 | **Framework** | Next.js 16 (App Router) + React 19 | Server Components untuk kecepatan load, Server Actions untuk mutasi data, dan SSR auth session. |
+| **Runtime & Package Manager** | Bun (v1.4+) | JavaScript runtime super cepat, instalasi dependensi instan, dan eksekusi skrip tanpa overhead npm/Node. |
 | **UI Components & Styling** | Shadcn UI (New York style) + Tailwind CSS v4 + Lucide React | Komponen atomik modern, aksesibel (Radix Primitives), type-safe, dan full customizable tanpa dependency bloat. |
 | **Database** | Supabase (PostgreSQL) | Managed Postgres relasional dengan skalabilitas tinggi, Row Level Security (RLS), dan backup otomatis. |
 | **ORM & Migrations** | Drizzle ORM + Drizzle Kit | Full TypeScript-safe schema, zero-overhead runtime, dan query builder yang bersih dan terprediksi. |

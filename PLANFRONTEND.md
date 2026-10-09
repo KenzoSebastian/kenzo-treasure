@@ -15,11 +15,11 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 ## 🗂️ Daftar Fase Frontend
 
 ### Fase F1: Inisialisasi Next.js 16, Tailwind CSS v4 & Theme Provider
-- [ ] Inisialisasi proyek Next.js 16 (App Router, TypeScript, React 19).
-- [ ] Setup Tailwind CSS v4 dengan semantic color tokens.
-- [ ] Setup `next-themes` untuk Dark Mode & Light Mode adaptif tanpa flicker (FOUC).
-- [ ] Konfigurasi viewport mobile `min-h-[100dvh]` dan anti horizontal overflow (`overflow-x-hidden`) di `src/app/layout.tsx`.
-- [ ] Setup TanStack Query v5 provider untuk instant optimistic UI dan background cache.
+- [x] Inisialisasi proyek Next.js 16 (App Router, TypeScript, React 19).
+- [x] Setup Tailwind CSS v4 dengan semantic color tokens.
+- [x] Setup `next-themes` untuk Dark Mode & Light Mode adaptif tanpa flicker (FOUC).
+- [x] Konfigurasi viewport mobile `min-h-[100dvh]` dan anti horizontal overflow (`overflow-x-hidden`) di `src/app/layout.tsx`.
+- [x] Setup TanStack Query v5 provider untuk instant optimistic UI dan background cache.
 
 ---
 

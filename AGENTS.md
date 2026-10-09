@@ -36,11 +36,12 @@ Seluruh dependensi wajib menggunakan versi rilis terbaru yang telah diverifikasi
 ### 3.1 Framework, Core & Runtime
 | Pustaka / Paket | Versi Terverifikasi | Standar & Peran Teknis |
 |---|:---:|---|
+| **`bun`** | `1.4.2` | Runtime JavaScript ultra-cepat & package manager tunggal resmi (dilarang pakai npm/yarn/pnpm). |
 | **`next`** | `16.4.0` | App Router, Server Components untuk read, Server Actions untuk mutasi data, SSR auth. |
 | **`react`** | `19.3.0` | React Server Components & Action hooks. |
 | **`react-dom`** | `19.3.0` | DOM hydration & optimistic transitions. |
 | **`typescript`** | `7.0.2` | Strict type checking & auto-inference (dilarang `any`). |
-| **`@types/node`** | `26.6.4` | Node.js runtime types. |
+| **`@types/node`** | `26.6.4` | Node.js / Bun runtime types. |
 | **`@types/react`** | `19.3.0` | Typing JSX & React hooks. |
 
 ### 3.2 Styling, UI Primitives & Design Tokens
@@ -153,6 +154,7 @@ kenzo-treasure/
 │   │   ├── use-offline-sync.ts       # Sinkronisasi antrean mutasi saat kembali online
 │   │   └── use-countdown.ts          # Timer 5 detik untuk undo toast
 │   ├── lib/                          # Pure Utilities & External SDK Wrappers
+│   │   ├── query-client.ts           # Singleton QueryClient TanStack Query (caching & retry)
 │   │   ├── financial-calculations.ts # Single Source of Truth rumus finansial
 │   │   ├── image-compressor.ts       # Kompresi client-side WebP (<200KB)
 │   │   ├── utils.ts                  # Utility cn() (clsx + tailwind-merge)
@@ -219,6 +221,18 @@ kenzo-treasure/
 7. **Aturan Library Eksternal:**
    - Wajib cek dokumentasi resmi sebelum instalasi/penggunaan.
    - Gunakan versi rilis terbaru bebas breaking changes.
+8. **Providers Wrapper Bersih (Zero Business Logic / State):**
+   - [`src/app/providers.tsx`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/src/app/providers.tsx) murni hanya berfungsi sebagai wadah komposisi provider (*pure wrapper*).
+   - **DILARANG KERAS** menginisialisasi state, client instances, atau logika bisnis di dalamnya.
+   - Seluruh inisialisasi instance eksternal (seperti `QueryClient`) wajib diisolasi di `src/lib/` (contoh: [`src/lib/query-client.ts`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/src/lib/query-client.ts)).
+9. **Clean Architecture & Anti-Campur Tanggung Jawab (Strict Single Responsibility):**
+   - **DILARANG KERAS** mencampuradukkan peran teknis yang berbeda ke dalam satu berkas (misal: menggabungkan inisialisasi library, wrapper context, dan business logic di satu tempat).
+   - Setiap berkas wajib mematuhi pemisahan domain yang ketat:
+     - **Inisialisasi / SDK Setup:** Terisolasi di `src/lib/` (contoh: `query-client.ts`, `supabase/`, `ai/`).
+     - **Wrappers & Providers:** Murni wadah komposisi context JSX tanpa instansiasi state atau mutasi data (contoh: `providers.tsx`, `layout.tsx`).
+     - **Presentasi UI:** Murni rendering tampilan antarmuka (contoh: `src/components/ui/`, `src/components/features/`).
+     - **Business Logic & State:** Terisolasi di custom hooks atau Server Actions (contoh: `src/hooks/`, `src/actions/`).
+     - **Kalkulasi Finansial:** Murni kalkulasi matematika deterministik di `src/lib/financial-calculations.ts`.
 
 ---
 
@@ -307,8 +321,13 @@ kenzo-treasure/
 6. **DILARANG MENCENTANG SEBELUM APPROVAL KENZO (Strict Gate):**
    - Checklist (`- [ ]`) di `PLANBACKEND.md`, `PLANFRONTEND.md`, maupun `laporan.md` **MUTLAK DILARANG DICENTANG (`- [x]`)** oleh Agent secara sepihak.
    - Status checklist tetap belum dicentang sampai **Kenzo memeriksa dan memberikan kata sepakat/approval** (misal: "oke", "approve", "lanjut").
-   - **HANYA SETELAH APPROVAL RESMI DARI KENZO**, Agent boleh:
-     1. Mengubah checklist menjadi centang (`- [x]`).
-     2. Membuat dokumen log di `.changelog/`.
-     3. Memperbarui status di `laporan.md`.
-     4. Mengajukan rencana untuk masuk ke fase berikutnya.
+7. **Alur Pasca-Approval: Checklist, Rekomendasi Commit Git & Hold (DILARANG Langsung Loncat Fase):**
+   - Setelah Kenzo memberikan kata persetujuan ("oke", "approve", "lanjut", dll.), Agent **DILARANG LANGSUNG MEMULAI** fase berikutnya.
+   - Urutan tindakan wajib Agent pada turn pasca-approval:
+     1. Ubah checklist fase yang selesai menjadi centang (`- [x]`) di berkas plan terkait ([`PLANBACKEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANBACKEND.md) atau [`PLANFRONTEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANFRONTEND.md)).
+     2. Catat dokumen audit log di [`.changelog/`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/) dengan format Frontmatter YAML.
+     3. Perbarui rangkuman checkpoint di [`laporan.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/laporan.md).
+     4. **Sajikan rekomendasi Git Commit Message** dalam bahasa Inggris dengan format Conventional Commit:
+        - Pola: `<action>: <description>` (misal: `feat: implement authentication`, `chore: initialize next.js 16 and tailwind v4`, `fix: resolve mobile horizontal overflow`).
+     5. Sajikan snippet perintah terminal commit manual untuk Kenzo (`git add .` dan `git commit -m "..."`).
+     6. **Tahan (HOLD):** Jangan langsung mengeksekusi kode fase berikutnya sampai Kenzo selesai melakukan commit dan menginstruksikan untuk gas fase berikutnya.
