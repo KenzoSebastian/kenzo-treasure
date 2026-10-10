@@ -233,6 +233,17 @@ kenzo-treasure/
      - **Presentasi UI:** Murni rendering tampilan antarmuka (contoh: `src/components/ui/`, `src/components/features/`).
      - **Business Logic & State:** Terisolasi di custom hooks atau Server Actions (contoh: `src/hooks/`, `src/actions/`).
      - **Kalkulasi Finansial:** Murni kalkulasi matematika deterministik di `src/lib/financial-calculations.ts`.
+10. **Standar Koneksi Database & Pooling Supabase (Dual-Mode Connection & TLS):**
+    - **Pemisahan Jalur Runtime vs Migrasi CLI:**
+      - **Runtime App / Server Actions (`DATABASE_URL`):** Menggunakan port `6543` (Supavisor Transaction Pooler) dengan konfigurasi `prepare: false` di driver client `postgres.js`. Mencegah kehabisan batas koneksi (`max_connections`) saat puluhan serverless route dieksekusi bersamaan.
+      - **Migration CLI / Drizzle Kit (`DATABASE_URL_UNPOOLED`):** Menggunakan port `5432` (Direct Session Connection). Wajib diprioritaskan di [`drizzle.config.ts`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/drizzle.config.ts) untuk eksekusi migrasi skema DDL yang membutuhkan session locking penuh tanpa limitasi proxy pooler.
+    - **Protokol Keamanan Transport TLS / SSL Mode:**
+      - Menggunakan `?sslmode=require` untuk koneksi terenkripsi penuh (TLS v1.3) yang kompatibel langsung dengan pooler Supabase.
+      - Jika di masa depan menggunakan `?sslmode=verify-full`, wajib menyediakan sertifikat root privat Supabase melalui environment variable `DATABASE_CA_CERT`, karena Supabase menandatangani sertifikat pooler dengan private root CA yang tidak terdaftar di OS/Node trust-store publik.
+    - **Driver Standar (`postgres.js`):**
+      - Wajib menggunakan driver modern `postgres` (Porsager), **DILARANG** menggunakan `pg` (`node-postgres`) untuk menghindari bug ambient environment variable (`PGHOST`) dan overhead runtime.
+    - **Anti-Overengineering Database Client:**
+      - File inisialisasi database [`src/db/index.ts`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/src/db/index.ts) harus tetap bersih, modular, dan terisolasi (~40 baris). Dilarang menyalin ratusan baris manual URL parsing/hack yang tidak dibutuhkan.
 
 ---
 

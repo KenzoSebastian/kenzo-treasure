@@ -6,7 +6,7 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 
 ## 📌 Ringkasan Status Proyek
 
-- **Status Saat Ini:** **Fase F1 Selesai** $\rightarrow$ Menunggu Kenzo commit git manual & instruksi fase berikutnya
+- **Status Saat Ini:** **Fase B1 Selesai** $\rightarrow$ Menunggu Kenzo commit git manual & instruksi fase berikutnya (Fase B2 / F2)
 - **Tech Stack Terkunci:**
   - Runtime & Package Manager: Bun (v1.4.2)
   - Frontend: Next.js 16 (App Router, React 19, TypeScript)
@@ -31,6 +31,19 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
 ---
 
 ## 📝 Log Checkpoint Terbaru
+
+### Checkpoint: Fase B1 — Konfigurasi Drizzle ORM, Skema 9 Tabel & Koneksi Supabase (2026-10-10)
+- **Status:** Approved by Kenzo ✅
+- **Capaian:**
+  1. Instalasi dependensi database modern & stabil (`drizzle-orm@0.45.4`, `postgres@3.4.9`, `@supabase/supabase-js@2.117.3`, `@supabase/ssr@0.12.7`, `drizzle-kit@0.31.11`).
+  2. Implementasi koneksi database singleton di `src/db/index.ts` dengan driver `postgres.js` dan konfigurasi `prepare: false` untuk Supavisor transaction pooler.
+  3. Konfigurasi `drizzle.config.ts` dan `.env.example` dengan dual-mode connection string: memprioritaskan `DATABASE_URL_UNPOOLED` (port 5432) untuk Drizzle Kit CLI migrations, dan `DATABASE_URL` (port 6543) untuk runtime Server Actions.
+  4. Penyusunan skema 9 tabel di `src/db/schema.ts` (`users`, `savings_account`, `months`, `incomes`, `liabilities`, `budget_categories`, `transactions`, `wishlists`, `wishlist_allocations`) lengkap dengan audit timestamp dan relasi ORM.
+  5. Ekspor inferensi tipe TypeScript Drizzle (`$inferSelect`, `$inferInsert`) untuk seluruh 9 tabel.
+  6. Eksekusi `drizzle-kit generate` dan push langsung ke Supabase PostgreSQL (`drizzle-kit push --force`). Verifikasi query tabel mengonfirmasi seluruh 9 tabel aktif.
+  7. Penambahan butir 10 standar database pooling & TLS ke `AGENTS.md`.
+  8. Quality gate lulus: `bun run typecheck` (0 error) & `bun run build` sukses 100%.
+- **File Changelog:** [`2026-10-10_phase_b1_completion.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-10_phase_b1_completion.md).
 
 ### Checkpoint: Fase F1 — Inisialisasi Next.js 16, Tailwind CSS v4, Layout & Providers (2026-10-09)
 - **Status:** Approved by Kenzo ✅

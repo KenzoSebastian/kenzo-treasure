@@ -14,12 +14,12 @@ Dokumen ini adalah rencana kerja backend bertahap (granular) untuk **Kenzo Treas
 ## 🗂️ Daftar Fase Backend
 
 ### Fase B1: Konfigurasi Drizzle ORM, Koneksi PostgreSQL & Base Schema
-- [ ] Setup dependensi database (`drizzle-orm`, `drizzle-kit`, `postgres`, `@supabase/supabase-js`).
-- [ ] Buat file konfigurasi koneksi database di `src/db/index.ts`.
-- [ ] Buat konfigurasi Drizzle Kit di `drizzle.config.ts`.
-- [ ] Tulis skema lengkap 9 tabel di `src/db/schema.ts` (`users`, `savings_account`, `months`, `incomes`, `liabilities`, `budget_categories`, `transactions`, `wishlists`, `wishlist_allocations`) lengkap dengan `created_at` dan `updated_at`.
-- [ ] Ekspor type inference Drizzle (`$inferSelect`, `$inferInsert`) untuk semua tabel.
-- [ ] Generate file migrasi SQL perdana via `drizzle-kit generate`.
+- [x] Setup dependensi database (`drizzle-orm`, `drizzle-kit`, `postgres`, `@supabase/supabase-js`).
+- [x] Buat file konfigurasi koneksi database di `src/db/index.ts`.
+- [x] Buat konfigurasi Drizzle Kit di `drizzle.config.ts`.
+- [x] Tulis skema lengkap 9 tabel di `src/db/schema.ts` (`users`, `savings_account`, `months`, `incomes`, `liabilities`, `budget_categories`, `transactions`, `wishlists`, `wishlist_allocations`) lengkap dengan `created_at` dan `updated_at`.
+- [x] Ekspor type inference Drizzle (`$inferSelect`, `$inferInsert`) untuk semua tabel.
+- [x] Generate file migrasi SQL perdana via `drizzle-kit generate`.
 
 ---
 
