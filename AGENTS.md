@@ -37,3 +37,12 @@ Aturan Global Cecillia sudah mencakup komunikasi, kualitas kode, verifikasi, pen
 - Perlakukan peta struktur sebagai panduan arsitektur, bukan daftar file yang wajib dibuat seluruhnya.
 
 **Prinsip utama:** Pahami kebutuhan, ikuti sumber acuan yang relevan, kerjakan perubahan secara terarah, verifikasi hasil aktual, dan patuhi persetujuan setiap fase.
+
+## 4. Konvensi Runtime & Dependency
+
+- Gunakan Bun sebagai runtime dan package manager utama sesuai konfigurasi proyek.
+- Gunakan `bun install`, `bun add`, dan `bun run` untuk operasi dependency serta script proyek.
+- Jangan menggunakan npm, Yarn, atau pnpm untuk memodifikasi dependency tanpa alasan kompatibilitas yang jelas.
+- Pertahankan lockfile yang digunakan repository dan jangan membuat lockfile dari package manager lain.
+- Verifikasi versi dependency melalui `package.json`, lockfile, dan dokumentasi resmi saat diperlukan.
+- Jangan melakukan upgrade dependency tanpa kebutuhan teknis atau instruksi eksplisit.

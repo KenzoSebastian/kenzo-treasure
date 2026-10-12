@@ -27,8 +27,8 @@ Dokumen ini adalah rencana kerja backend bertahap (granular) untuk **Kenzo Treas
 - [ ] Setup dependensi autentikasi `@supabase/ssr`.
 - [ ] Buat helper Supabase Client SSR di `src/lib/supabase/server.ts` (menggunakan cookies).
 - [ ] Buat helper Supabase Client Browser di `src/lib/supabase/client.ts`.
-- [ ] Buat `src/middleware.ts` untuk proteksi rute dashboard & validasi token session.
-- [ ] Implementasikan hashing password aman (Bcrypt / Argon2) untuk tabel `users`.
+- [ ] Buat helper session refresh & proteksi rute (`src/middleware.ts` / `src/proxy.ts`).
+- [ ] Tautkan profil pengguna ke Supabase Auth (sinkronisasi profil `users` saat signup/login perdana).
 - [ ] Buat Server Actions autentikasi di `src/actions/auth.ts` (`login`, `register`, `logout`, `getCurrentUser`).
 
 ---

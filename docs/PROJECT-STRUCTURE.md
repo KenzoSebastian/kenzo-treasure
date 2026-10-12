@@ -168,3 +168,12 @@ Berdasarkan plan dan laporan yang diberikan, **F1 dan B1 sudah ditandai selesai/
 3. Apakah perubahan memengaruhi import, route, validasi, otorisasi atau migrasi?
 4. Apakah diperlukan pembaruan dokumentasi arsitektur karena keputusan yang benar-benar baru?
 5. Sudahkah perubahan diuji sesuai scope dan dilaporkan tanpa mengklaim hasil yang belum diverifikasi?
+
+
+## 8. Komposisi Providers
+
+- Gunakan `src/app/providers.tsx` sebagai tempat komposisi React Context Providers.
+- Pisahkan konfigurasi dan inisialisasi SDK atau client yang kompleks ke modul khusus jika membantu pengujian dan pemeliharaan.
+- Jangan menempatkan business logic, query database, atau kalkulasi finansial di dalam provider wrapper.
+- Pertahankan lifecycle dan scope instance yang benar, khususnya untuk TanStack Query agar cache tidak terbagi secara tidak sengaja antar-request pengguna.
+- Jangan memecah provider sederhana menjadi banyak file tanpa manfaat nyata.

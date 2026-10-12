@@ -68,13 +68,12 @@ export const transactionMethodEnum = pgEnum("transaction_method", [
 ]);
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   1. TABEL: users (Akun Pengguna & Autentikasi Kredensial)
+   1. TABEL: users (Profil Pengguna — Terikat 1:1 ke Supabase Auth auth.users)
    ══════════════════════════════════════════════════════════════════════════════ */
 
 export const users = pgTable("users", {
-  id: uuid("id").defaultRandom().primaryKey(),
+  id: uuid("id").primaryKey(), // ID UUID yang sama persis dengan auth.users.id Supabase Auth
   email: text("email").notNull().unique(),
-  password: text("password").notNull(), // Hashed string (Bcrypt / Argon2)
   fullName: text("full_name"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

@@ -2,10 +2,10 @@
 
 The items below are **not** automatically approved requirements. Resolve only those needed for the upcoming requested phase.
 
-| Decision | Recommended starting direction | Needed before |
+| Decision | Recommended starting direction / Status | Needed before |
 |---|---|---|
-| Existing `users.password` column vs Supabase Auth | Supabase Auth owns credentials; migrate profile safely after inspecting live schema/data | B2 |
-| Authorization for Drizzle direct PostgreSQL | Explicit ownership check and tested RLS/role strategy for each sensitive operation | B2/B5 |
+| Existing `users.password` column vs Supabase Auth | **RESOLVED (2026-10-12):** Supabase Auth adalah otoritas tunggal akun. Kolom `password` di `users` telah dihapus via migrasi non-destruktif; `public.users` bertindak murni sebagai profil yang terikat 1:1 ke `auth.users.id`. | B2 (Done) |
+| Authorization for Drizzle direct PostgreSQL | **RESOLVED (2026-10-12):** Server Actions wajib memeriksa sesi Supabase SSR (`getUser()`) dan menyertakan filter kepemilikan eksplisit (`eq(table.userId, user.id)`) pada setiap query/mutasi Drizzle. | B2/B5 (Agreed) |
 | Existing migrated schema vs `drizzle-kit push --force` | Reconcile migration history; use reviewed non-destructive migration | Any DB changes |
 | Duplicate monthly cycles | Add unique `(user_id, year, month_index)` and atomic generator | B5 |
 | Dynamic free budget on income edit/delete | Calculate from authoritative income data, not additive stored counter | B6 |

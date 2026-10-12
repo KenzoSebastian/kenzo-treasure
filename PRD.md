@@ -100,11 +100,10 @@ export const transactionMethodEnum = pgEnum('transaction_method', [
   'transfer'
 ]);
 
-// 1. Users Profile & Auth
+// 1. Users Profile (Terikat 1:1 ke auth.users.id Supabase Auth)
 export const users = pgTable('users', {
-  id: uuid('id').primaryKey(),
+  id: uuid('id').primaryKey(), // ID UUID yang sama persis dengan auth.users.id
   email: text('email').notNull().unique(),
-  password: text('password').notNull(), // Hashed password (Bcrypt / Argon2)
   fullName: text('full_name'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),

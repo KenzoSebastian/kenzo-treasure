@@ -32,6 +32,15 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
 
 ## 📝 Log Checkpoint Terbaru
 
+### Checkpoint: Penyelarasan Otoritas Supabase Auth & Penghapusan Password (2026-10-12)
+- **Status:** Completed & Aligned ✅
+- **Capaian:**
+  1. Penghapusan kolom `password` dari tabel `users` di `src/db/schema.ts`; tabel `public.users` kini difungsikan murni sebagai profil pengguna dengan ID terhubung 1:1 ke `auth.users.id` Supabase Auth.
+  2. Eksekusi perubahan ke live PostgreSQL Supabase dan pembuatan file migrasi snapshot `src/db/migrations/0001_busy_hiroim.sql`.
+  3. Pembaruan dan penyelarasan dokumen spesifikasi `PRD.md`, `PLANBACKEND.md` (Fase B2), `docs/DECISIONS-NEEDED.md`, dan `docs/REVIEW-AUDIT.md`.
+  4. Quality gate lulus: `bun run typecheck` (0 error).
+- **File Changelog:** [`2026-10-12_remove_users_password_and_align_supabase_auth.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-12_remove_users_password_and_align_supabase_auth.md).
+
 ### Checkpoint: Restrukturisasi Aturan & Koreksi Invarian Finansial (2026-10-12)
 - **Status:** Completed & Aligned ✅
 - **Capaian:**

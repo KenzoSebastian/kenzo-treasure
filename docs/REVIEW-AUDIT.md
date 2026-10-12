@@ -8,10 +8,10 @@
 - Treat these as historical status from the documents, not proof that the current repository or deployment is healthy.
 
 ## High-priority contradictions
-1. **Auth:** PRD selects Supabase Auth while Drizzle `users` contains `password`; Backend B2 says implement BCrypt/Argon2, duplicating credential storage. Prioritize a safe, data-preserving schema/auth alignment before B2; verify deployed schema and migration process.
+1. **Auth [RESOLVED 2026-10-12]:** Telah diselaraskan: Supabase Auth adalah otoritas akun tunggal; kolom `password` di `public.users` telah dihapus via migrasi Drizzle `0001_busy_hiroim.sql`; `public.users` difungsikan sebagai tabel profil pengguna terhubung 1:1 ke `auth.users.id`.
 2. **Next.js convention:** Plan B2 requests `src/middleware.ts` although project stack is Next.js 16. Official v16 uses `src/proxy.ts` / `proxy`. Authenticate/authorize in actions, not proxy alone.
-3. **Direct DB access and RLS:** B1 report says runtime uses `postgres.js` through Supavisor. It doesn't establish per-user RLS identity for Drizzle queries. Confirm driver role and enforce secure ownership/authorization; verify policies rather than presuming RLS is effective.
-4. **Security risk:** B1 reports `drizzle-kit push --force` against Supabase. Reconcile schema/migration history and forbid further destructive pushes until reviewed.
+3. **Direct DB access and RLS [RESOLVED 2026-10-12]:** Disepakati: Validasi sesi via `supabase.auth.getUser()` dan filter kepemilikan eksplisit (`eq(table.userId, user.id)`) diterapkan di seluruh Server Actions untuk memastikan isolasi data multi-user.
+4. **Security risk [RESOLVED 2026-10-12]:** Migrasi skema didokumentasikan dan digenerate ke file migrasi formal (`src/db/migrations/`). Seluruh migrasi berikutnya wajib non-destruktif.
 5. **Versions:** PRD section 2 says Next.js 16, but milestone Phase 1 says Next.js 15; package versions in AGENTS can become stale. Manifest and actual lockfile win for installed package versions.
 6. **Deprecated model:** PRD, B13 and F15 name `Gemini 1.5 Flash`; replace with a supported model chosen after fresh official API verification; do not guess future compatibility.
 7. **PWA ambiguity:** PRD says Serwist *or* next-pwa, AGENTS fixes next-pwa; decide based on compatibility with actual Next.js 16 build.
