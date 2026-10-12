@@ -32,6 +32,15 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
 
 ## 📝 Log Checkpoint Terbaru
 
+### Checkpoint: Restrukturisasi Aturan & Koreksi Invarian Finansial (2026-10-12)
+- **Status:** Completed & Aligned ✅
+- **Capaian:**
+  1. Restrukturisasi aturan proyek Kenzo Treasury menjadi sistem modular di `.agents/rules/` (`database-access.md`, `financial-domain.md`, `frontend-design.md`, `project-architecture.md`).
+  2. Integrasi skill spesifik proyek di `.agents/skills/` (`phase-delivery`, `financial-integrity`).
+  3. Dokumentasi blueprint, design system, dan audit teknis di `docs/` (`PROJECT-STRUCTURE.md`, `DESIGN-SYSTEM.md`, `REVIEW-AUDIT.md`, `DECISIONS-NEEDED.md`).
+  4. Perbaikan dan penulisan komprehensif berkas [`.agents/rules/financial-domain.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.agents/rules/financial-domain.md) mencakup seluruh invarian finansial: integer Rupiah, dynamic freedom buffer, finite lifetime cicilan, transfer sinking fund wishlist tanpa defisit, idempotensi sweep tutup buku, dan single source of truth.
+- **File Changelog:** [`2026-10-12_reorganize_rules_and_financial_domain.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-12_reorganize_rules_and_financial_domain.md).
+
 ### Checkpoint: Fase B1 — Konfigurasi Drizzle ORM, Skema 9 Tabel & Koneksi Supabase (2026-10-10)
 - **Status:** Approved by Kenzo ✅
 - **Capaian:**
