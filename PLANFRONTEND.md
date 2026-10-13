@@ -32,7 +32,23 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 
 ---
 
-### Fase F3: App Shell, Mobile Layout & Navigasi Utama
+### Fase F3: Halaman Depan Publik (Public Landing Page 12 Sections)
+- [ ] Buat Navbar presisi `src/components/features/landing/LandingNavbar.tsx` (Logo Kenzo Treasury, nav anchor links, theme toggle, tombol aksi Masuk `/login` & Mulai `/register`).
+- [ ] Buat Hero section `src/components/features/landing/HeroSection.tsx` (Badge pill v1.0, headline presisi finansial, dual CTA buttons, preview mockup dashboard).
+- [ ] Buat Problem vs Solution section `src/components/features/landing/ProblemSolutionSection.tsx` (Perbandingan Notion/Excel lama vs Kenzo Treasury PWA).
+- [ ] Buat Metrics & KPI strip `src/components/features/landing/MetricsStrip.tsx` (Rp 4jt gaji pokok, 7 pos wajib, <5 detik quick add, 100% kedaulatan data).
+- [ ] Buat Bento Grid 6 Pilar Finansial `src/components/features/landing/BentoFeatures.tsx` (Siklus Mandiri, Dynamic Buffer, Finite Debt, Safety Months Vault, Gamified Wishlist, AI Review).
+- [ ] Buat Sub-Second Mobile Showcase `src/components/features/landing/MobileShowcase.tsx` (Visual Quick Add Drawer, input numpad ponsel, 5-second Undo toast).
+- [ ] Buat Workflow 4 Langkah Siklus `src/components/features/landing/WorkflowSection.tsx` (Generate Bulan, Catat Harian, Alokasi Sinking Fund, Tutup Buku & Evaluasi AI).
+- [ ] Buat Security & Sovereignty section `src/components/features/landing/SecuritySection.tsx` (RLS PostgreSQL, HTTP-only cookies, 1-Click Backup JSON/CSV, Offline mode).
+- [ ] Buat Comparison Matrix table `src/components/features/landing/ComparisonTable.tsx` (Kenzo Treasury vs Apps Keuangan Biasa vs Notion/Spreadsheet).
+- [ ] Buat Interactive FAQ Accordion `src/components/features/landing/FaqAccordion.tsx` (PWA install, keamanan data, freelance adjustment, undo kesalahan).
+- [ ] Buat Final CTA Banner & Brand Footer `src/components/features/landing/LandingFooter.tsx` (Ajakan mulai, status kedaulatan data, status teknologi Next.js 16/Supabase, copyright).
+- [ ] Susun komposisi 12 section secara terintegrasi langsung di `src/app/page.tsx` dengan desain Swiss Functional Minimalism dan dark/light mode adaptif.
+
+---
+
+### Fase F4: App Shell, Mobile Layout & Navigasi Utama Dashboard
 - [ ] Buat komponen header aplikasi `src/components/layout/AppHeader.tsx` (Logo Kenzo Treasury, Theme Toggle, Profile/Logout).
 - [ ] Buat navigasi bawah mobile `src/components/layout/MobileBottomNav.tsx` (Dashboard, Pos Anggaran, Wishlist, Analytics).
 - [ ] Buat layout wrapper responsif `src/components/layout/DashboardLayout.tsx`.
@@ -40,7 +56,7 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 
 ---
 
-### Fase F4: Dropdown Pemilih Bulan & Trigger 1-Click Generator
+### Fase F5: Dropdown Pemilih Bulan & Trigger 1-Click Generator
 - [ ] Buat komponen `src/components/features/months/MonthSelector.tsx`:
   - Dropdown daftar bulan aktif & bulan riwayat lampau.
   - Indikator status bulan (`🟢 Berjalan` vs `🔒 Terkunci / Diarsipkan`).
@@ -50,7 +66,7 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 
 ---
 
-### Fase F5: Executive Summary Card & Cashflow KPI Bulanan
+### Fase F6: Executive Summary Card & Cashflow KPI Bulanan
 - [ ] Buat komponen kartu ringkasan eksekutif `src/components/features/dashboard/ExecutiveSummaryCard.tsx`:
   - Total Pemasukan Bulan Berjalan (Format Rupiah IDR).
   - Total Pengeluaran Terpakai.
@@ -59,7 +75,7 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 
 ---
 
-### Fase F6: Presentasi 7 Pos Anggaran Wajib & Indikator Status
+### Fase F7: Presentasi 7 Pos Anggaran Wajib & Indikator Status
 - [ ] Buat komponen grid pos pengeluaran `src/components/features/categories/BudgetCategoryList.tsx`.
 - [ ] Buat kartu individu pos `src/components/features/categories/BudgetCategoryCard.tsx`:
   - Icon pos (`✝️`, `⚡`, `💰`, `⛽`, `🍿`, `📱`, `👩‍👦`).
@@ -70,7 +86,7 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 
 ---
 
-### Fase F7: Mobile Sub-Second Quick Add Drawer (<5 Detik)
+### Fase F8: Mobile Sub-Second Quick Add Drawer (<5 Detik)
 - [ ] Buat tombol floating action / sticky bottom `+ Catat Pengeluaran` di tampilan mobile.
 - [ ] Buat Drawer modal kilat `src/components/features/transactions/QuickTransactionDrawer.tsx`:
   - Input nominal uang dengan format angka otomatis dan numberpad ponsel (`inputMode="numeric"`).
@@ -81,7 +97,7 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 
 ---
 
-### Fase F8: Sub-Log Riwayat Transaksi & 5-Second Undo Toast
+### Fase F9: Sub-Log Riwayat Transaksi & 5-Second Undo Toast
 - [ ] Buat daftar transaksi harian di dalam masing-masing pos `src/components/features/transactions/TransactionSubList.tsx`.
 - [ ] Tampilkan baris transaksi: tanggal, nominal Rupiah, keterangan, dan badge metode bayar.
 - [ ] Pasang tombol aksi hapus transaksi:
@@ -91,7 +107,7 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 
 ---
 
-### Fase F9: Komponen Pemasukan Gaji vs Freelance (Alokasi Dinamis)
+### Fase F10: Komponen Pemasukan Gaji vs Freelance (Alokasi Dinamis)
 - [ ] Buat seksi manajemen pemasukan bulanan `src/components/features/incomes/IncomeSection.tsx`.
 - [ ] Tampilkan kartu `💵 Gaji Pokok: Rp 4.000.000` (terikat ke 7 pos wajib).
 - [ ] Tampilkan kartu pemasukan tambahan (Freelance Edit Video, Project Luar, dll.).
@@ -99,7 +115,7 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 
 ---
 
-### Fase F10: Kartu Tracking Cicilan / Utang Bertarget Lunas
+### Fase F11: Kartu Tracking Cicilan / Utang Bertarget Lunas
 - [ ] Buat kartu khusus cicilan `src/components/features/liabilities/LiabilityTrackerCard.tsx`:
   - Tracking Cicilan iPhone: Target Rp 17.640.000 (Rp 735.000/bln x 24 bulan), akumulasi terbayar (Rp 5.000.000+).
   - Tracking Talangan Mama: Target Rp 2.500.000 (Rp 500.000/bln).
@@ -109,7 +125,7 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 
 ---
 
-### Fase F11: Gamified Dream Wishlists Grid & Kompresor Foto WebP
+### Fase F12: Gamified Dream Wishlists Grid & Kompresor Foto WebP
 - [ ] Buat halaman / seksi impian `src/components/features/wishlists/WishlistGrid.tsx`.
 - [ ] Buat kartu barang impian `src/components/features/wishlists/WishlistCard.tsx`:
   - Foto barang impian (Mobil, Kamera, Gadget) dengan loading skeleton.
@@ -121,7 +137,7 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 
 ---
 
-### Fase F12: Modal Alokasi Sinking Fund & Milestone Confetti
+### Fase F13: Modal Alokasi Sinking Fund & Milestone Confetti
 - [ ] Buat Drawer/Modal alokasi dana `src/components/features/wishlists/AllocateWishlistDrawer.tsx`:
   - Menampilkan sisa Saldo Tabungan Bebas yang tersedia.
   - Input nominal alokasi dengan quick pill shortcut (`10%`, `25%`, `50%`, `Semua Saldo`).
@@ -131,7 +147,7 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 
 ---
 
-### Fase F13: Tampilan Brankas Dana Darurat & Safety Months Meter
+### Fase F14: Tampilan Brankas Dana Darurat & Safety Months Meter
 - [ ] Buat kartu Brankas Dana Darurat `src/components/features/savings/EmergencyVaultCard.tsx`:
   - Tampilan visual brankas dengan indikator kunci keamanan.
   - Nominal Saldo Dana Darurat terkumpul vs Target Ideal (Rp 18.000.000).
@@ -140,7 +156,7 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 
 ---
 
-### Fase F14: Dashboard Grafik Analytics Recharts
+### Fase F15: Dashboard Grafik Analytics Recharts
 - [ ] Pasang dependensi visualisasi `recharts`.
 - [ ] Buat komponen analitik `src/components/features/analytics/AnalyticsDashboard.tsx`:
   - Toggle Switch antara **Grafik Batang (Bar Chart)** dan **Grafik Garis (Line Chart)**.
@@ -151,7 +167,7 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 
 ---
 
-### Fase F15: Modal Review Finansial Bulanan AI (Gemini 1.5 Flash)
+### Fase F16: Modal Review Finansial Bulanan AI (Gemini 1.5 Flash)
 - [ ] Buat tombol trigger `[✨ Evaluasi Bulan Ini dengan AI]` di panel penutupan buku bulanan.
 - [ ] Buat modal dialog review cerdas `src/components/features/ai/AiMonthlyReviewModal.tsx`:
   - Animasi loading shimmering saat AI sedang menganalisis data.
@@ -161,7 +177,7 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 
 ---
 
-### Fase F16: Antarmuka Export Data & Backup Mandiri
+### Fase F17: Antarmuka Export Data & Backup Mandiri
 - [ ] Buat panel pengaturan data `src/components/features/settings/DataExportPanel.tsx`.
 - [ ] Pasang tombol aksi:
   - `📥 Download CSV Transaksi Bulanan`.
@@ -171,10 +187,11 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 
 ---
 
-### Fase F17: PWA Setup, Status Sinkronisasi Offline & Ergonomi Mobile
+### Fase F18: PWA Setup, Status Sinkronisasi Offline & Ergonomi Mobile
 - [ ] Setup Web App Manifest (`public/manifest.json`), icons, dan meta theme color.
 - [ ] Buat indikator banner status konektivitas `src/components/common/NetworkStatusBanner.tsx`:
   - Menampilkan badge "🟡 Mode Offline — Disimpan di perangkat" saat koneksi terputus.
   - Otomatis trigger background sync TanStack Query saat kembali online.
 - [ ] Audit touch targets seluruh tombol mobile (minimal $48 \times 48\text{ px}$).
 - [ ] Verifikasi uji kontras Dark & Light Mode di seluruh layar.
+

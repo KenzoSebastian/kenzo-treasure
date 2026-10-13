@@ -290,10 +290,24 @@ Pos anggaran cicilan memiliki batas akhir pelunasan (*finite lifecycle*):
 
 ## 5. Functional Requirements (FR)
 
+### Modul 0: Halaman Depan Publik (Public Landing Page at '/')
+- **FR-0.1 Navbar Publik:** Memuat branding identitas Kenzo Treasury, navigasi section (Fitur, Cara Kerja, Keamanan), toggle tema Dark/Light mode, dan tombol aksi "Masuk" (`/login`) serta "Daftar" (`/register`).
+- **FR-0.2 Hero Section:** Headline proposisi nilai (*"Sistem Manajemen Keuangan Bulanan Independen"*), sub-headline filosofi cashflow disiplin, tombol CTA utama menuju `/register`, dan preview mockup visual antarmuka dashboard finansial.
+- **FR-0.3 Feature Highlights & USP Grid:** Penjelasan visual 6 pilar sistem:
+  1. *Siklus Bulanan Terisolasi:* Lembar kerja mandiri tiap bulan tanpa kontaminasi antar siklus.
+  2. *7 Pos Wajib & Dynamic Buffer:* Pemasukan freelance otomatis memperbesar pos tabungan/uang bebas.
+  3. *Finite Debt Tracker:* Cicilan iPhone & Talangan Mama bertarget pelunasan pasti (otomatis pensiun saat lunas).
+  4. *Brankas Dana Darurat:* Meteran ketahanan hidup (*Safety Months*).
+  5. *Gamified Wishlist:* Alokasi sinking fund barang impian bertahap.
+  6. *Evaluasi Finansial AI:* Review cerdas penutupan buku dengan Gemini AI.
+- **FR-0.4 Conversion CTA & Footer:** Seksi ajakan aksi penutup dan footer informasi aplikasi (PWA ready, kedaulatan data, copyright).
+- **FR-0.5 Routing & Access Flow:** Rute `/` terbuka untuk publik. Jika pengguna dengan sesi aktif membuka `/`, tombol navbar menyediakan tautan cepat `"Buka Dashboard"` menuju `/dashboard`.
+
 ### Modul 1: Autentikasi & Proteksi Akses
 - **FR-1.1:** Pengguna wajib login menggunakan Supabase Auth (Email/Password atau Google OAuth).
 - **FR-1.2:** Sesi autentikasi ditangani secara SSR via `@supabase/ssr` middleware untuk mencegah flashing konten.
 - **FR-1.3:** Row Level Security (RLS) di Postgres menjamin pengguna hanya bisa membaca dan mengubah data miliknya (`auth.uid() = user_id`).
+- **FR-1.4 Pemisahan Zona Rute:** Rute publik (`/`, `/login`, `/register`) vs rute terproteksi (`/dashboard/*`). Pengguna unauthenticated yang mengakses `/dashboard` otomatis dialihkan ke `/login`.
 
 ### Modul 2: Header Dashboard & Hero Financial Overview
 - **FR-2.1 Hero Card Tabungan:** Menampilkan akumulasi `Total Saldo Tabungan` secara prominent dengan tombol pintas untuk setor/tarik manual jika ada mutasi di luar sistem.

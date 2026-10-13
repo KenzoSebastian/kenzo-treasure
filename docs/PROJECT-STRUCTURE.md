@@ -38,15 +38,17 @@ kenzo-treasure/
 │   └── manifest.json                 # Manifest jika dipakai konfigurasi PWA
 ├── src/
 │   ├── app/                          # Next.js App Router
-│   │   ├── (auth)/
-│   │   │   ├── login/page.tsx
-│   │   │   └── register/page.tsx
-│   │   ├── (dashboard)/
-│   │   │   ├── page.tsx
-│   │   │   ├── wishlists/page.tsx
-│   │   │   ├── analytics/page.tsx
-│   │   │   ├── vault/page.tsx
-│   │   │   └── settings/page.tsx
+│   │   ├── page.tsx                  # Root URL '/' — Public Landing Page (Navbar publik, Hero, Fitur, CTA, Footer)
+│   │   ├── (auth)/                   # Zona Autentikasi Publik
+│   │   │   ├── login/page.tsx        # Halaman Masuk Akun
+│   │   │   └── register/page.tsx     # Halaman Registrasi Akun
+│   │   ├── (dashboard)/              # Zona Workspace Privat Terproteksi
+│   │   │   └── dashboard/
+│   │   │       ├── page.tsx          # Panel Utama (Ikhtisar Finansial Bulanan)
+│   │   │       ├── wishlists/page.tsx# Sinking Fund & Wishlist Barang Impian
+│   │   │       ├── analytics/page.tsx# Grafik Tren Tabungan & Cashflow
+│   │   │       ├── vault/page.tsx    # Brankas Dana Darurat (Safety Months)
+│   │   │       └── settings/page.tsx # Pengaturan & Ekspor Data Backup
 │   │   ├── api/                      # Route Handler bila diperlukan
 │   │   ├── globals.css               # Tailwind/theme/global CSS
 │   │   ├── layout.tsx                # Root layout
@@ -67,6 +69,7 @@ kenzo-treasure/
 │   │   ├── ui/                        # Primitif/reusable Shadcn UI
 │   │   ├── layout/                    # Header, navigasi, shell aplikasi
 │   │   ├── features/
+│   │   │   ├── landing/               # Komponen Halaman Depan (Navbar, Hero, Fitur, CTA, Footer)
 │   │   │   ├── months/
 │   │   │   ├── dashboard/
 │   │   │   ├── categories/

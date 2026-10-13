@@ -17,8 +17,9 @@ motion: "2/10 — responsif dan seperlunya"
 **Swiss Functional Minimalism:** tenang, rasional, grid-based, typography-led, dan mengutamakan keterbacaan nominal keuangan. Kejelasan dan kecepatan pencatatan lebih penting daripada tampilan dekoratif.
 
 - Karakter: profesional, personal, presisi, tidak terasa seperti landing page SaaS generik.
+- Karakter Landing Page (`/`): bersih, tipografi editorial yang tegas, navigasi sticky tenang, preview antarmuka nyata (mockup dashboard), dan ajakan aksi yang transparan tanpa elemen dekoratif berlebihan (bebas gradient mencolok, glassmorphism liar, atau marketing buzzwords).
 - Prinsip: setiap elemen memiliki fungsi; ruang kosong membentuk hierarki, bukan sekadar memperluas halaman.
-- Kepadatan: sedang pada dashboard, lapang pada formulir penting; tidak memaksakan whitespace ala hero marketing.
+- Kepadatan: sedang pada dashboard, lapang pada landing page dan formulir penting; tidak memaksakan whitespace kosong tanpa informasi.
 - Jangan mengubah desain yang sudah disetujui secara sepihak. Gunakan existing components/tokens sebagai acuan sebelum menambah pola baru.
 
 ## 2. Palet Warna Semantik

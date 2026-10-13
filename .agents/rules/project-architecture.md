@@ -12,8 +12,12 @@ description: "Aturan arsitektur Kenzo Treasury untuk menentukan lokasi file, men
 - Baca hanya bagian peta dan dokumen terkait tugas; jangan membuka seluruh PRD/roadmap tanpa kebutuhan.
 
 ## Penempatan dan pemisahan tanggung jawab
-- `src/app/`: route, layout, loading/error UI, dan komposisi halaman Next.js App Router. Jangan tempatkan logika finansial di halaman.
-- `src/components/ui/`: primitive atau komponen Shadcn yang dapat dipakai ulang; `src/components/layout/`: kerangka navigasi/layout; `src/components/features/<domain>/`: komponen fitur.
+- `src/app/`: route, layout, loading/error UI, dan komposisi halaman Next.js App Router. Terbagi menjadi 3 zona akses:
+  1. **Halaman Depan Publik (`/`):** Landing page langsung di root path (`src/app/page.tsx`) yang memuat Navbar publik, Hero Section, Value Proposition/Fitur, dan CTA konversi.
+  2. **Autentikasi Publik (`/login`, `/register`):** Formulir masuk & daftar akun di `src/app/(auth)/`.
+  3. **Workspace Terproteksi (`/dashboard/*`):** Panel dashboard finansial privat di `src/app/(dashboard)/dashboard/` (ikhtisar bulanan, pos anggaran, wishlist, analitik, vault, dan pengaturan).
+  Jangan tempatkan logika finansial atau query DB langsung di halaman.
+- `src/components/ui/`: primitive atau komponen Shadcn yang dapat dipakai ulang; `src/components/layout/`: kerangka navigasi/layout aplikasi & dashboard; `src/components/features/<domain>/`: komponen fitur (termask `landing/` untuk seksi halaman depan).
 - `src/actions/`: batas mutasi server dan koordinasi kebutuhan request; validasi input, autentikasi, dan otorisasi tetap wajib. Jangan menganggap semua pembacaan data harus berupa Server Action.
 - `src/db/`: schema, koneksi, dan migrasi; ikuti lokasi migrasi yang **benar-benar dikonfigurasi** oleh Drizzle, bukan asumsi dari diagram.
 - `src/schemas/`: validasi Zod yang layak digunakan lintas client/server; `src/hooks/`: hook React; `src/lib/`: utilitas murni, adaptor SDK, atau helper terfokus.
