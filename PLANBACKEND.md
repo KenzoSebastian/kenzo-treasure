@@ -34,13 +34,13 @@ Dokumen ini adalah rencana kerja backend bertahap (granular) untuk **Kenzo Treas
 ---
 
 ### Fase B3: Financial Calculation Engine (Single Source of Truth)
-- [ ] Buat berkas terpusat `src/lib/financial-calculations.ts` sebagai satu-satunya sumber rumus finansial.
-- [ ] Implementasikan fungsi rumus sisa anggaran pos: `calculateRemainingBudget(target, spent)`.
-- [ ] Implementasikan fungsi status anggaran pos: `getBudgetStatus(target, spent)` (`healthy`, `warning`, `overbudget`).
-- [ ] Implementasikan fungsi progress utang: `calculateDebtProgress(paid, total)` & cek pelunasan (`isSettled`).
-- [ ] Implementasikan fungsi safety months dana darurat: `calculateSafetyMonths(balance, monthlyFixedExpense)`.
-- [ ] Implementasikan fungsi saldo tabungan bebas: `calculateFreeSavings(...)`.
-- [ ] Buat unit test mandiri di `src/lib/__tests__/financial-calculations.test.ts` untuk memverifikasi akurasi matematika finansial tanpa desimal/floating point bug.
+- [x] Buat berkas terpusat `src/lib/financial-calculations.ts` sebagai satu-satunya sumber rumus finansial.
+- [x] Implementasikan fungsi rumus sisa anggaran pos: `calculateRemainingBudget(target, spent)`.
+- [x] Implementasikan fungsi status anggaran pos: `getBudgetStatus(target, spent)` (`healthy`, `warning`, `overbudget`).
+- [x] Implementasikan fungsi progress utang: `calculateDebtProgress(paid, total)` & cek pelunasan (`isSettled`).
+- [x] Implementasikan fungsi safety months dana darurat: `calculateSafetyMonths(balance, monthlyFixedExpense)`.
+- [x] Implementasikan fungsi saldo tabungan bebas: `calculateFreeSavings(...)`.
+- [x] Buat unit test mandiri di `src/lib/__tests__/financial-calculations.test.ts` untuk memverifikasi akurasi matematika finansial tanpa desimal/floating point bug.
 
 ---
 

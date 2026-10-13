@@ -6,7 +6,7 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 
 ## 📌 Ringkasan Status Proyek
 
-- **Status Saat Ini:** **Fase B2 Selesai & Disetujui (Approved ✅)** $\rightarrow$ Menunggu Kenzo commit git manual & instruksi fase berikutnya (Fase B3 / F2)
+- **Status Saat Ini:** **Fase B3 Selesai & Disetujui (Approved ✅)** $\rightarrow$ Menunggu Kenzo commit git manual & instruksi fase berikutnya (Fase B4 / F2)
 - **Tech Stack Terkunci:**
   - Runtime & Package Manager: Bun (v1.4.2)
   - Frontend: Next.js 16 (App Router, React 19, TypeScript)
@@ -31,6 +31,22 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
 ---
 
 ## 📝 Log Checkpoint Terbaru
+
+### Checkpoint: Implementasi Fase B3 — Financial Calculation Engine (Single Source of Truth) (2026-10-13)
+- **Status:** Approved ✅
+- **Capaian:**
+  1. Pembuatan berkas terpusat `src/lib/financial-calculations.ts` yang menjadi satu-satunya sumber rumus finansial di Kenzo Treasury.
+  2. Implementasi fungsi sanitasi angka & pemformat lokal: `toIntegerRupiah`, `formatRupiah`, dan `parseRupiah`.
+  3. Implementasi kalkulasi anggaran pos: `calculateRemainingBudget`, `calculateBudgetUsagePercentage`, dan `getBudgetStatus` (`healthy`, `warning`, `overbudget`) sesuai FR-5.1.
+  4. Implementasi `calculateDynamicFreedomBuffer` untuk auto-scaling pos uang bebas saat ada pemasukan freelance/tambahan (Invarian 3).
+  5. Implementasi kalkulasi cicilan bertarget lunas: `calculateDebtProgress` dan `calculateRemainingDebtMonths` (Invarian 4).
+  6. Implementasi `calculateSafetyMonths` (rasio ketahanan hidup 1 desimal terhadap biaya wajib bulanan) dan target default Rp 18.000.000 (Invarian 5 & FR-12.1).
+  7. Implementasi `calculateFreeSavings` dan `calculateWishlistProgress` lengkap dengan 6 milestone gamifikasi barang impian (FR-10.4).
+  8. Implementasi `calculateNetCashflow`, `calculateSavingsRate`, dan `calculateMonthSweep` untuk penutupan buku (Invarian 6).
+  9. Pembuatan unit test suite mandiri di `src/lib/__tests__/financial-calculations.test.ts` (21 pengujian lolos, 0 gagal, 91 assertions).
+  10. Penambahan script `"test": "bun test"` serta `@types/bun` ke `package.json`.
+  11. Lolos seluruh gerbang kualitas: `bun test` (PASS), `bun run typecheck` (PASS, 0 error), dan `bun run build` (PASS, 0 error).
+- **File Changelog:** [`2026-10-13_fase_b3_financial_calculation_engine.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-13_fase_b3_financial_calculation_engine.md).
 
 ### Checkpoint: Implementasi Fase B2 — Supabase SSR Client, Middleware Session & Auth Helpers (2026-10-13)
 - **Status:** Approved ✅
