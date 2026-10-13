@@ -6,7 +6,7 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 
 ## 📌 Ringkasan Status Proyek
 
-- **Status Saat Ini:** **Fase B1 Selesai** $\rightarrow$ Menunggu Kenzo commit git manual & instruksi fase berikutnya (Fase B2 / F2)
+- **Status Saat Ini:** **Fase B2 Selesai & Disetujui (Approved ✅)** $\rightarrow$ Menunggu Kenzo commit git manual & instruksi fase berikutnya (Fase B3 / F2)
 - **Tech Stack Terkunci:**
   - Runtime & Package Manager: Bun (v1.4.2)
   - Frontend: Next.js 16 (App Router, React 19, TypeScript)
@@ -31,6 +31,27 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
 ---
 
 ## 📝 Log Checkpoint Terbaru
+
+### Checkpoint: Implementasi Fase B2 — Supabase SSR Client, Middleware Session & Auth Helpers (2026-10-13)
+- **Status:** Approved ✅
+- **Capaian:**
+  1. Penambahan dependensi validasi skema `zod` ke `package.json`.
+  2. Pembuatan kontrak discriminated union `ActionResponse<T>` di `src/types/index.ts` dan Zod schema autentikasi di `src/schemas/auth.schema.ts`.
+  3. Pembuatan helper SSR Supabase: `src/lib/supabase/client.ts` (Browser) dan `src/lib/supabase/server.ts` (Server dengan async cookies Next.js 16).
+  4. Pembuatan middleware token refresh dan proteksi rute di `src/middleware.ts`.
+  5. Pembuatan Server Actions di `src/actions/auth.ts` (`register`, `login`, `logout`, `getCurrentUser`) dengan sinkronisasi profil `public.users` dan inisialisasi default `public.savings_account`.
+  6. Pembuatan UI autentikasi fungsional di `src/app/(auth)/login/page.tsx` & `src/app/(auth)/register/page.tsx` dengan validasi inline (border merah + teks error spesifik di bawah field tanpa toast mengambang), penyambungan logout di `src/app/(dashboard)/page.tsx`, serta kodifikasi standar ke `.agents/rules/frontend-design.md` & `docs/DESIGN-SYSTEM.md`.
+  7. Eksekusi migrasi live `src/db/migrations/0002_enable_rls_all_tables.sql` mengaktifkan Row Level Security (RLS) dan ownership policies pada seluruh 9 tabel publik Supabase sehingga status UNRESTRICTED hilang.
+  8. Lolos verifikasi non-UI: `bun run typecheck` (PASS, 0 error) dan `bun run build` (PASS, 0 error).
+- **File Changelog:** [`2026-10-13_fase_b2_supabase_ssr_and_auth_actions.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-13_fase_b2_supabase_ssr_and_auth_actions.md).
+
+### Checkpoint: Instalasi Skill Khusus Proyek (2026-10-13)
+- **Status:** Installed & Active ✅
+- **Capaian:**
+  1. Penambahan 4 skill domain spesifik langsung di tingkat proyek (`.agents/skills/`): `tanstack-query-best-practices`, `recharts`, `zod`, dan `pwa-development`.
+  2. Seluruh skill diverifikasi berkualitas tinggi (>1K-12K installs) dan belum ada di global maupun konfigurasi proyek sebelumnya.
+  3. Konfigurasi lockfile skill tersimpan di `skills-lock.json`.
+- **File Changelog:** [`2026-10-13_add_project_specific_skills.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-13_add_project_specific_skills.md).
 
 ### Checkpoint: Penyelarasan Otoritas Supabase Auth & Penghapusan Password (2026-10-12)
 - **Status:** Completed & Aligned ✅

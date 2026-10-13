@@ -40,7 +40,8 @@ globs: "src/app/**/*.tsx, src/app/**/*.css, src/app/*.css, src/components/**/*.t
 ## 4. Interaksi, Feedback & State
 
 - Gunakan `Dialog` atau `AlertDialog` dari Shadcn UI untuk konfirmasi dan interaksi modal, bukan `alert()`, `confirm()`, atau `prompt()` bawaan browser.
-- Gunakan sistem toast aplikasi untuk notifikasi keberhasilan, kegagalan, dan aksi Undo.
+- Gunakan sistem toast aplikasi untuk notifikasi keberhasilan, kegagalan umum, dan aksi Undo.
+- **Validasi Formulir & Error Input:** Jangan menggunakan toast di atas layar untuk kesalahan input formulir pengguna. Wajib menampilkan pesan error teks merah kecil (`text-xs text-destructive`) langsung di bawah field yang bermasalah, dan mengubah border text field menjadi merah (`border-destructive focus:ring-destructive`). Toast hanya untuk feedback status global, aksi berhasil, atau error jaringan fatal.
 - Jangan menampilkan nominal keuangan asumsi ketika data masih dimuat atau terjadi kesalahan.
 - Tampilkan loading state, error state, empty state, dan opsi retry yang jelas sesuai kebutuhan.
 - Optimistic UI wajib disinkronkan dengan respons server yang sebenarnya.

@@ -72,7 +72,7 @@ Palet lama (hitam, putih, beige, abu-abu, taupe) menjadi **referensi karakter**,
 - Gunakan border halus untuk struktur; bayangan hanya untuk layer yang benar-benar melayang (dialog, popover) jika membantu pemisahan.
 - Card data: satu permukaan, satu hierarki judul, satu fokus informasi. Jangan meletakkan ikon dekoratif dalam kotak berwarna di setiap judul.
 - Button: primary jelas, secondary outline/ghost, destructive eksplisit. Hover/focus/disabled/loading harus mudah dibedakan.
-- Input: label tetap terlihat di atas field, error di bawah, focus ring jelas. Jangan mengandalkan placeholder sebagai label.
+- Input: label tetap terlihat di atas field, focus ring jelas. Jangan mengandalkan placeholder sebagai label. **Saat input salah:** jangan memunculkan toast melayang di atas; wajib mengubah border input menjadi merah (`border-destructive focus:ring-destructive`) dan menampilkan pesan error merah kecil (`text-xs text-destructive`) persis di bawah field yang bermasalah. Toast hanya dipakai untuk status aksi global/sukses/undo.
 
 ## 6. Komponen & Interaksi
 
