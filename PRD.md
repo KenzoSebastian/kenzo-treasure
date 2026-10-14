@@ -305,7 +305,7 @@ Pos anggaran cicilan memiliki batas akhir pelunasan (*finite lifecycle*):
 
 ### Modul 1: Autentikasi & Proteksi Akses
 - **FR-1.1:** Pengguna wajib login menggunakan Supabase Auth (Email/Password atau Google OAuth).
-- **FR-1.2:** Sesi autentikasi ditangani secara SSR via `@supabase/ssr` middleware untuk mencegah flashing konten.
+- **FR-1.2:** Sesi autentikasi ditangani secara SSR via `@supabase/ssr` edge proxy (`src/proxy.ts`) untuk mencegah flashing konten.
 - **FR-1.3:** Row Level Security (RLS) di Postgres menjamin pengguna hanya bisa membaca dan mengubah data miliknya (`auth.uid() = user_id`).
 - **FR-1.4 Pemisahan Zona Rute:** Rute publik (`/`, `/login`, `/register`) vs rute terproteksi (`/dashboard/*`). Pengguna unauthenticated yang mengakses `/dashboard` otomatis dialihkan ke `/login`.
 
@@ -583,7 +583,7 @@ Pos anggaran cicilan memiliki batas akhir pelunasan (*finite lifecycle*):
 - Inisialisasi **Shadcn UI** (`npx shadcn@latest init`) dengan instalasi komponen dasar (`button`, `card`, `dialog`, `drawer`, `progress`, `badge`, `input`, `tabs`, `table`, `popover`, `calendar`).
 - Setup Supabase project & konfigurasi koneksi PostgreSQL.
 - Setup Drizzle ORM schema, relasi, dan generate migrasi SQL pertama.
-- Konfigurasi Supabase Auth SSR middleware & protected route.
+- Konfigurasi Supabase Auth SSR proxy (`src/proxy.ts`) & protected route.
 
 ### Fase 2: Core Budgeting & Calculation Engine
 - Implementasi Server Actions untuk CRUD Bulan (`months`) dan Pos Anggaran (`budget_categories`).

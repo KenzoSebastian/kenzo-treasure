@@ -23,11 +23,11 @@ Dokumen ini adalah rencana kerja backend bertahap (granular) untuk **Kenzo Treas
 
 ---
 
-### Fase B2: Supabase SSR Client, Middleware Session & Auth Helpers
+### Fase B2: Supabase SSR Client, Proxy Session & Auth Helpers
 - [x] Setup dependensi autentikasi `@supabase/ssr`.
 - [x] Buat helper Supabase Client SSR di `src/lib/supabase/server.ts` (menggunakan cookies).
 - [x] Buat helper Supabase Client Browser di `src/lib/supabase/client.ts`.
-- [x] Buat helper session refresh & proteksi rute (`src/middleware.ts` / `src/proxy.ts`): memproteksi workspace privat (`/dashboard/*`) dan mengizinkan akses publik ke halaman depan (`/`) serta auth (`/login`, `/register`).
+- [x] Buat helper session refresh & proteksi rute (`src/proxy.ts`): memproteksi workspace privat (`/dashboard/*`) dan mengizinkan akses publik ke halaman depan (`/`) serta auth (`/login`, `/register`).
 - [x] Tautkan profil pengguna ke Supabase Auth (sinkronisasi profil `users` saat signup/login perdana).
 - [x] Buat Server Actions autentikasi di `src/actions/auth.ts` (`login`, `register`, `logout`, `getCurrentUser`).
 

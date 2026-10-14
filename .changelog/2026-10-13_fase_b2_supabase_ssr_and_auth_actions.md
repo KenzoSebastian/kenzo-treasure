@@ -17,12 +17,12 @@ Mengimplementasikan fondasi autentikasi SSR menyeluruh pada Kenzo Treasury:
 - **Supabase SSR Helpers:**
   - Browser: `src/lib/supabase/client.ts` menggunakan `createBrowserClient`.
   - Server SSR: `src/lib/supabase/server.ts` menggunakan `createServerClient` dan asynchronous `cookies()` Next.js 16.
-- **Middleware Proteksi & Token Refresh:** `src/middleware.ts` menyegarkan access token secara berkala via cookies dan memproteksi rute privat (`/`, `/wishlists`, dll.) dengan mengalihkan user belum login ke `/login`, serta mengalihkan user yang sudah login ke `/`.
+- **Edge Proxy Proteksi & Token Refresh:** `src/proxy.ts` (Next.js 16) menyegarkan access token secara berkala via cookies dan memproteksi rute privat (`/dashboard/*`) dengan mengalihkan user belum login ke `/login`, serta mengalihkan user yang sudah login ke `/`.
 - **Server Actions Autentikasi:** `src/actions/auth.ts` mengelola `register`, `login`, `logout`, dan `getCurrentUser`:
   - `register` otomatis menyinkronkan profil ke `public.users(id, email, fullName)` dan menginisialisasi `public.savings_account(userId, balance: 0, emergencyFundTarget: 18000000, emergencyFundBalance: 0)`.
   - `login` menyinkronkan data profil fallback secara idempotent.
   - `getCurrentUser` memverifikasi sesi resmi server melalui `supabase.auth.getUser()`.
-- **Halaman Auth Minimalis Fungsional:** `src/app/(auth)/login/page.tsx` dan `src/app/(auth)/register/page.tsx` dibuat agar alur autentikasi dan middleware dapat langsung diuji end-to-end tanpa 404, serta pembaruan `src/app/(dashboard)/page.tsx` dengan informasi pengguna aktif dan tombol logout.
+- **Halaman Auth Minimalis Fungsional:** `src/app/(auth)/login/page.tsx` dan `src/app/(auth)/register/page.tsx` dibuat agar alur autentikasi dan proxy dapat langsung diuji end-to-end tanpa 404, serta pembaruan `src/app/(dashboard)/page.tsx` dengan informasi pengguna aktif dan tombol logout.
 - **Standar Validasi Error Inline (Permintaan Kenzo):** Menghilangkan floating toast untuk kesalahan input pengguna. Pesan error ditampilkan persis di bawah field terkait (`text-xs text-destructive`) dan border input berubah menjadi merah (`border-destructive focus:ring-destructive`). Standar ini juga dikodifikasikan ke dalam `.agents/rules/frontend-design.md` dan `docs/DESIGN-SYSTEM.md`.
 - **Aktivasi Row Level Security (RLS) Seluruh 9 Tabel (Permintaan Kenzo):** Pembuatan file migrasi `src/db/migrations/0002_enable_rls_all_tables.sql` dan eksekusi live ke Supabase PostgreSQL. Mengaktifkan RLS pada seluruh 9 tabel publik (`users`, `savings_account`, `months`, `incomes`, `liabilities`, `budget_categories`, `transactions`, `wishlists`, `wishlist_allocations`) serta memasang policy kepemilikan terotorisasi `((select auth.uid()) = user_id)` sehingga status `UNRESTRICTED` di dashboard Supabase hilang dan berubah aman.
 
@@ -36,7 +36,7 @@ Mengimplementasikan fondasi autentikasi SSR menyeluruh pada Kenzo Treasury:
 - `src/schemas/auth.schema.ts`: Skema validasi login & register.
 - `src/lib/supabase/client.ts`: Supabase Browser Client helper.
 - `src/lib/supabase/server.ts`: Supabase Server Client helper.
-- `src/middleware.ts`: Next.js session refresh & route protection middleware.
+- `src/proxy.ts`: Next.js 16 session refresh & route protection proxy (migrasi dari middleware.ts).
 - `src/actions/auth.ts`: Server Actions login, register, logout, getCurrentUser dengan `fieldErrors` mapping.
 - `src/app/(auth)/login/page.tsx`: Halaman login dengan inline error border merah di bawah field.
 - `src/app/(auth)/register/page.tsx`: Halaman register dengan inline error border merah di bawah field.

@@ -64,7 +64,7 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
   1. Penambahan dependensi validasi skema `zod` ke `package.json`.
   2. Pembuatan kontrak discriminated union `ActionResponse<T>` di `src/types/index.ts` dan Zod schema autentikasi di `src/schemas/auth.schema.ts`.
   3. Pembuatan helper SSR Supabase: `src/lib/supabase/client.ts` (Browser) dan `src/lib/supabase/server.ts` (Server dengan async cookies Next.js 16).
-  4. Pembuatan middleware token refresh dan proteksi rute di `src/middleware.ts`.
+  4. Pembuatan edge proxy token refresh dan proteksi rute di `src/proxy.ts` (Next.js 16).
   5. Pembuatan Server Actions di `src/actions/auth.ts` (`register`, `login`, `logout`, `getCurrentUser`) dengan sinkronisasi profil `public.users` dan inisialisasi default `public.savings_account`.
   6. Pembuatan UI autentikasi fungsional di `src/app/(auth)/login/page.tsx` & `src/app/(auth)/register/page.tsx` dengan validasi inline (border merah + teks error spesifik di bawah field tanpa toast mengambang), penyambungan logout di `src/app/(dashboard)/page.tsx`, serta kodifikasi standar ke `.agents/rules/frontend-design.md` & `docs/DESIGN-SYSTEM.md`.
   7. Eksekusi migrasi live `src/db/migrations/0002_enable_rls_all_tables.sql` mengaktifkan Row Level Security (RLS) dan ownership policies pada seluruh 9 tabel publik Supabase sehingga status UNRESTRICTED hilang.

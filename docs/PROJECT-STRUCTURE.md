@@ -106,7 +106,8 @@ kenzo-treasure/
 │   │   ├── category.schema.ts
 │   │   ├── transaction.schema.ts
 │   │   └── wishlist.schema.ts
-│   └── types/                       # Tipe bersama yang benar-benar diperlukan
+│   ├── types/                       # Tipe bersama yang benar-benar diperlukan
+│   └── proxy.ts                     # Next.js 16 Edge Proxy (Session Refresh & Route Protection)
 ├── drizzle.config.ts
 ├── next.config.ts
 ├── package.json
@@ -161,7 +162,7 @@ Ini contoh pembagian tanggung jawab, **bukan klaim implementasi saat ini**. Oper
 Berdasarkan plan dan laporan yang diberikan, **F1 dan B1 sudah ditandai selesai/approved**. B2/F2 dan fase berikutnya masih dijadwalkan; jangan mengasumsikan semua folder pada blueprint telah dibuat.
 
 - Sebelum B2, tinjau konflik **Supabase Auth** dengan kolom password aplikasi dan instruksi hashing tersendiri. Perubahan schema/database memerlukan migrasi yang aman.
-- Rencana B2 menyebut `src/middleware.ts`; untuk Next.js 16 gunakan konvensi yang kompatibel dengan versi terpasang, termasuk `proxy.ts` bila relevan, setelah memeriksa konfigurasi aktual.
+- Sesi autentikasi dan proteksi rute telah dimigrasikan ke konvensi resmi Next.js 16 menggunakan `src/proxy.ts` (menggantikan konvensi `middleware.ts` lama).
 - Jangan mengunci nomor versi dependency, port pooler, atau nama model AI berdasarkan diagram lama. Periksa manifest, lockfile, konfigurasi, dan dokumentasi versi terkait.
 
 ## 7. Checklist saat menambah/memindahkan file

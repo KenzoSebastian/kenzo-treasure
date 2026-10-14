@@ -9,7 +9,7 @@
 
 ## High-priority contradictions
 1. **Auth [RESOLVED 2026-10-12]:** Telah diselaraskan: Supabase Auth adalah otoritas akun tunggal; kolom `password` di `public.users` telah dihapus via migrasi Drizzle `0001_busy_hiroim.sql`; `public.users` difungsikan sebagai tabel profil pengguna terhubung 1:1 ke `auth.users.id`.
-2. **Next.js convention:** Plan B2 requests `src/middleware.ts` although project stack is Next.js 16. Official v16 uses `src/proxy.ts` / `proxy`. Authenticate/authorize in actions, not proxy alone.
+2. **Next.js convention [RESOLVED 2026-10-14]:** Telah diselaraskan: Next.js 16 resmi menggunakan `src/proxy.ts` (menggantikan `src/middleware.ts`). Berkas `src/proxy.ts` telah diimplementasikan dengan eksekusi `export async function proxy`.
 3. **Direct DB access and RLS [RESOLVED 2026-10-12]:** Disepakati: Validasi sesi via `supabase.auth.getUser()` dan filter kepemilikan eksplisit (`eq(table.userId, user.id)`) diterapkan di seluruh Server Actions untuk memastikan isolasi data multi-user.
 4. **Security risk [RESOLVED 2026-10-12]:** Migrasi skema didokumentasikan dan digenerate ke file migrasi formal (`src/db/migrations/`). Seluruh migrasi berikutnya wajib non-destruktif.
 5. **Versions:** PRD section 2 says Next.js 16, but milestone Phase 1 says Next.js 15; package versions in AGENTS can become stale. Manifest and actual lockfile win for installed package versions.
