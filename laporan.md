@@ -6,7 +6,7 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 
 ## 📌 Ringkasan Status Proyek
 
-- **Status Saat Ini:** **Fase B3 Selesai & Disetujui (Approved ✅)** $\rightarrow$ Menunggu Kenzo commit git manual & instruksi fase berikutnya (Fase B4 / F2)
+- **Status Saat Ini:** **Fase F2 Selesai & Disetujui (Approved ✅)** $\rightarrow$ Menunggu Kenzo commit git manual & instruksi fase berikutnya (Fase F3 / B4)
 - **Tech Stack Terkunci:**
   - Runtime & Package Manager: Bun (v1.4.2)
   - Frontend: Next.js 16 (App Router, React 19, TypeScript)
@@ -31,6 +31,16 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
 ---
 
 ## 📝 Log Checkpoint Terbaru
+
+### Checkpoint: Implementasi Fase F2 — Setup Komponen Atomik Shadcn UI & Design Tokens (2026-10-14)
+- **Status:** Approved ✅
+- **Capaian:**
+  1. Inisialisasi CLI Shadcn UI (`components.json`) dengan konfigurasi `style: radix-nova`, Tailwind v4, Lucide icons, dan path alias terstandarisasi.
+  2. Integrasi token warna semantik Oklch dan dark mode adaptif di `src/app/globals.css`.
+  3. Pemasangan 18 komponen antarmuka atomik di `src/components/ui/`: `Button`, `Card`, `Dialog`, `AlertDialog`, `Drawer`, `Input`, `Label`, `Badge`, `Progress`, `Tabs`, `Table`, `Separator`, `Popover`, `Calendar`, `Select`, `Accordion`, `DropdownMenu`, dan `Sonner`.
+  4. Penyambungan `Toaster` theme-aware dari `@/components/ui/sonner` ke `src/app/layout.tsx`.
+  5. Lolos seluruh gerbang kualitas: `bun run typecheck` (PASS, 0 error), `bun test` (PASS, 21 tests lolos), dan `bun run build` (PASS, 0 error).
+- **File Changelog:** [`2026-10-14_fase_f2_setup_komponen_atomik_shadcn_ui.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-14_fase_f2_setup_komponen_atomik_shadcn_ui.md).
 
 ### Checkpoint: Implementasi Fase B3 — Financial Calculation Engine (Single Source of Truth) (2026-10-13)
 - **Status:** Approved ✅

@@ -24,11 +24,11 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 ---
 
 ### Fase F2: Setup Komponen Atomik Shadcn UI & Design Tokens
-- [ ] Inisialisasi CLI Shadcn UI (`npx shadcn@latest init` gaya New York).
-- [ ] Pasang komponen atomik dasar: `Button`, `Card`, `Dialog`, `AlertDialog`, `Drawer`, `Input`, `Label`.
-- [ ] Pasang komponen data & navigasi: `Badge`, `Progress`, `Tabs`, `Table`, `Separator`, `Popover`, `Calendar`, `Select`.
-- [ ] Pasang `sonner` untuk toaster notifikasi modern dan Undo banner.
-- [ ] Konfigurasi Lucide React icons.
+- [x] Inisialisasi CLI Shadcn UI (`npx shadcn@latest init` gaya New York).
+- [x] Pasang komponen atomik dasar: `Button`, `Card`, `Dialog`, `AlertDialog`, `Drawer`, `Input`, `Label`.
+- [x] Pasang komponen data & navigasi: `Badge`, `Progress`, `Tabs`, `Table`, `Separator`, `Popover`, `Calendar`, `Select`.
+- [x] Pasang `sonner` untuk toaster notifikasi modern dan Undo banner.
+- [x] Konfigurasi Lucide React icons.
 
 ---
 
