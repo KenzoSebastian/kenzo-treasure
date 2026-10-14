@@ -1,8 +1,10 @@
 ---
 date: 2026-10-09
+time: "22:25 WIB"
+timezone: Asia/Jakarta
 task: Pemetaan Struktur Direktori Proyek di AGENTS.md
 prompt: Buatkan struktur folder buat gambaran nanti di AGENTS.md
-author: Cecillia (Cil)
+author: Antigravity
 ---
 
 # Changelog: Pemetaan Struktur Direktori Proyek

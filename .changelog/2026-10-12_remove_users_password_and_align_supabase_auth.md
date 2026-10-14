@@ -1,8 +1,10 @@
 ---
 date: 2026-10-12
+time: "22:41 WIB"
+timezone: Asia/Jakarta
 task: Penyelarasan Otoritas Supabase Auth & Penghapusan Kolom Password
 prompt: oke setuju, klo kolom password null ya, apus aja beraarti, update file yg berkaitan dengan ini, biar selalu update
-author: Cecillia (Cil)
+author: Antigravity
 ---
 
 # Laporan Perubahan: Penyelarasan Supabase Auth & Penghapusan Kolom Password

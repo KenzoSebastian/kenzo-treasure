@@ -1,8 +1,10 @@
 ---
 date: 2026-10-13
+time: "19:48 WIB"
+timezone: Asia/Jakarta
 task: Instalasi Skill Khusus Proyek (TanStack Query, Recharts, Zod, PWA)
 prompt: /find-skills tolong cari skill skill yang relevan dengan project ini, dan tolong taro di project ini, jangan di global, cari skill yang belum ada di project ini atau di global
-author: Cecillia (Cil)
+author: Antigravity
 ---
 
 # Laporan Perubahan: Instalasi Skill Khusus Proyek

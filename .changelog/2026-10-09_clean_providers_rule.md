@@ -1,8 +1,10 @@
 ---
 date: 2026-10-09
+time: "23:14 WIB"
+timezone: Asia/Jakarta
 task: Penguncian Aturan Providers Wrapper Bersih di AGENTS.md
 prompt: Pastikan src/app/providers.tsx tetap bersih tanpa inisialisasi state/client di dalamnya
-author: Cecillia (Cil)
+author: Antigravity
 ---
 
 # Changelog: Penguncian Aturan Providers Wrapper Bersih

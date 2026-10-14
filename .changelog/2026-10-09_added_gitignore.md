@@ -1,8 +1,10 @@
 ---
 date: 2026-10-09
+time: "22:29 WIB"
+timezone: Asia/Jakarta
 task: Pembuatan Berkas .gitignore Proyek
 prompt: Lupa gitignore kan, tambahin dulu tuh
-author: Cecillia (Cil)
+author: Antigravity
 ---
 
 # Changelog: Pembuatan Berkas .gitignore

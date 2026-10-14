@@ -1,8 +1,10 @@
 ---
 date: 2026-10-09
+time: "22:08 WIB"
+timezone: Asia/Jakarta
 task: Penyusunan Dokumen Roadmap Granular (PLANBACKEND & PLANFRONTEND) & Protokol Approval Gate
 prompt: Membuat pembagian fase backend dan frontend ber-checklist, aturan 1 fase per sesi, dan gate approval sebelum checklist dicentang
-author: Cecillia (Cil)
+author: Antigravity
 ---
 
 # Changelog: Roadmap Granular & Protokol Approval Gate

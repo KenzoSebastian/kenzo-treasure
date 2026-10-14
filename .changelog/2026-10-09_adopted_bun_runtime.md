@@ -1,8 +1,10 @@
 ---
 date: 2026-10-09
+time: "23:01 WIB"
+timezone: Asia/Jakarta
 task: Migrasi Runtime & Package Manager ke Bun
 prompt: Pakai Bun, tidak pakai npm lagi, catat di PRD.md dan AGENTS.md
-author: Cecillia (Cil)
+author: Antigravity
 ---
 
 # Changelog: Migrasi Runtime & Package Manager ke Bun

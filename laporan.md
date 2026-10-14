@@ -32,7 +32,16 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
 
 ## 📝 Log Checkpoint Terbaru
 
-### Checkpoint: Implementasi Fase F2 — Setup Komponen Atomik Shadcn UI & Design Tokens (2026-10-14)
+### Checkpoint: Migrasi Edge Proxy Next.js 16 (2026-10-14 21:30 WIB)
+- **Status:** Completed ✅
+- **Capaian:**
+  1. Migrasi konvensi `src/middleware.ts` ke `src/proxy.ts` dengan ekspor fungsi resmi Next.js 16 `export async function proxy(request: NextRequest)`.
+  2. Penegasan pembagian 3 zona akses: publik (`/`, `/login`, `/register`) vs privat (`/dashboard/*`).
+  3. Pembaruan seluruh dokumen acuan: `PRD.md`, `PLANBACKEND.md`, `docs/PROJECT-STRUCTURE.md`, `docs/REVIEW-AUDIT.md`, dan `.changelog/`.
+  4. Lolos verifikasi build Next.js 16 tanpa peringatan deprecation middleware.
+- **File Changelog:** [`2026-10-14_migrate_middleware_to_proxy_next16.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-14_migrate_middleware_to_proxy_next16.md).
+
+### Checkpoint: Implementasi Fase F2 — Setup Komponen Atomik Shadcn UI & Design Tokens (2026-10-14 21:12 WIB)
 - **Status:** Approved ✅
 - **Capaian:**
   1. Inisialisasi CLI Shadcn UI (`components.json`) dengan konfigurasi `style: radix-nova`, Tailwind v4, Lucide icons, dan path alias terstandarisasi.
@@ -42,7 +51,7 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
   5. Lolos seluruh gerbang kualitas: `bun run typecheck` (PASS, 0 error), `bun test` (PASS, 21 tests lolos), dan `bun run build` (PASS, 0 error).
 - **File Changelog:** [`2026-10-14_fase_f2_setup_komponen_atomik_shadcn_ui.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-14_fase_f2_setup_komponen_atomik_shadcn_ui.md).
 
-### Checkpoint: Implementasi Fase B3 — Financial Calculation Engine (Single Source of Truth) (2026-10-13)
+### Checkpoint: Implementasi Fase B3 — Financial Calculation Engine (Single Source of Truth) (2026-10-13 21:16 WIB)
 - **Status:** Approved ✅
 - **Capaian:**
   1. Pembuatan berkas terpusat `src/lib/financial-calculations.ts` yang menjadi satu-satunya sumber rumus finansial di Kenzo Treasury.
@@ -58,7 +67,7 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
   11. Lolos seluruh gerbang kualitas: `bun test` (PASS), `bun run typecheck` (PASS, 0 error), dan `bun run build` (PASS, 0 error).
 - **File Changelog:** [`2026-10-13_fase_b3_financial_calculation_engine.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-13_fase_b3_financial_calculation_engine.md).
 
-### Checkpoint: Implementasi Fase B2 — Supabase SSR Client, Middleware Session & Auth Helpers (2026-10-13)
+### Checkpoint: Implementasi Fase B2 — Supabase SSR Client, Proxy Session & Auth Helpers (2026-10-13 20:50 WIB)
 - **Status:** Approved ✅
 - **Capaian:**
   1. Penambahan dependensi validasi skema `zod` ke `package.json`.
@@ -71,7 +80,7 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
   8. Lolos verifikasi non-UI: `bun run typecheck` (PASS, 0 error) dan `bun run build` (PASS, 0 error).
 - **File Changelog:** [`2026-10-13_fase_b2_supabase_ssr_and_auth_actions.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-13_fase_b2_supabase_ssr_and_auth_actions.md).
 
-### Checkpoint: Instalasi Skill Khusus Proyek (2026-10-13)
+### Checkpoint: Instalasi Skill Khusus Proyek (2026-10-13 19:48 WIB)
 - **Status:** Installed & Active ✅
 - **Capaian:**
   1. Penambahan 4 skill domain spesifik langsung di tingkat proyek (`.agents/skills/`): `tanstack-query-best-practices`, `recharts`, `zod`, dan `pwa-development`.
@@ -79,7 +88,7 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
   3. Konfigurasi lockfile skill tersimpan di `skills-lock.json`.
 - **File Changelog:** [`2026-10-13_add_project_specific_skills.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-13_add_project_specific_skills.md).
 
-### Checkpoint: Penyelarasan Otoritas Supabase Auth & Penghapusan Password (2026-10-12)
+### Checkpoint: Penyelarasan Otoritas Supabase Auth & Penghapusan Password (2026-10-12 22:41 WIB)
 - **Status:** Completed & Aligned ✅
 - **Capaian:**
   1. Penghapusan kolom `password` dari tabel `users` di `src/db/schema.ts`; tabel `public.users` kini difungsikan murni sebagai profil pengguna dengan ID terhubung 1:1 ke `auth.users.id` Supabase Auth.
@@ -88,7 +97,7 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
   4. Quality gate lulus: `bun run typecheck` (0 error).
 - **File Changelog:** [`2026-10-12_remove_users_password_and_align_supabase_auth.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-12_remove_users_password_and_align_supabase_auth.md).
 
-### Checkpoint: Restrukturisasi Aturan & Koreksi Invarian Finansial (2026-10-12)
+### Checkpoint: Restrukturisasi Aturan & Koreksi Invarian Finansial (2026-10-12 22:17 WIB)
 - **Status:** Completed & Aligned ✅
 - **Capaian:**
   1. Restrukturisasi aturan proyek Kenzo Treasury menjadi sistem modular di `.agents/rules/` (`database-access.md`, `financial-domain.md`, `frontend-design.md`, `project-architecture.md`).
@@ -97,7 +106,7 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
   4. Perbaikan dan penulisan komprehensif berkas [`.agents/rules/financial-domain.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.agents/rules/financial-domain.md) mencakup seluruh invarian finansial: integer Rupiah, dynamic freedom buffer, finite lifetime cicilan, transfer sinking fund wishlist tanpa defisit, idempotensi sweep tutup buku, dan single source of truth.
 - **File Changelog:** [`2026-10-12_reorganize_rules_and_financial_domain.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-12_reorganize_rules_and_financial_domain.md).
 
-### Checkpoint: Fase B1 — Konfigurasi Drizzle ORM, Skema 9 Tabel & Koneksi Supabase (2026-10-10)
+### Checkpoint: Fase B1 — Konfigurasi Drizzle ORM, Skema 9 Tabel & Koneksi Supabase (2026-10-10 20:52 WIB)
 - **Status:** Approved by Kenzo ✅
 - **Capaian:**
   1. Instalasi dependensi database modern & stabil (`drizzle-orm@0.45.4`, `postgres@3.4.9`, `@supabase/supabase-js@2.117.3`, `@supabase/ssr@0.12.7`, `drizzle-kit@0.31.11`).
@@ -110,7 +119,7 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
   8. Quality gate lulus: `bun run typecheck` (0 error) & `bun run build` sukses 100%.
 - **File Changelog:** [`2026-10-10_phase_b1_completion.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-10_phase_b1_completion.md).
 
-### Checkpoint: Fase F1 — Inisialisasi Next.js 16, Tailwind CSS v4, Layout & Providers (2026-10-09)
+### Checkpoint: Fase F1 — Inisialisasi Next.js 16, Tailwind CSS v4, Layout & Providers (2026-10-09 23:21 WIB)
 - **Status:** Approved by Kenzo ✅
 - **Capaian:**
   1. Setup proyek Next.js 16.4.0 (App Router, Turbopack, React 19.3.0, TypeScript 7.0.2).
@@ -121,7 +130,7 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
   6. Quality gate lulus: `bun run typecheck` (0 error) & `bun run build` (2.4 detik).
 - **File Changelog:** [`2026-10-09_phase_f1_completion.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-09_phase_f1_completion.md).
 
-### Checkpoint: Fase 0 — Persiapan Konsep, Aturan & Arsitektur (2026-10-09)
+### Checkpoint: Fase 0 — Persiapan Konsep, Aturan & Arsitektur (2026-10-09 23:31 WIB)
 - **Capaian:**
   1. Spesifikasi komprehensif selesai di [`PRD.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PRD.md).
   2. ERD 9 tabel selesai digambar dan diverifikasi di [Excalidraw Live Canvas](https://excalidraw.com/#json=wQBlD5nMIr_tM9P1V-mf6,Mizngs7kMbgI26oOCHCTgQ).

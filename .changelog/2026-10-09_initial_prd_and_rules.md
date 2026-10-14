@@ -1,8 +1,10 @@
 ---
 date: 2026-10-09
+time: "23:31 WIB"
+timezone: Asia/Jakarta
 task: Inisialisasi Spesifikasi, ERD, dan Panduan Operasional
 prompt: Perencanaan Kenzo Treasury, skema DB Excalidraw, PRD, dan adaptasi aturan best practices
-author: Cecillia (Cil)
+author: Antigravity
 ---
 
 # Changelog: Inisialisasi Spesifikasi, ERD, dan Panduan Operasional

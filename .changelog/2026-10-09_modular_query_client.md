@@ -1,8 +1,10 @@
 ---
 date: 2026-10-09
+time: "23:10 WIB"
+timezone: Asia/Jakarta
 task: Pemisahan Modul Singleton QueryClient ke src/lib/query-client.ts
 prompt: Query client pisahkan ke folder lib, bikin query-client.ts dengan konfigurasi custom staleTime, gcTime, retry 4xx check, refetch on reconnect, dan mutation onError
-author: Cecillia (Cil)
+author: Antigravity
 ---
 
 # Changelog: Pemisahan Modul Singleton QueryClient

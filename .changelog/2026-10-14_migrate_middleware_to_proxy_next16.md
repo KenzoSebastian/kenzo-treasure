@@ -1,8 +1,10 @@
 ---
 date: 2026-10-14
+time: "21:30 WIB"
+timezone: Asia/Jakarta
 task: Migrasi Middleware ke Proxy Sesuai Konvensi Resmi Next.js 16
 prompt: oke migrasiin deh, dan ubah semua md file yang masih menulis middleware
-author: Cecillia (Cil)
+author: Antigravity
 status: COMPLETED
 ---
 

@@ -1,8 +1,10 @@
 ---
 date: 2026-10-09
+time: "23:18 WIB"
+timezone: Asia/Jakarta
 task: Penguncian Aturan Clean Architecture & Anti-Campur Tanggung Jawab
 prompt: Bikin clean code arsitektur, jangan campur wrapping, initialization, dan logic dalam satu berkas, catat di AGENTS.md
-author: Cecillia (Cil)
+author: Antigravity
 ---
 
 # Changelog: Aturan Clean Architecture & Anti-Campur Tanggung Jawab
