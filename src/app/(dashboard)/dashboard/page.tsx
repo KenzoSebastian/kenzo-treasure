@@ -1,7 +1,7 @@
 import { getCurrentUser, logout } from "@/actions/auth";
 import { redirect } from "next/navigation";
 
-export default async function HomePage() {
+export default async function DashboardPage() {
   const userResult = await getCurrentUser();
   const user = userResult.success ? userResult.data : null;
 
@@ -15,7 +15,7 @@ export default async function HomePage() {
     <main className="flex min-h-dvh flex-col items-center justify-center p-6 text-center">
       <div className="max-w-md space-y-4 rounded-xl border bg-card p-6 shadow-sm">
         <div className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold tracking-wide text-muted-foreground">
-          Kenzo Treasury • Fase B2 Terhubung
+          Kenzo Treasury • Dashboard Workspace
         </div>
         <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
           Selamat Datang, {user?.fullName || user?.email || "Pengguna"}!

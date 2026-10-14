@@ -67,7 +67,7 @@ export async function proxy(request: NextRequest) {
   // Jika sudah login dan mencoba membuka halaman login/register
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 

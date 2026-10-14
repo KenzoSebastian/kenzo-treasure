@@ -6,7 +6,7 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 
 ## 📌 Ringkasan Status Proyek
 
-- **Status Saat Ini:** **Fase F2 Selesai & Disetujui (Approved ✅)** $\rightarrow$ Menunggu Kenzo commit git manual & instruksi fase berikutnya (Fase F3 / B4)
+- **Status Saat Ini:** **Fase F3 Disetujui (Approved ✅)** $\rightarrow$ Siap untuk commit manual Git oleh Kenzo sebelum melangkah ke Fase F4
 - **Tech Stack Terkunci:**
   - Runtime & Package Manager: Bun (v1.4.2)
   - Frontend: Next.js 16 (App Router, React 19, TypeScript)
@@ -24,13 +24,22 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 
 Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua berkas roadmap:
 - 🛠️ **Backend Roadmap:** [`PLANBACKEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANBACKEND.md) (13 Fase Granular: B1 - B13)
-- 🎨 **Frontend Roadmap:** [`PLANFRONTEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANFRONTEND.md) (18 Fase Granular: F1 - F18, dengan Landing Page 12 Section di Fase F3)
+- 🎨 **Frontend Roadmap:** [`PLANFRONTEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANFRONTEND.md) (18 Fase Granular: F1 - F18, dengan Landing Page 12 Section di Fase F3 - Disetujui ✅)
 
 > **Protokol:** Agent hanya mengerjakan 1 fase per sesi. Checklist baru boleh dicentang (`- [x]`) setelah di-approve oleh Kenzo. Pasca-approval, Agent menyajikan rekomendasi commit git dan menahan eksekusi fase berikutnya (HOLD).
 
 ---
 
 ## 📝 Log Checkpoint Terbaru
+
+### Checkpoint: Persetujuan Resmi Fase F3 — Halaman Depan Publik 12 Seksi & PWA (2026-10-14 23:59 WIB)
+- **Status:** Approved by Kenzo ✅
+- **Capaian:**
+  1. Implementasi 12 Seksi Landing Page Publik Lengkap: `LandingNavbar` (solid background tanpa `border-b`, smart hide on scroll down & reveal on scroll up, zero layout shift), `HeroSection`, `MetricsStrip`, `ProblemSolutionSection`, `BentoFeatures`, `MobileShowcase` (chassis iPhone Titanium murni CSS 2D floating, Dynamic Island vektor, tanpa dependensi gambar raster eksternal), `WorkflowSection`, `SecuritySection`, `ComparisonTable` (simbol status check/warning/cross bulat sempurna 1:1 dengan padding 1px), `FaqAccordion`, dan `LandingFooter` terintegrasi di `src/app/page.tsx`.
+  2. Standar Tipografi Bebas `font-mono`: 100% nominal mata uang, rasio, dan angka metrik di seluruh UI landing page menggunakan font standar sans-serif dengan `tabular-nums`.
+  3. Global Smooth Scrolling: Mengaktifkan `scroll-smooth` pada elemen root `<html>` di `src/app/layout.tsx` dan `src/app/globals.css` agar navigasi anchor dan scroll halaman berjalan mulus.
+  4. Penyelesaian Checklist: Seluruh 12 butir checklist Fase F3 di `PLANFRONTEND.md` telah diverifikasi dan resmi dicentang (`- [x]`).
+- **File Changelog:** [`2026-10-14_fase_f3_halaman_depan_publik_landing_page.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-14_fase_f3_halaman_depan_publik_landing_page.md).
 
 ### Checkpoint: Migrasi Edge Proxy Next.js 16 (2026-10-14 21:30 WIB)
 - **Status:** Completed ✅

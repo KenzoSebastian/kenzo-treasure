@@ -291,8 +291,8 @@ Pos anggaran cicilan memiliki batas akhir pelunasan (*finite lifecycle*):
 ## 5. Functional Requirements (FR)
 
 ### Modul 0: Halaman Depan Publik (Public Landing Page at '/')
-- **FR-0.1 Navbar Publik:** Memuat branding identitas Kenzo Treasury, navigasi section (Fitur, Cara Kerja, Keamanan), toggle tema Dark/Light mode, dan tombol aksi "Masuk" (`/login`) serta "Daftar" (`/register`).
-- **FR-0.2 Hero Section:** Headline proposisi nilai (*"Sistem Manajemen Keuangan Bulanan Independen"*), sub-headline filosofi cashflow disiplin, tombol CTA utama menuju `/register`, dan preview mockup visual antarmuka dashboard finansial.
+- **FR-0.1 Navbar Publik:** Memuat branding identitas Kenzo Treasury, navigasi section anchor (*Fitur Utama, Cara Kerja, Keamanan, Perbandingan, Tanya Jawab*), toggle tema Dark/Light mode, dan tombol aksi "Masuk" (`/login`) serta "Coba Gratis" (`/register`). Menggunakan latar belakang solid `bg-background` tanpa garis bawah (`border-b`), dengan perilaku responsif scroll cerdas (sembunyi halus ke atas saat scroll ke bawah, dan meluncur turun seketika saat scroll ke atas).
+- **FR-0.2 Hero Section:** Headline proposisi nilai (*"Atur Anggaran Bulanan Lebih Tenang Tanpa Takut Uang Bocor"*), sub-headline filosofi cashflow disiplin, tombol dual CTA menuju `/register` dan `#fitur`, microcopy jaminan privasi, serta preview mockup visual alokasi anggaran bulanan.
 - **FR-0.3 Feature Highlights & USP Grid:** Penjelasan visual 6 pilar sistem:
   1. *Siklus Bulanan Terisolasi:* Lembar kerja mandiri tiap bulan tanpa kontaminasi antar siklus.
   2. *7 Pos Wajib & Dynamic Buffer:* Pemasukan freelance otomatis memperbesar pos tabungan/uang bebas.
@@ -300,8 +300,10 @@ Pos anggaran cicilan memiliki batas akhir pelunasan (*finite lifecycle*):
   4. *Brankas Dana Darurat:* Meteran ketahanan hidup (*Safety Months*).
   5. *Gamified Wishlist:* Alokasi sinking fund barang impian bertahap.
   6. *Evaluasi Finansial AI:* Review cerdas penutupan buku dengan Gemini AI.
-- **FR-0.4 Conversion CTA & Footer:** Seksi ajakan aksi penutup dan footer informasi aplikasi (PWA ready, kedaulatan data, copyright).
-- **FR-0.5 Routing & Access Flow:** Rute `/` terbuka untuk publik. Jika pengguna dengan sesi aktif membuka `/`, tombol navbar menyediakan tautan cepat `"Buka Dashboard"` menuju `/dashboard`.
+- **FR-0.4 Sub-Second Mobile Showcase:** Chassis ponsel iPhone Titanium murni CSS vektor 2D upright dengan Dynamic Island, animasi floating halus, display nominal kasir kilat, dan toast simulasi Undo 5 detik tanpa dependensi file raster eksternal.
+- **FR-0.5 Matriks Perbandingan & Interaksi FAQ:** Perbandingan 9 kriteria finansial vs aplikasi umum dan spreadsheet dengan simbol bulat sempurna 1:1, serta 6 accordion tanya jawab interaktif.
+- **FR-0.6 Conversion CTA & Footer:** Seksi ajakan aksi penutup dan footer informasi aplikasi (PWA ready, kedaulatan data, copyright).
+- **FR-0.7 Routing, Smooth Scroll & Access Flow:** Root layout mengaktifkan `scroll-smooth`. Rute `/` terbuka untuk publik. Jika pengguna dengan sesi aktif membuka `/`, tombol navbar menyediakan tautan cepat `"Buka Dashboard"` menuju `/dashboard`.
 
 ### Modul 1: Autentikasi & Proteksi Akses
 - **FR-1.1:** Pengguna wajib login menggunakan Supabase Auth (Email/Password atau Google OAuth).

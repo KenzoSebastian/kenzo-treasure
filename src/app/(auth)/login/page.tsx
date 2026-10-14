@@ -62,7 +62,7 @@ export default function LoginPage() {
       }
 
       toast.success("Berhasil masuk! Mengalihkan ke dashboard...");
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     });
   }

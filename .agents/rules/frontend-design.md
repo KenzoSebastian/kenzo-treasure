@@ -56,6 +56,25 @@ globs: "src/app/**/*.tsx, src/app/**/*.css, src/app/*.css, src/components/**/*.t
 - Pastikan pengujian manual mencakup mobile, desktop, light mode, dan dark mode jika terdampak perubahan.
 - Jangan mengklaim tampilan atau interaksi sudah teruji jika belum diverifikasi.
 
+## 6. Aturan Tipografi & Larangan Font Mono untuk Angka
+
+- **Dilarang Keras Menggunakan Monospace untuk Angka:** Jangan pernah menggunakan font monospace (`font-mono`) untuk angka, nominal mata uang (Rupiah), saldo, persentase, rasio, metrik, KPI, atau penomoran di antarmuka (UI).
+- Semua angka dan nominal finansial wajib menggunakan font sans-serif standar (Inter / font sans aplikasi) yang proporsional.
+- Gunakan utility class `tabular-nums` (`font-variant-numeric: tabular-nums`) apabila memerlukan perataan digit angka yang rapi (misalnya pada tabel data, kartu ringkasan, atau daftar pos anggaran), tanpa mengubah jenis font menjadi monospace.
+- Font monospace (`font-mono`) hanya diperbolehkan secara terbatas untuk kode pemrograman, commit hash, UUID, atau debug trace teknis bila benar-benar relevan.
+
+## 7. Standar Navigasi, Header Pintar & Scroll Mulus
+
+- **Smart Navbar:** Header fixed/sticky menggunakan latar solid `bg-background` tanpa garis bawah (`border-b`).
+- Otomatis bersembunyi meluncur ke atas (`-translate-y-full transition-transform duration-300 ease-in-out`) saat scroll ke bawah untuk memaksimalkan area baca, dan meluncur turun kembali (`translate-y-0`) saat pengguna melakukan scroll ke atas sedikit saja.
+- Sediakan elemen spacer statis (misal `h-16`) di bawah header agar konten berikutnya tidak melompat (zero layout shift).
+- **Global Smooth Scroll:** Aktifkan `scroll-smooth` pada elemen root `<html>` di `layout.tsx` dan layer `html` di `globals.css` agar anchor navigation dan scroll halaman berjalan mulus.
+
+## 8. Presisi Geometri Ikon Status & Mockup Komponen
+
+- **Rasio Ikon Status 1:1 Bulat Sempurna:** Seluruh simbol status melingkar (centang, warning, silang) wajib menggunakan kelas `shrink-0 aspect-square rounded-full` dan padding mikro internal (`p-[1px]`) agar tidak terdistorsi menjadi lonjong/oval di dalam kontainer flex/grid maupun sel tabel yang padat.
+- **Mockup Native CSS:** Utamakan pembuatan frame/chassis mockup perangkat menggunakan CSS murni (vektor) daripada gambar raster eksternal (PNG/JPEG) agar tampilan selalu tajam di layar Retina, ringan, dan tidak berisiko broken-asset.
+
 **Prinsip utama:** Gunakan styling yang konsisten, reusable, aksesibel, dan mudah dipelihara tanpa membuat abstraksi atau konfigurasi yang tidak diperlukan.
 
 ## Arah Visual & Konsistensi Desain

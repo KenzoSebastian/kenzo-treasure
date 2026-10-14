@@ -183,3 +183,23 @@ For scroll-aware edge fading on a scroll container, use `scroll-fade` (and the a
 ```tsx
 <span className="shimmer">Thinking…</span>
 ```
+
+---
+
+## No font-mono on numbers and UI metrics
+
+Never use `font-mono` on numbers, currency (Rupiah), balances, percentages, metrics, or step counters. Use standard sans-serif with `tabular-nums` when vertical digit alignment is needed.
+
+**Incorrect:**
+
+```tsx
+<span className="font-mono font-bold">Rp 1.250.000</span>
+<span className="font-mono text-xs">01</span>
+```
+
+**Correct:**
+
+```tsx
+<span className="font-bold tabular-nums">Rp 1.250.000</span>
+<span className="text-xs">01</span>
+```

@@ -9,6 +9,7 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 > 3. Setelah fase selesai, laporkan daftar file yang diubah/dibuat beserta fungsinya secara detail.
 > 4. **DILARANG MENCENTANG (`- [x]`)** checklist sebelum Kenzo memberikan approval eksplisit.
 > 5. **Testing UI:** Dilarang screenshot otomatis / browser automation; berikan checklist panduan testing manual agar Ken yang menguji di browser/ponsel.
+> 6. **Tipografi & Format Angka:** Dilarang keras menggunakan font monospace (`font-mono`) untuk angka, nominal uang, saldo, persen, metrik, atau penomoran pada antarmuka (UI). Semua angka wajib menggunakan font sans-serif standar dengan `tabular-nums` jika memerlukan perataan vertikal.
 
 ---
 
@@ -33,18 +34,18 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 ---
 
 ### Fase F3: Halaman Depan Publik (Public Landing Page 12 Sections)
-- [ ] Buat Navbar presisi `src/components/features/landing/LandingNavbar.tsx` (Logo Kenzo Treasury, nav anchor links, theme toggle, tombol aksi Masuk `/login` & Mulai `/register`).
-- [ ] Buat Hero section `src/components/features/landing/HeroSection.tsx` (Badge pill v1.0, headline presisi finansial, dual CTA buttons, preview mockup dashboard).
-- [ ] Buat Problem vs Solution section `src/components/features/landing/ProblemSolutionSection.tsx` (Perbandingan Notion/Excel lama vs Kenzo Treasury PWA).
-- [ ] Buat Metrics & KPI strip `src/components/features/landing/MetricsStrip.tsx` (Rp 4jt gaji pokok, 7 pos wajib, <5 detik quick add, 100% kedaulatan data).
-- [ ] Buat Bento Grid 6 Pilar Finansial `src/components/features/landing/BentoFeatures.tsx` (Siklus Mandiri, Dynamic Buffer, Finite Debt, Safety Months Vault, Gamified Wishlist, AI Review).
-- [ ] Buat Sub-Second Mobile Showcase `src/components/features/landing/MobileShowcase.tsx` (Visual Quick Add Drawer, input numpad ponsel, 5-second Undo toast).
-- [ ] Buat Workflow 4 Langkah Siklus `src/components/features/landing/WorkflowSection.tsx` (Generate Bulan, Catat Harian, Alokasi Sinking Fund, Tutup Buku & Evaluasi AI).
-- [ ] Buat Security & Sovereignty section `src/components/features/landing/SecuritySection.tsx` (RLS PostgreSQL, HTTP-only cookies, 1-Click Backup JSON/CSV, Offline mode).
-- [ ] Buat Comparison Matrix table `src/components/features/landing/ComparisonTable.tsx` (Kenzo Treasury vs Apps Keuangan Biasa vs Notion/Spreadsheet).
-- [ ] Buat Interactive FAQ Accordion `src/components/features/landing/FaqAccordion.tsx` (PWA install, keamanan data, freelance adjustment, undo kesalahan).
-- [ ] Buat Final CTA Banner & Brand Footer `src/components/features/landing/LandingFooter.tsx` (Ajakan mulai, status kedaulatan data, status teknologi Next.js 16/Supabase, copyright).
-- [ ] Susun komposisi 12 section secara terintegrasi langsung di `src/app/page.tsx` dengan desain Swiss Functional Minimalism dan dark/light mode adaptif.
+- [x] Buat Navbar presisi `src/components/features/landing/LandingNavbar.tsx` (Logo Kenzo Treasury, nav anchor links, theme toggle, solid background `bg-background` tanpa `border-b`, smart hide on scroll down & reveal on scroll up, tombol aksi Masuk `/login` & Mulai `/register`).
+- [x] Buat Hero section `src/components/features/landing/HeroSection.tsx` (Badge pill v1.0, headline presisi finansial, dual CTA buttons, preview mockup dashboard).
+- [x] Buat Problem vs Solution section `src/components/features/landing/ProblemSolutionSection.tsx` (Perbandingan Notion/Excel lama vs Kenzo Treasury PWA).
+- [x] Buat Metrics & KPI strip `src/components/features/landing/MetricsStrip.tsx` (Rp 4jt gaji pokok, 7 pos wajib, <5 detik quick add, 100% kedaulatan data).
+- [x] Buat Bento Grid 6 Pilar Finansial `src/components/features/landing/BentoFeatures.tsx` (Siklus Mandiri, Dynamic Buffer, Finite Debt, Safety Months Vault, Gamified Wishlist, AI Review).
+- [x] Buat Sub-Second Mobile Showcase `src/components/features/landing/MobileShowcase.tsx` (Chassis ponsel iPhone Titanium murni CSS vektor 2D upright, Dynamic Island vektor, animasi floating naik-turun halus, Visual Quick Add Drawer, input numpad ponsel, 5-second Undo toast, bebas gambar raster eksternal).
+- [x] Buat Workflow 4 Langkah Siklus `src/components/features/landing/WorkflowSection.tsx` (Generate Bulan, Catat Harian, Alokasi Sinking Fund, Tutup Buku & Evaluasi AI).
+- [x] Buat Security & Sovereignty section `src/components/features/landing/SecuritySection.tsx` (RLS PostgreSQL, HTTP-only cookies, 1-Click Backup JSON/CSV, Offline mode).
+- [x] Buat Comparison Matrix table `src/components/features/landing/ComparisonTable.tsx` (Kenzo Treasury vs Apps Keuangan Biasa vs Notion/Spreadsheet, simbol status check/warning/cross bulat sempurna 1:1 dengan padding 1px).
+- [x] Buat Interactive FAQ Accordion `src/components/features/landing/FaqAccordion.tsx` (PWA install, keamanan data, freelance adjustment, undo kesalahan).
+- [x] Buat Final CTA Banner & Brand Footer `src/components/features/landing/LandingFooter.tsx` (Ajakan mulai, status kedaulatan data, status teknologi Next.js 16/Supabase, copyright).
+- [x] Susun komposisi 12 section secara terintegrasi langsung di `src/app/page.tsx` dengan desain Swiss Functional Minimalism, global `scroll-smooth` pada layout HTML (`layout.tsx` & `globals.css`), dan dark/light mode adaptif.
 
 ---
 

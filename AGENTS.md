@@ -46,3 +46,8 @@ Aturan Global Cecillia sudah mencakup komunikasi, kualitas kode, verifikasi, pen
 - Pertahankan lockfile yang digunakan repository dan jangan membuat lockfile dari package manager lain.
 - Verifikasi versi dependency melalui `package.json`, lockfile, dan dokumentasi resmi saat diperlukan.
 - Jangan melakukan upgrade dependency tanpa kebutuhan teknis atau instruksi eksplisit.
+
+## 5. Standar Tampilan & Tipografi
+
+- Wajib mengikuti `.agents/rules/frontend-design.md` dan `docs/DESIGN-SYSTEM.md`.
+- **Dilarang keras menggunakan font monospace (`font-mono`)** untuk angka, nominal uang/mata uang (Rupiah), saldo, persen, rasio, metrik, atau penomoran pada antarmuka (UI). Semua angka wajib menggunakan font sans-serif proporsional standar dengan `tabular-nums` jika membutuhkan perataan digit.

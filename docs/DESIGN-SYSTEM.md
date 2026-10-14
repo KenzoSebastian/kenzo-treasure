@@ -51,9 +51,10 @@ Palet lama (hitam, putih, beige, abu-abu, taupe) menjadi **referensi karakter**,
 - Display/heading menggunakan weight 600–700 dan tracking rapat yang tetap terbaca.
 - Body default `1rem` dengan line-height sekitar 1.5–1.6; label `0.875rem`; metadata `0.75rem` hanya bila kontras dan ukurannya tetap nyaman dibaca.
 - Skala desktop referensi: H1 `2.25rem`, H2 `1.5rem`, H3 `1.125rem`; skala mobile mengikuti konteks, bukan memaksa headline hero pada dashboard.
-- Untuk semua nominal dan kolom angka: `font-variant-numeric: tabular-nums`, rata kanan saat berbentuk tabel, dan format `id-ID` Rupiah secara konsisten.
+- **Larangan Mutlak Monospace pada Angka:** Dilarang keras menggunakan kelas `font-mono` untuk angka, nominal Rupiah, saldo, persentase, rasio, metrik, KPI, kuota, atau penomoran langkah di antarmuka (UI). Semua angka dan nominal finansial wajib menggunakan font sans-serif standar proporsional aplikasi (Inter).
+- Untuk semua nominal dan kolom angka: gunakan `tabular-nums` (`font-variant-numeric: tabular-nums`) untuk perataan vertikal digit angka yang rapi dan rata kanan saat berbentuk tabel, dengan format `id-ID` Rupiah secara konsisten.
+- Monospace (`font-mono`) hanya diperbolehkan secara terbatas untuk kode pemrograman, UUID teknis, atau identitas sistem debug bila benar-benar diperlukan.
 - Label harus eksplisit: bedakan **Saldo tabungan**, **Sisa anggaran**, **Terpakai**, **Target**, dan **Total pemasukan**. Jangan memberi label "Total tabungan" pada hasil pemasukan minus pengeluaran tanpa aturan bisnis yang jelas.
-- Gunakan monospace hanya untuk kode/identitas teknis bila relevan, **bukan** sebagai default seluruh nominal finansial.
 - Gunakan microcopy ringkas dan manusiawi dalam Bahasa Indonesia; hindari jargon promosi seperti “Elevate”, “Unleash”, “Next-Gen”, “Seamless”.
 
 ## 4. Grid, Spacing & Layout
@@ -86,6 +87,15 @@ Palet lama (hitam, putih, beige, abu-abu, taupe) menjadi **referensi karakter**,
 - Tidak boleh menampilkan saldo palsu ketika query gagal. Gunakan placeholder/skeleton atau pesan error jelas tanpa mengarang angka.
 - Untuk transaksi offline, bedakan **tersimpan di perangkat** dari **berhasil tersinkronisasi**.
 - Untuk angka risiko: warna status, label, dan progress tidak boleh bertentangan.
+- **Smart Navbar & Header Mengambang:**
+  - Latar belakang wajib solid (`bg-background`), bukan transparan/blur yang mengacaukan kontras baca teks di bawahnya saat di-scroll.
+  - Hilangkan garis pemisah bawah (`border-b`) untuk tampilan yang menyatu dan tenang.
+  - Perilaku scroll cerdas: otomatis meluncur naik dan bersembunyi (`-translate-y-full transition-transform duration-300 ease-in-out`) saat scroll ke bawah untuk memaksimalkan fokus baca pengguna, dan seketika meluncur turun (`translate-y-0`) saat pengguna melakukan scroll ke atas sedikit saja.
+  - Wajib menyertakan spacer statis dengan tinggi yang sama (misal `h-16`) di bawah header fixed/sticky untuk mencegah layout shift.
+- **Geometri Simbol Status & Indikator (1:1 Aspect Ratio):**
+  - Seluruh ikon status melingkar (centang, warning, silang, badge status) wajib memakai kelas `shrink-0 aspect-square rounded-full` dengan padding mikro internal (misal `p-[1px]`) agar tetap bulat sempurna 1:1 dan bebas dari distorsi bentuk lonjong saat berada di dalam sel tabel, flexbox, atau grid.
+- **Device Mockup Vektor Murni (CSS Native):**
+  - Hindari penggunaan file gambar raster eksternal (PNG/JPEG) untuk membingkai antarmuka produk. Bangun chassis perangkat menggunakan CSS murni (border, dynamic island, status bar, hardware buttons) agar tajam di layar Retina, ringan, dan tidak berisiko broken-asset.
 
 ## 7. Grafik & Data Visualization
 
@@ -98,6 +108,7 @@ Palet lama (hitam, putih, beige, abu-abu, taupe) menjadi **referensi karakter**,
 ## 8. Motion & Accessibility
 
 - Default transisi interaksi singkat sekitar `120–200ms`; animasi besar hanya untuk momen produk yang memang bermakna dan tidak mengganggu pekerjaan.
+- **Global Smooth Scroll:** Aktifkan `scroll-smooth` pada tag `<html>` layout aplikasi dan layer `html` CSS agar perpindahan navigasi anchor halaman berjalan mulus dan nyaman.
 - Jangan memakai entrance animation bertingkat untuk seluruh daftar transaksi atau setiap navigasi halaman.
 - Hormati `prefers-reduced-motion`; jangan menggantungkan pemahaman UI pada animasi.
 - Target kontras teks minimum WCAG AA: `4.5:1` untuk teks normal dan `3:1` untuk teks besar; komponen grafis/interaktif yang relevan minimal `3:1` terhadap warna bersebelahan. AAA dapat menjadi aspirasi untuk teks penting, tetapi jangan mengklaim kepatuhan tanpa audit nyata.
@@ -123,6 +134,7 @@ Palet lama (hitam, putih, beige, abu-abu, taupe) menjadi **referensi karakter**,
 5. Aksi cepat, keyboard virtual, dan aksesibilitas tidak dikorbankan untuk dekorasi.
 6. Motion punya tujuan dan menghormati reduced motion.
 7. Pemeriksaan otomatis non-UI dijalankan jika relevan; **hasil uji visual/UI dilaporkan sebagai belum terverifikasi** sampai pengujian manual Ken dilakukan.
+8. Tipografi angka: pastikan tidak ada kelas `font-mono` pada nominal mata uang, saldo, rasio, metrik, atau penomoran langkah antarmuka.
 
 ## 11. Implementasi & Sumber Kebenaran
 

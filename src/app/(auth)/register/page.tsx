@@ -69,7 +69,7 @@ export default function RegisterPage() {
       }
 
       toast.success("Akun berhasil didaftarkan! Mengalihkan ke dashboard...");
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     });
   }
