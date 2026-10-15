@@ -50,10 +50,10 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 ---
 
 ### Fase F4: App Shell, Mobile Layout & Navigasi Utama Dashboard
-- [ ] Buat komponen header aplikasi `src/components/layout/AppHeader.tsx` (Logo Kenzo Treasury, Theme Toggle, Profile/Logout).
-- [ ] Buat navigasi bawah mobile `src/components/layout/MobileBottomNav.tsx` (Dashboard, Pos Anggaran, Wishlist, Analytics).
-- [ ] Buat layout wrapper responsif `src/components/layout/DashboardLayout.tsx`.
-- [ ] Buat komponen fail-closed: Skeleton loading cards dan Error boundary fallback dengan tombol retry.
+- [x] Buat komponen header aplikasi `src/components/layout/AppHeader.tsx` (Logo Kenzo Treasury, Theme Toggle, Profile/Logout).
+- [x] Buat navigasi bawah mobile `src/components/layout/MobileBottomNav.tsx` (Dashboard, Pos Anggaran, Wishlist, Analytics).
+- [x] Buat layout wrapper responsif `src/components/layout/DashboardLayout.tsx`.
+- [x] Buat komponen fail-closed: Skeleton loading cards dan Error boundary fallback dengan tombol retry.
 
 ---
 

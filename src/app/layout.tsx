@@ -42,7 +42,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" suppressHydrationWarning className={cn("font-sans scroll-smooth", geist.variable)}>
+    <html
+      lang="id"
+      suppressHydrationWarning
+      data-scroll-behavior="smooth"
+      className={cn("font-sans scroll-smooth", geist.variable)}
+    >
       <body className="min-h-dvh w-full overflow-x-hidden antialiased font-sans bg-background text-foreground">
         <Providers>
           {children}

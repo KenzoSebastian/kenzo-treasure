@@ -6,7 +6,7 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 
 ## 📌 Ringkasan Status Proyek
 
-- **Status Saat Ini:** **Fase F3 Disetujui (Approved ✅)** $\rightarrow$ Siap untuk commit manual Git oleh Kenzo sebelum melangkah ke Fase F4
+- **Status Saat Ini:** **Fase F4 Disetujui (Approved ✅)** $\rightarrow$ Siap untuk commit manual Git oleh Kenzo sebelum melangkah ke Fase berikutnya
 - **Tech Stack Terkunci:**
   - Runtime & Package Manager: Bun (v1.4.2)
   - Frontend: Next.js 16 (App Router, React 19, TypeScript)
@@ -24,13 +24,26 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 
 Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua berkas roadmap:
 - 🛠️ **Backend Roadmap:** [`PLANBACKEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANBACKEND.md) (13 Fase Granular: B1 - B13)
-- 🎨 **Frontend Roadmap:** [`PLANFRONTEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANFRONTEND.md) (18 Fase Granular: F1 - F18, dengan Landing Page 12 Section di Fase F3 - Disetujui ✅)
+- 🎨 **Frontend Roadmap:** [`PLANFRONTEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANFRONTEND.md) (18 Fase Granular: F1 - F18, Fase F4 Disetujui ✅)
 
 > **Protokol:** Agent hanya mengerjakan 1 fase per sesi. Checklist baru boleh dicentang (`- [x]`) setelah di-approve oleh Kenzo. Pasca-approval, Agent menyajikan rekomendasi commit git dan menahan eksekusi fase berikutnya (HOLD).
 
 ---
 
 ## 📝 Log Checkpoint Terbaru
+
+### Checkpoint: Persetujuan Resmi Fase F4 — App Shell, Mobile Layout & Navigasi Utama Dashboard (2026-10-15 21:15 WIB)
+- **Status:** Approved by Kenzo ✅
+- **Capaian:**
+  1. Primitif UI `Skeleton` (`src/components/ui/skeleton.tsx`): Komponen dasar animasi pulse untuk loading state.
+  2. Komponen `AppHeader` (`src/components/layout/AppHeader.tsx`): Branding Kenzo Treasury, navigasi desktop (Dashboard, Pos Anggaran, Wishlist, Analitik), `ThemeToggle`, serta profil pengguna & dropdown logout terhubung ke Server Action `logout()`.
+  3. Komponen `MobileBottomNav` (`src/components/layout/MobileBottomNav.tsx`): Navigasi bawah fixed mobile dengan safe-area support, touch target $\ge 48$px, dan deteksi rute/hash aktif.
+  4. Komponen `DashboardLayout` (`src/components/layout/DashboardLayout.tsx` & `src/app/(dashboard)/layout.tsx`): Layout wrapper responsif yang menampung seluruh rute `(dashboard)` dengan batas lebar Swiss grid dan padding aman konten bawah.
+  5. Fail-Closed Proteksi: Kerangka `DashboardSkeleton` (`src/components/layout/DashboardSkeleton.tsx` & `src/app/(dashboard)/dashboard/loading.tsx`) dan `DashboardErrorBoundary` (`src/components/layout/DashboardErrorBoundary.tsx` & `src/app/(dashboard)/dashboard/error.tsx`) dengan tombol aksi coba muat ulang (`reset()`).
+  6. Refaktor Anti-Slop Swiss Functional: Menghapus 100% metadata debug/pengembang (tanpa User ID/UUID, tanpa label RLS, tanpa badge fase), menyajikan dashboard eksekutif nyata (arus kas, 7 pos wajib terproteksi, sinking fund, dan analitik) dengan angka sans-serif `tabular-nums`.
+  7. Penyelesaian Checklist: Seluruh 4 butir checklist Fase F4 di `PLANFRONTEND.md` telah diverifikasi dan resmi dicentang (`- [x]`).
+  8. Lolos seluruh pengujian: `bun run typecheck` (0 error), `bun test` (21/21 tests PASS), dan `bun run build` (Next.js 16 PASS).
+- **File Changelog:** [`2026-10-15_fase_f4_app_shell_mobile_layout_navigasi.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-15_fase_f4_app_shell_mobile_layout_navigasi.md).
 
 ### Checkpoint: Persetujuan Resmi Fase F3 — Halaman Depan Publik 12 Seksi & PWA (2026-10-14 23:59 WIB)
 - **Status:** Approved by Kenzo ✅
