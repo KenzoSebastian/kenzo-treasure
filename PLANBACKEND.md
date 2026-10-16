@@ -45,14 +45,14 @@ Dokumen ini adalah rencana kerja backend bertahap (granular) untuk **Kenzo Treas
 ---
 
 ### Fase B4: Shared Zod Validation Schemas (Client-Server Contract)
-- [ ] Setup dependensi `@hookform/resolvers` dan `zod`.
-- [ ] Buat `src/schemas/auth.schema.ts` (validasi email, password, nama lengkap).
-- [ ] Buat `src/schemas/month.schema.ts` (validasi tahun, index bulan, tutup buku).
-- [ ] Buat `src/schemas/income.schema.ts` (validasi nominal integer > 0, sumber, tanggal).
-- [ ] Buat `src/schemas/liability.schema.ts` (validasi nominal total, cicilan bulanan, nama utang).
-- [ ] Buat `src/schemas/category.schema.ts` (validasi target budget, nama pos, icon, group).
-- [ ] Buat `src/schemas/transaction.schema.ts` (validasi nominal pengeluaran, tanggal bulan berjalan, metode bayar).
-- [ ] Buat `src/schemas/wishlist.schema.ts` (validasi target barang, nominal alokasi setor/tarik).
+- [x] Setup dependensi `@hookform/resolvers` dan `zod`.
+- [x] Buat `src/schemas/auth.schema.ts` (validasi email, password, nama lengkap).
+- [x] Buat `src/schemas/month.schema.ts` (validasi tahun, index bulan, tutup buku).
+- [x] Buat `src/schemas/income.schema.ts` (validasi nominal integer > 0, sumber, tanggal).
+- [x] Buat `src/schemas/liability.schema.ts` (validasi nominal total, cicilan bulanan, nama utang).
+- [x] Buat `src/schemas/category.schema.ts` (validasi target budget, nama pos, icon, group).
+- [x] Buat `src/schemas/transaction.schema.ts` (validasi nominal pengeluaran, tanggal bulan berjalan, metode bayar).
+- [x] Buat `src/schemas/wishlist.schema.ts` (validasi target barang, nominal alokasi setor/tarik).
 
 ---
 

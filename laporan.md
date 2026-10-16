@@ -6,7 +6,7 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 
 ## 📌 Ringkasan Status Proyek
 
-- **Status Saat Ini:** **Fase F4 Disetujui (Approved ✅)** $\rightarrow$ Siap untuk commit manual Git oleh Kenzo sebelum melangkah ke Fase berikutnya
+- **Status Saat Ini:** **Fase B4 Disetujui (Approved ✅)** $\rightarrow$ Siap untuk commit manual Git oleh Kenzo sebelum melangkah ke Fase berikutnya
 - **Tech Stack Terkunci:**
   - Runtime & Package Manager: Bun (v1.4.2)
   - Frontend: Next.js 16 (App Router, React 19, TypeScript)
@@ -23,7 +23,7 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 ## 🚀 Roadmap Pelaksanaan Fase
 
 Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua berkas roadmap:
-- 🛠️ **Backend Roadmap:** [`PLANBACKEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANBACKEND.md) (13 Fase Granular: B1 - B13)
+- 🛠️ **Backend Roadmap:** [`PLANBACKEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANBACKEND.md) (13 Fase Granular: B1 - B13, Fase B4 Disetujui ✅)
 - 🎨 **Frontend Roadmap:** [`PLANFRONTEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANFRONTEND.md) (18 Fase Granular: F1 - F18, Fase F4 Disetujui ✅)
 
 > **Protokol:** Agent hanya mengerjakan 1 fase per sesi. Checklist baru boleh dicentang (`- [x]`) setelah di-approve oleh Kenzo. Pasca-approval, Agent menyajikan rekomendasi commit git dan menahan eksekusi fase berikutnya (HOLD).
@@ -31,6 +31,22 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
 ---
 
 ## 📝 Log Checkpoint Terbaru
+
+### Checkpoint: Persetujuan Resmi Fase B4 — Shared Zod Validation Schemas (Client-Server Contract) (2026-10-16 13:45 WIB)
+- **Status:** Approved by Kenzo ✅
+- **Capaian:**
+  1. Integrasi dependensi form validation: `@hookform/resolvers` (`^5.9.1`) dan `react-hook-form` (`^7.90.0`) terpasang bersama `zod` (`^4.6.7`).
+  2. Skema Siklus Bulan (`src/schemas/month.schema.ts`): Validasi `createMonthSchema` (tahun 2020-2100, indeks 1-12, gaji baseline integer), `closeMonthSchema` (ID UUID dan aksi sweep saldo sisa), serta `reopenMonthSchema`.
+  3. Skema Pemasukan Multi-Sumber (`src/schemas/income.schema.ts`): Validasi `createIncomeSchema`, `updateIncomeSchema`, dan `deleteIncomeSchema` dengan proteksi integer positif tanpa floating point dan pemisahan gaji pokok (`isBaseSalary`) vs freelance buffer.
+  4. Skema Cicilan Bertarget Lunas (`src/schemas/liability.schema.ts`): Validasi `createLiabilitySchema` dengan pencegahan cicilan bulanan melebihi total utang, `recordInstallmentSchema`, dan `updateLiabilitySchema`.
+  5. Skema Pos Anggaran (`src/schemas/category.schema.ts`): Validasi 3 kelompok pos (`pos_wajib`, `kebutuhan`, `uang_bebas_tabungan`), pembuatan pos, update target plafon, dan reorder kategori via drag & drop.
+  6. Skema Pengeluaran Harian (`src/schemas/transaction.schema.ts`): Validasi pengeluaran integer positif, format ISO YYYY-MM-DD, metode pembayaran (`cash`, `debit`, `qris`, `transfer`), soft-delete, dan restore (fitur Undo 5 detik).
+  7. Skema Barang Impian & Tabungan (`src/schemas/wishlist.schema.ts`): Validasi pembuatan wishlist, mutasi setor/tarik sinking fund (`allocateWishlistSchema`), dan penandaan lunas terbeli.
+  8. Modul Terpusat & Ekspor Tipe (`src/schemas/index.ts`): Ekspor seluruh skema dan tipe TypeScript hasil inferensi (`z.infer`).
+  9. Unit Test Komprehensif (`src/schemas/__tests__/schemas.test.ts`): 16 pengujian mandiri lolos memverifikasi seluruh skema Zod.
+  10. Penyelesaian Checklist: Seluruh 8 butir checklist Fase B4 di `PLANBACKEND.md` telah diverifikasi dan resmi dicentang (`- [x]`).
+  11. Lolos seluruh pengujian: `bun test` (37/37 tests PASS), `bun run typecheck` (PASS, 0 error), dan `bun run build` (Next.js 16 Turbopack PASS).
+- **File Changelog:** [`2026-10-15_fase_b4_shared_zod_schemas.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-15_fase_b4_shared_zod_schemas.md).
 
 ### Checkpoint: Persetujuan Resmi Fase F4 — App Shell, Mobile Layout & Navigasi Utama Dashboard (2026-10-15 21:15 WIB)
 - **Status:** Approved by Kenzo ✅
