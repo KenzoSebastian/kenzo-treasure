@@ -63,3 +63,12 @@ Aturan Global Cecillia sudah mencakup komunikasi, kualitas kode, verifikasi, pen
   - **Dilarang keras men-hardcode nominal finansial** (seperti nominal cicilan 735.000, 500.000, atau sisa saldo) dan pencocokan keyword string kaku di dalam kode logika.
   - Seluruh data utang, nominal cicilan (`monthlyPayment`), status pelunasan (`isSettled`), serta daftar pos kategori bulanan **wajib dibaca secara dinamis langsung dari tabel database** (`liabilities`, `budgetCategories`, `months`).
   - Pembuatan bulan baru wajib mewarisi (*inherit*) susunan pos anggaran dan target dari bulan sebelumnya yang ada di database jika riwayat tersedia, bukan selalu mereset ke template statis awal. Baseline template hanya digunakan sebagai *fallback* saat database benar-benar kosong (first-time user).
+
+## 7. Arsitektur Halaman Bersih & Pemisahan Komponen Fitur (Clean Page Architecture)
+
+- **Pemisahan Server Page vs Komponen Fitur:**
+  - Berkas halaman `src/app/**/page.tsx` di Next.js App Router HANYA berfungsi sebagai **Server Component orchestrator** (mengambil data sesi/auth, membaca query database via `src/lib/queries/`, mengurai `searchParams`, lalu menyalurkan data ke komponen anak).
+  - **Dilarang keras menumpuk inline markup kartu berulang, rincian komponen UI panjang, atau styling card repetitif di dalam `page.tsx`**.
+  - Seluruh kartu metrik kas (`CashflowSummaryCard`), kartu item pos anggaran (`BudgetCategoryCard` & `BudgetCategoryList`), kartu preview hub (`DashboardHubCard`), dan widget interaktif **wajib dipisahkan ke dalam folder `src/components/features/<domain>/`**.
+  - Setiap layout kartu yang memiliki struktur berulang (seperti metrik arus kas) wajib dibuat sebagai komponen *layout card primitive* yang reusable dan menerima konten/footer via props, bukan di-copy-paste berulang kali di halaman.
+  - **Prinsip Mutlak DRY (Don't Repeat Yourself) & Generalisasi Shell Kartu:** Dilarang keras menduplikasi struktur kartu (*shell/layout/border/padding*) ke dalam banyak file terpisah jika perbedaannya hanya sebatas judul, ikon, teks, tautan, atau konten anak. Komponen antarmuka yang memiliki pola layout seragam wajib disatukan ke dalam satu *reusable primitive* (seperti `DashboardHubCard` untuk card hub preview dan `CashflowSummaryCard` untuk metrik kas) dengan memanfaatkan props konfigurasi dan slot `children`.

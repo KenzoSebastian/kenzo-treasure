@@ -34,6 +34,8 @@ globs: "src/app/**/*.tsx, src/app/**/*.css, src/app/*.css, src/components/**/*.t
 - Jangan otomatis memindahkan utility class ke `globals.css` hanya karena digunakan lebih dari sekali.
 - Gunakan `globals.css` untuk global styles, design tokens, dan pola CSS bersama yang memang bersifat global.
 - Pertahankan utility class secara langsung di JSX untuk styling yang sederhana atau spesifik terhadap komponen.
+- **Pemisahan Layout Halaman vs Komponen Card:** Hindari menumpuk inline markup kartu berulang di dalam file `page.tsx`. Jika terdapat layout card yang memiliki struktur dasar identik (seperti kartu metrik ringkasan kas), buatlah komponen card primitive terfokus di `src/components/features/<domain>/` dan salurkan konten/footer melalui props.
+- **Prinsip Mutlak DRY (Don't Repeat Yourself) pada Antarmuka:** Dilarang keras membuat banyak file komponen yang memiliki kerangka/shell visual hampir identik (hanya berbeda judul, ikon, teks badge/link, atau konten). Wajib satukan ke dalam satu reusable card/container primitive dengan memanfaatkan props konfigurasi dan slot `children` (contoh: `DashboardHubCard` dan `CashflowSummaryCard`), serta cegah copy-paste markup kartu berulang di seluruh komponen dan halaman.
 - Sebelum membuat komponen, token, atau utility baru, periksa implementasi yang sudah tersedia.
 - Hindari refactoring styling di luar scope tugas tanpa alasan teknis yang jelas.
 

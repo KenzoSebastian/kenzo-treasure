@@ -6,6 +6,7 @@
 
 - **Route-first, feature-oriented:** Next.js App Router menentukan route, sedangkan komponen dan proses bisnis dikelompokkan berdasarkan domain.
 - **Batas lapisan yang jelas:** UI tidak mengakses database secara langsung; mutasi server memvalidasi input dan otorisasi; aturan finansial tidak diduplikasi di komponen.
+- **Prinsip DRY (Don't Repeat Yourself) & Reusability:** Komponen antarmuka yang memiliki kerangka visual atau pola styling serupa (seperti kartu ringkasan atau kartu hub) wajib diabstraksi menjadi *reusable primitive* dengan memanfaatkan props konfigurasi dan slot `children`, bukan diduplikasi menjadi beberapa file terpisah yang redundan.
 - **Ikuti repository:** bila struktur aktual berbeda dari blueprint, periksa alasan dan jangan melakukan pemindahan massal tanpa kebutuhan.
 - **Nama direktori adalah konvensi, bukan target jumlah file.** Jangan membuat folder kosong atau boilerplate untuk fitur yang belum dikerjakan.
 
@@ -70,9 +71,9 @@ kenzo-treasure/
 │   │   ├── layout/                    # Header, navigasi, shell aplikasi
 │   │   ├── features/
 │   │   │   ├── landing/               # Komponen Halaman Depan (Navbar, Hero, Fitur, CTA, Footer)
-│   │   │   ├── months/
-│   │   │   ├── dashboard/
-│   │   │   ├── categories/
+│   │   │   ├── months/                # MonthSelector, CreateMonthDialog
+│   │   │   ├── dashboard/             # CashflowSummaryCard, DashboardHubCard
+│   │   │   ├── categories/            # BudgetCategoryCard, BudgetCategoryList
 │   │   │   ├── transactions/
 │   │   │   ├── incomes/
 │   │   │   ├── liabilities/

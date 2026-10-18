@@ -32,6 +32,18 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
 
 ## 📝 Log Checkpoint Terbaru
 
+### Checkpoint: Refactor Clean Page Architecture & Pemisahan Komponen Fitur (2026-10-18 19:50 WIB)
+- **Status:** COMPLETED ✅
+- **Capaian:**
+  1. Pemecahan Komponen Fitur Dashboard:
+     - `src/components/features/dashboard/CashflowSummaryCard.tsx`: Komponen kartu metrik arus kas primitive reusable (Total Simpanan, Realisasi Kas, Sisa Kuota Uang Bebas).
+     - `src/components/features/dashboard/DashboardHubCard.tsx`: Komponen kartu preview hub navigasi primitive reusable (Wishlist & Analitik Kas via props & children).
+     - `src/components/features/categories/BudgetCategoryCard.tsx` & `BudgetCategoryList.tsx`: Kartu individual pos dan grid daftar 7 pos anggaran.
+  2. Perampingan `src/app/(dashboard)/dashboard/page.tsx`: Bertindak murni sebagai Server Component Orchestrator tanpa duplikasi markup kartu inline.
+  3. Kodifikasi Aturan Permanen & Penegasan Prinsip DRY: Menambahkan aturan Clean Page Architecture dan Prinsip Mutlak DRY (Don't Repeat Yourself) ke `AGENTS.md` (Seksi 7), `.agents/rules/project-architecture.md`, `.agents/rules/frontend-design.md`, dan memperbarui peta `docs/PROJECT-STRUCTURE.md` untuk melarang pembuatan file komponen kembar yang redundan.
+  4. Seluruh pengujian lolos: `bun test` (46/46 PASS), `bun run typecheck` (PASS, 0 error), dan `bun run build` (Next.js 16 Turbopack PASS).
+- **File Changelog:** [`2026-10-18_refactor_clean_page_architecture_and_feature_cards.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-18_refactor_clean_page_architecture_and_feature_cards.md).
+
 ### Checkpoint: Persetujuan Resmi Fase F5 — Dropdown Pemilih Bulan & Trigger 1-Click Generator (2026-10-18 19:18 WIB)
 - **Status:** Approved by Kenzo ✅
 - **Capaian:**
