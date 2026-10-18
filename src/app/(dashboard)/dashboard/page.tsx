@@ -8,8 +8,11 @@ import {
 } from "@/lib/queries/months";
 import { MonthSelector } from "@/components/features/months/MonthSelector";
 import { CreateMonthDialog } from "@/components/features/months/CreateMonthDialog";
-import { CashflowSummaryCard } from "@/components/features/dashboard/CashflowSummaryCard";
-import { DashboardHubCard } from "@/components/features/dashboard/DashboardHubCard";
+import {
+  CashflowSummaryCard,
+  DashboardHubCard,
+  ExecutiveSummaryCard,
+} from "@/components/features/dashboard";
 import {
   BudgetCategoryList,
   type BudgetCategoryItem,
@@ -86,6 +89,15 @@ export default async function DashboardPage(props: DashboardPageProps) {
   const savingsBalance = 5000000;
   const usageRatio =
     salaryBase > 0 ? Math.round((totalSpent / salaryBase) * 100) : 0;
+
+  // Breakdown pendapatan gaji vs tambahan
+  const baseSalary =
+    currentMonthDetail?.incomes?.find((inc) => inc.isBaseSalary)?.amount ??
+    4000000;
+  const additionalIncomes =
+    currentMonthDetail?.incomes
+      ?.filter((inc) => !inc.isBaseSalary)
+      .reduce((sum, inc) => sum + inc.amount, 0) ?? 0;
 
   // 7 Pos Anggaran Wajib Bulanan (Fallback Mock untuk First-Time Preview)
   const defaultBudgetCategories: BudgetCategoryItem[] = [
@@ -252,7 +264,17 @@ export default async function DashboardPage(props: DashboardPageProps) {
         </div>
       )}
 
-      {/* 2. Kartu Utama Arus Kas (Executive Cashflow Summary) */}
+      {/* 2. Executive Summary Card & Cashflow KPI (Fase F6) */}
+      <ExecutiveSummaryCard
+        totalIncome={salaryBase}
+        totalSpent={totalSpent}
+        baseSalary={baseSalary}
+        additionalIncomes={additionalIncomes}
+        monthName={currentMonthDetail?.name}
+        isClosed={currentMonthDetail?.isClosed}
+      />
+
+      {/* 3. Kartu Pilar Arus Kas (Cashflow Summary Breakdown) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Total Simpanan & Brankas Dana Darurat */}
         <CashflowSummaryCard

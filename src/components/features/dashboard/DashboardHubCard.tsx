@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
  * serta area `children` fleksibel untuk konten ringkasan atau widget interaktif.
  */
 
-interface DashboardHubCardProps {
+export interface DashboardHubCardProps {
   /**
    * Ikon fitur (misal Lucide icon Sparkles, BarChart3, ShieldCheck).
    */

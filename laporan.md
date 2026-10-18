@@ -6,7 +6,7 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 
 ## 📌 Ringkasan Status Proyek
 
-- **Status Saat Ini:** **Fase B6 & Fase F5 Disetujui (Approved ✅)** $\rightarrow$ Siap untuk commit manual Git oleh Kenzo sebelum melangkah ke Fase berikutnya
+- **Status Saat Ini:** **Fase F6 & Fase B6 Disetujui (Approved ✅)** $\rightarrow$ Siap untuk commit manual Git oleh Kenzo sebelum melangkah ke Fase berikutnya
 - **Tech Stack Terkunci:**
   - Runtime & Package Manager: Bun (v1.4.2)
   - Frontend: Next.js 16 (App Router, React 19, TypeScript)
@@ -24,13 +24,23 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 
 Seluruh fase teknis didokumentasikan di dua berkas roadmap:
 - 🛠️ **Backend Roadmap:** [`PLANBACKEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANBACKEND.md) (13 Fase Granular: B1 - B13, Fase B1–B6 Disetujui ✅)
-- 🎨 **Frontend Roadmap:** [`PLANFRONTEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANFRONTEND.md) (18 Fase Granular: F1 - F18, Fase F1–F5 Disetujui ✅)
+- 🎨 **Frontend Roadmap:** [`PLANFRONTEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANFRONTEND.md) (18 Fase Granular: F1 - F18, Fase F1–F6 Disetujui ✅)
 
 > **Protokol:** Agent hanya mengerjakan 1 fase per sesi. Checklist baru boleh dicentang (`- [x]`) setelah di-approve secara eksplisit oleh Kenzo.
 
 ---
 
 ## 📝 Log Checkpoint Terbaru
+
+### Checkpoint: Persetujuan Resmi Fase F6 — Executive Summary Card & Cashflow KPI Bulanan (2026-10-18 21:26 WIB)
+- **Status:** Approved by Kenzo ✅
+- **Capaian:**
+  1. Komponen Kartu KPI Eksekutif: Membuat `src/components/features/dashboard/ExecutiveSummaryCard.tsx` yang menampilkan 3 pilar metrik: Total Pemasukan (dengan rincian Gaji + Freelance), Total Pengeluaran Terpakai (% penyerapan), dan Net Tabungan Bersih (*Net Savings* & *Savings Rate*).
+  2. Multi-Zone Health Progress Bar: Bar visual persentase penyerapan anggaran dengan 3 zona dinamis: `Healthy` (&le;70% hijau/emerald), `Warning` (71%–90% kuning/amber), dan `Overbudget / Defisit` (&gt;90% merah/rose) disertai rekomendasi taktis kas otomatis.
+  3. Single Entry Point Barrel Export: Menyediakan `src/components/features/dashboard/index.ts` untuk mengonsolidasikan export komponen fitur domain dashboard.
+  4. Integrasi Dashboard Page: Memasang komponen di posisi teratas `src/app/(dashboard)/dashboard/page.tsx` dengan data dinamis dari `currentMonthDetail`.
+  5. Invarian Tipografi Ketat & Test Suite: Nol `font-mono` pada seluruh angka Rupiah dan metrik (100% sans-serif dengan `tabular-nums`), diverifikasi melalui 7 unit test di `src/components/features/dashboard/__tests__/ExecutiveSummaryCard.test.tsx` (total 64/64 tests PASS).
+- **File Changelog:** [`2026-10-18_fase_f6_executive_summary_card_cashflow_kpi.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-18_fase_f6_executive_summary_card_cashflow_kpi.md).
 
 ### Checkpoint: Persetujuan Resmi Fase B6 — Server Actions Multi-Source Incomes Engine (2026-10-18 21:02 WIB)
 - **Status:** Approved by Kenzo ✅
@@ -72,15 +82,6 @@ Seluruh fase teknis didokumentasikan di dua berkas roadmap:
   5. Penyelesaian Checklist: Seluruh 2 butir checklist Fase F5 di `PLANFRONTEND.md` telah resmi disetujui dan dicentang (`- [x]`).
 - **File Changelog:** [`2026-10-18_fase_f5_dropdown_pemilih_bulan_generator.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-18_fase_f5_dropdown_pemilih_bulan_generator.md).
 
-### Checkpoint: Persetujuan Resmi Fase B5 — Month Lifecycle & Master 7 Category Generator (2026-10-16 18:12 WIB)
-- **Status:** Approved by Kenzo ✅
-- **Capaian:**
-  1. Pemisahan Modular 4 Lapis: `src/types/month.ts`, `src/lib/month-generator.ts` (100% database-driven & inheritance), `src/lib/queries/months.ts`, dan `src/actions/months.ts`.
-  2. Aksi `createMonthlyCycle`, `closeMonth` (dengan Automatic Savings Sweep), dan `reopenMonth`.
-  3. Unit test suite 9 pengujian mandiri lolos verifikasi di `src/actions/__tests__/months.test.ts`.
-  4. Penyelesaian Checklist: Seluruh 4 butir checklist Fase B5 di `PLANBACKEND.md` telah resmi disetujui dan dicentang (`- [x]`).
-- **File Changelog:** [`2026-10-16_fase_b5_server_actions_month_lifecycle.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-16_fase_b5_server_actions_month_lifecycle.md).
-
 ---
 
 ## 🗄️ Arsip Rekapitulasi Milestone Disetujui (Fase Lampau)
@@ -89,6 +90,7 @@ Seluruh rincian teknis, log kode, dan verifikasi fase terdahulu telah terdokumen
 
 | Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
 | :--- | :--- | :--- | :--- |
+| **Fase B5: Month Lifecycle & Category Generator** | 2026-10-16 | Pemisahan modular 4 lapis, actions create/close/reopen, automatic savings sweep, 9 unit test lulus. | [`2026-10-16_fase_b5_server_actions_month_lifecycle.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-16_fase_b5_server_actions_month_lifecycle.md) |
 | **Fase B4: Shared Zod Validation Schemas** | 2026-10-15 | 8 skema validasi Zod terpusat di `src/schemas/`, inferensi tipe TS, 16 unit test lulus. | [`2026-10-15_fase_b4_shared_zod_schemas.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-15_fase_b4_shared_zod_schemas.md) |
 | **Fase F4: App Shell & Mobile Layout** | 2026-10-15 | `AppHeader`, `MobileBottomNav`, `DashboardLayout`, skeleton loading, dan error boundary. | [`2026-10-15_fase_f4_app_shell_mobile_layout_navigasi.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-15_fase_f4_app_shell_mobile_layout_navigasi.md) |
 | **Fase F3: Landing Page Publik 12 Seksi** | 2026-10-14 | Landing page publik lengkap, floating chassis iPhone titanium murni CSS, bebas `font-mono`. | [`2026-10-14_fase_f3_halaman_depan_publik_landing_page.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-14_fase_f3_halaman_depan_publik_landing_page.md) |

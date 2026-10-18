@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
  * Mencegah duplikasi markup card, padding, dan typography di level halaman.
  */
 
-interface CashflowSummaryCardProps {
+export interface CashflowSummaryCardProps {
   /**
    * Judul label metrik (e.g. "Total Brankas Simpanan", "Realisasi Pengeluaran Kas").
    */

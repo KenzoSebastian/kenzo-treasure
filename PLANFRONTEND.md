@@ -68,11 +68,11 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 ---
 
 ### Fase F6: Executive Summary Card & Cashflow KPI Bulanan
-- [ ] Buat komponen kartu ringkasan eksekutif `src/components/features/dashboard/ExecutiveSummaryCard.tsx`:
+- [x] Buat komponen kartu ringkasan eksekutif `src/components/features/dashboard/ExecutiveSummaryCard.tsx`:
   - Total Pemasukan Bulan Berjalan (Format Rupiah IDR).
   - Total Pengeluaran Terpakai.
   - Saldo Tabungan Bersih (*Net Savings*).
-- [ ] Pasang visual bar progress kesehatan anggaran (`Healthy` warna hijau, `Warning` kuning, `Overbudget` merah).
+- [x] Pasang visual bar progress kesehatan anggaran (`Healthy` warna hijau, `Warning` kuning, `Overbudget` merah).
 
 ---
 
