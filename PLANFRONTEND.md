@@ -58,10 +58,10 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 ---
 
 ### Fase F5: Dropdown Pemilih Bulan & Trigger 1-Click Generator
-- [ ] Buat komponen `src/components/features/months/MonthSelector.tsx`:
+- [x] Buat komponen `src/components/features/months/MonthSelector.tsx`:
   - Dropdown daftar bulan aktif & bulan riwayat lampau.
   - Indikator status bulan (`🟢 Berjalan` vs `🔒 Terkunci / Diarsipkan`).
-- [ ] Buat tombol shortcut template `➕ Buat Bulan Baru`:
+- [x] Buat tombol shortcut template `➕ Buat Bulan Baru`:
   - Trigger konfirmasi dialog `<AlertDialog />` sebelum generate.
   - Integrasi mutasi Server Action `createMonthlyCycle` dengan loading state dan feedback toast Sonner.
 

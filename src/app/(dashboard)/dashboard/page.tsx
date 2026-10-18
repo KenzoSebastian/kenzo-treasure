@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/actions/auth";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Wallet,
   Sparkles,
@@ -12,21 +13,58 @@ import {
   Target,
   CheckCircle2,
   Calendar,
+  Lock,
+  Plus,
 } from "lucide-react";
 import Link from "next/link";
+import { getAllMonths, getActiveMonth, getMonthDetailById } from "@/lib/queries/months";
+import { MonthSelector } from "@/components/features/months/MonthSelector";
+import { CreateMonthDialog } from "@/components/features/months/CreateMonthDialog";
 
-export default async function DashboardPage() {
+interface DashboardPageProps {
+  searchParams?: Promise<{
+    month?: string;
+  }>;
+}
+
+export default async function DashboardPage(props: DashboardPageProps) {
+  const searchParams = await props.searchParams;
+  const selectedMonthId = searchParams?.month;
+
   const userResult = await getCurrentUser();
   const user = userResult.success ? userResult.data : null;
   const firstName = user?.fullName?.split(" ")[0] || "Kenzo";
 
+  // Ambil daftar riwayat seluruh bulan milik pengguna
+  const monthsResult = user?.id ? await getAllMonths(user.id) : { success: false, data: [] };
+  const monthsList = monthsResult.success && monthsResult.data ? monthsResult.data : [];
+
+  // Ambil detail bulan yang sedang dipilih via URL atau bulan aktif berjalan
+  let currentMonthDetail = null;
+  if (user?.id) {
+    if (selectedMonthId) {
+      const detailRes = await getMonthDetailById(selectedMonthId, user.id);
+      if (detailRes.success && detailRes.data) {
+        currentMonthDetail = detailRes.data;
+      }
+    }
+    if (!currentMonthDetail) {
+      const activeRes = await getActiveMonth(user.id);
+      if (activeRes.success && activeRes.data) {
+        currentMonthDetail = activeRes.data;
+      }
+    }
+  }
+
   // Data referensi finansial siklus berjalan (Swiss Functional Invariants)
-  const salaryBase = 4000000;
-  const totalSpent = 1420000;
-  const remainingCash = 2580000;
+  const salaryBase = currentMonthDetail ? currentMonthDetail.totalIncome : 4000000;
+  const totalSpent = currentMonthDetail ? currentMonthDetail.totalSpent : 1420000;
+  const remainingCash = currentMonthDetail
+    ? Math.max(0, currentMonthDetail.totalIncome - currentMonthDetail.totalSpent)
+    : 2580000;
   const savingsBalance = 5000000;
   const emergencyTarget = 18000000;
-  const usageRatio = Math.round((totalSpent / salaryBase) * 100);
+  const usageRatio = salaryBase > 0 ? Math.round((totalSpent / salaryBase) * 100) : 0;
 
   // 7 Pos Anggaran Wajib Bulanan
   const budgetCategories = [
@@ -95,19 +133,47 @@ export default async function DashboardPage() {
     },
   ];
 
+  // Susun data pos anggaran: utamakan data dinamis dari database, fallback ke baseline mock
+  const activeCategories =
+    currentMonthDetail && currentMonthDetail.categories.length > 0
+      ? currentMonthDetail.categories.map((cat) => ({
+          name: cat.name,
+          icon: cat.icon || "📁",
+          target: cat.targetBudget,
+          spent: cat.spentAmount,
+          remaining: cat.remainingBudget,
+          usagePercent:
+            cat.targetBudget > 0
+              ? Math.round((cat.spentAmount / cat.targetBudget) * 100)
+              : 0,
+          status: cat.status,
+        }))
+      : budgetCategories;
+
+  const totalTargetWajib = activeCategories.reduce((sum, c) => sum + c.target, 0);
+
   return (
     <div className="space-y-8 animate-in fade-in-50 duration-200">
-      {/* 1. Header Ringkasan: Sapaan Personal & Status Siklus */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 border-b border-border/60 pb-5">
+      {/* 1. Header Ringkasan: Sapaan Personal, Status Siklus & Month Selector */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-border/60 pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1.5 text-xs text-muted-foreground font-medium">
             <Calendar className="size-3.5 text-foreground/70" />
-            <span>Oktober 2026 • Siklus Mandiri</span>
-            <span className="text-border">•</span>
-            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-              <span className="size-1.5 rounded-full bg-emerald-500" />
-              Aktif Berjalan
+            <span>
+              {currentMonthDetail ? currentMonthDetail.name : "Belum Ada Siklus"} • Siklus Mandiri
             </span>
+            <span className="text-border">•</span>
+            {currentMonthDetail?.isClosed ? (
+              <span className="inline-flex items-center gap-1 text-muted-foreground">
+                <Lock className="size-3" />
+                Tutup Buku (Arsip)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                <span className="size-1.5 rounded-full bg-emerald-500" />
+                Aktif Berjalan
+              </span>
+            )}
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
             Halo, {firstName}
@@ -117,15 +183,40 @@ export default async function DashboardPage() {
           </p>
         </div>
 
+        {/* Dropdown Pemilih Bulan & 1-Click Generator */}
         <div className="flex items-center gap-2">
-          <Badge
-            variant="outline"
-            className="text-xs font-semibold px-3 py-1 border-border/80 bg-muted/30 text-foreground"
-          >
-            Anggaran Sehat (35,5% Terpakai)
-          </Badge>
+          <MonthSelector
+            months={monthsList}
+            currentMonthId={currentMonthDetail?.id}
+            isClosed={currentMonthDetail?.isClosed}
+          />
         </div>
       </div>
+
+      {/* 1b. Fail-Closed Zero-State Banner jika belum ada bulan di DB */}
+      {monthsList.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-border/80 p-6 bg-muted/20 text-center space-y-3">
+          <div className="mx-auto size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+            <Sparkles className="size-5" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-foreground">
+              Mulai Siklus Anggaran Pertama Anda
+            </h3>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
+              Belum ada lembar kerja siklus bulanan di database. Klik tombol di bawah untuk membuat bulan pertama dengan 7 pos pengeluaran baseline terproteksi.
+            </p>
+          </div>
+          <CreateMonthDialog
+            trigger={
+              <Button size="sm" className="h-9 px-4 rounded-xl gap-1.5 font-medium">
+                <Plus className="size-4" />
+                <span>Buat Lembar Bulan Pertama</span>
+              </Button>
+            }
+          />
+        </div>
+      )}
 
       {/* 2. Kartu Utama Arus Kas (Executive Cashflow Summary) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -198,16 +289,16 @@ export default async function DashboardPage() {
               7 Pos Pengeluaran Wajib
             </h2>
             <p className="text-xs text-muted-foreground">
-              Alokasi pos terkunci dari gaji pokok Rp 4.000.000 untuk mencegah kebocoran kas.
+              Alokasi pos terencana dari gaji pokok Rp {salaryBase.toLocaleString("id-ID")} untuk mencegah kebocoran kas.
             </p>
           </div>
           <span className="text-xs font-medium text-muted-foreground hidden sm:inline tabular-nums">
-            Total Target Wajib: Rp 3.085.000
+            Total Target Wajib: Rp {totalTargetWajib.toLocaleString("id-ID")}
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-          {budgetCategories.map((cat) => (
+          {activeCategories.map((cat) => (
             <Card
               key={cat.name}
               className="rounded-xl border border-border/70 bg-card p-4 space-y-3.5 shadow-xs transition-colors hover:border-foreground/30"

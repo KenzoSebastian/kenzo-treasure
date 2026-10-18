@@ -6,7 +6,7 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 
 ## 📌 Ringkasan Status Proyek
 
-- **Status Saat Ini:** **Fase B5 Disetujui (Approved ✅)** $\rightarrow$ Siap untuk commit manual Git oleh Kenzo sebelum melangkah ke Fase berikutnya
+- **Status Saat Ini:** **Fase F5 Disetujui (Approved ✅)** $\rightarrow$ Siap untuk commit manual Git oleh Kenzo sebelum melangkah ke Fase berikutnya
 - **Tech Stack Terkunci:**
   - Runtime & Package Manager: Bun (v1.4.2)
   - Frontend: Next.js 16 (App Router, React 19, TypeScript)
@@ -24,13 +24,24 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 
 Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua berkas roadmap:
 - 🛠️ **Backend Roadmap:** [`PLANBACKEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANBACKEND.md) (13 Fase Granular: B1 - B13, Fase B5 Disetujui ✅)
-- 🎨 **Frontend Roadmap:** [`PLANFRONTEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANFRONTEND.md) (18 Fase Granular: F1 - F18, Fase F4 Disetujui ✅)
+- 🎨 **Frontend Roadmap:** [`PLANFRONTEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANFRONTEND.md) (18 Fase Granular: F1 - F18, Fase F5 Disetujui ✅)
 
 > **Protokol:** Agent hanya mengerjakan 1 fase per sesi. Checklist baru boleh dicentang (`- [x]`) setelah di-approve oleh Kenzo. Pasca-approval, Agent menyajikan rekomendasi commit git dan menahan eksekusi fase berikutnya (HOLD).
 
 ---
 
 ## 📝 Log Checkpoint Terbaru
+
+### Checkpoint: Persetujuan Resmi Fase F5 — Dropdown Pemilih Bulan & Trigger 1-Click Generator (2026-10-18 19:18 WIB)
+- **Status:** Approved by Kenzo ✅
+- **Capaian:**
+  1. Komponen `CreateMonthDialog.tsx`: Dialog modal pembuatan siklus bulan baru dengan seleksi tahun, bulan (nama Indonesia), input gaji baseline, dan opsi sweep sisa uang bebas. Terintegrasi ke Server Action `createMonthlyCycle` dengan feedback toast Sonner dan router refresh.
+  2. Komponen `MonthSelector.tsx`: Dropdown navigasi siklus bulan yang membagi grup bulan aktif (`🟢 Aktif`) dan bulan arsip (`🔒 Arsip`), sinkronisasi URL search parameter (`/dashboard?month=<id>`), serta tombol generator bulan baru.
+  3. Integrasi Halaman Dashboard (`src/app/(dashboard)/dashboard/page.tsx`): Menghubungkan query dinamis `getAllMonths`, `getActiveMonth`, dan `getMonthDetailById` ke antarmuka `MonthSelector`, mengikat target dan realisasi kategori ke database, serta menyediakan fail-closed zero-state banner jika database belum memiliki catatan bulan.
+  4. Polish UI: Penyelarasan tinggi & lebar kontrol bulan-tahun (`!h-10`, `w-full`), auto-formatting titik ribuan (`.`) pada input gaji pokok secara *real-time*, dan penambahan vertical margin modal (`max-h-[calc(100dvh-4rem)] overflow-y-auto my-auto`) agar tidak mepet batas atas/bawah layar.
+  5. Penyelesaian Checklist: Seluruh 2 butir checklist Fase F5 di `PLANFRONTEND.md` telah diverifikasi dan resmi dicentang (`- [x]`).
+  6. Seluruh pengujian lolos: `bun test` (46/46 PASS), `bun run typecheck` (PASS, 0 error), dan `bun run build` (Next.js 16 PASS).
+- **File Changelog:** [`2026-10-18_fase_f5_dropdown_pemilih_bulan_generator.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-18_fase_f5_dropdown_pemilih_bulan_generator.md).
 
 ### Checkpoint: Persetujuan Resmi Fase B5 — Month Lifecycle & Master 7 Category Generator (2026-10-18 18:12 WIB)
 - **Status:** Approved by Kenzo ✅
