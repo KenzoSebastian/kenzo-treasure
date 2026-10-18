@@ -7,6 +7,7 @@
 - **Route-first, feature-oriented:** Next.js App Router menentukan route, sedangkan komponen dan proses bisnis dikelompokkan berdasarkan domain.
 - **Batas lapisan yang jelas:** UI tidak mengakses database secara langsung; mutasi server memvalidasi input dan otorisasi; aturan finansial tidak diduplikasi di komponen.
 - **Prinsip DRY (Don't Repeat Yourself) & Reusability:** Komponen antarmuka yang memiliki kerangka visual atau pola styling serupa (seperti kartu ringkasan atau kartu hub) wajib diabstraksi menjadi *reusable primitive* dengan memanfaatkan props konfigurasi dan slot `children`, bukan diduplikasi menjadi beberapa file terpisah yang redundan.
+- **Prinsip Public Entry Point & Barrel Export:** Setiap direktori atau modul yang menampung banyak berkas sejenis (seperti tipe data, skema validasi, hooks, utilitas, atau komponen fitur) wajib menyediakan berkas `index.ts` sebagai pintu masuk tunggal (*single entry point*). Seluruh pemanggil di luar folder tersebut selalu mengimpor secara bersih via nama modul utama (misal: `@/types`, `@/schemas`) tanpa bergantung pada struktur berkas internal.
 - **Ikuti repository:** bila struktur aktual berbeda dari blueprint, periksa alasan dan jangan melakukan pemindahan massal tanpa kebutuhan.
 - **Nama direktori adalah konvensi, bukan target jumlah file.** Jangan membuat folder kosong atau boilerplate untuk fitur yang belum dikerjakan.
 

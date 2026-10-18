@@ -69,11 +69,11 @@ Dokumen ini adalah rencana kerja backend bertahap (granular) untuk **Kenzo Treas
 ---
 
 ### Fase B6: Server Actions — Multi-Source Incomes Engine
-- [ ] Buat `src/actions/incomes.ts`.
-- [ ] Implementasikan `addIncome(monthId, data)` dengan validasi Zod.
-- [ ] Implementasikan logika alokasi dinamis: deteksi apakah gaji pokok (`isBaseSalary = true`) atau pemasukan sampingan/freelance.
-- [ ] Implementasikan `updateIncome(incomeId, data)` dan `deleteIncome(incomeId)`.
-- [ ] Implementasikan `getMonthlyIncomes(monthId)` dengan total rekapitulasi pemasukan.
+- [x] Buat `src/actions/incomes.ts`.
+- [x] Implementasikan `addIncome(monthId, data)` dengan validasi Zod.
+- [x] Implementasikan logika alokasi dinamis: deteksi apakah gaji pokok (`isBaseSalary = true`) atau pemasukan sampingan/freelance.
+- [x] Implementasikan `updateIncome(incomeId, data)` dan `deleteIncome(incomeId)`.
+- [x] Implementasikan `getMonthlyIncomes(monthId)` dengan total rekapitulasi pemasukan.
 
 ---
 

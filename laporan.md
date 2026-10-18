@@ -6,7 +6,7 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 
 ## 📌 Ringkasan Status Proyek
 
-- **Status Saat Ini:** **Fase F5 Disetujui (Approved ✅) & Refactor Dashboard Selesai ✅** $\rightarrow$ Siap untuk melangkah ke Fase berikutnya
+- **Status Saat Ini:** **Fase B6 & Fase F5 Disetujui (Approved ✅)** $\rightarrow$ Siap untuk commit manual Git oleh Kenzo sebelum melangkah ke Fase berikutnya
 - **Tech Stack Terkunci:**
   - Runtime & Package Manager: Bun (v1.4.2)
   - Frontend: Next.js 16 (App Router, React 19, TypeScript)
@@ -23,7 +23,7 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 ## 🚀 Roadmap Pelaksanaan Fase
 
 Seluruh fase teknis didokumentasikan di dua berkas roadmap:
-- 🛠️ **Backend Roadmap:** [`PLANBACKEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANBACKEND.md) (13 Fase Granular: B1 - B13, Fase B1–B5 Disetujui ✅)
+- 🛠️ **Backend Roadmap:** [`PLANBACKEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANBACKEND.md) (13 Fase Granular: B1 - B13, Fase B1–B6 Disetujui ✅)
 - 🎨 **Frontend Roadmap:** [`PLANFRONTEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANFRONTEND.md) (18 Fase Granular: F1 - F18, Fase F1–F5 Disetujui ✅)
 
 > **Protokol:** Agent hanya mengerjakan 1 fase per sesi. Checklist baru boleh dicentang (`- [x]`) setelah di-approve secara eksplisit oleh Kenzo.
@@ -31,6 +31,16 @@ Seluruh fase teknis didokumentasikan di dua berkas roadmap:
 ---
 
 ## 📝 Log Checkpoint Terbaru
+
+### Checkpoint: Persetujuan Resmi Fase B6 — Server Actions Multi-Source Incomes Engine (2026-10-18 21:02 WIB)
+- **Status:** Approved by Kenzo ✅
+- **Capaian:**
+  1. Kontrak Tipe Bersama: Membuat `src/types/income.ts` (`Income`, `NewIncome`, `MonthlyIncomesSummary`) dan mengekspornya di `src/types/index.ts`.
+  2. Data Access Layer (Read-Only): Membuat `src/lib/queries/incomes.ts` yang memuat fungsi `getMonthlyIncomes(monthId)` dan `getIncomeById(incomeId)` dengan verifikasi kepemilikan user dan bulan.
+  3. Server Actions Mutasi (Write): Membuat `src/actions/incomes.ts` yang memuat `addIncome`, `updateIncome`, dan `deleteIncome` lengkap dengan validasi skema Zod, proteksi bulan aktif, dan pencegahan duplikasi gaji pokok ganda.
+  4. Unit Test Suite Komprehensif: Membuat `src/actions/__tests__/incomes.test.ts` (11 unit test baru lolos, total 57/57 tests PASS).
+  5. Seluruh gerbang kualitas lolos: `bun test` (57/57 PASS), `bun run typecheck` (0 error), dan `bun run build` (Next.js 16 Turbopack PASS dalam 4.5 detik).
+- **File Changelog:** [`2026-10-18_fase_b6_server_actions_multi_source_incomes.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-18_fase_b6_server_actions_multi_source_incomes.md).
 
 ### Checkpoint: Optimasi Token Efisiensi Dokumentasi & Aturan (2026-10-18 20:15 WIB)
 - **Status:** COMPLETED ✅

@@ -7,6 +7,7 @@ Kenzo Treasury adalah aplikasi manajemen keuangan pribadi berbasis web progresif
 - **Roadmap & Progres:** `PLANBACKEND.md`, `PLANFRONTEND.md`, dan `laporan.md`.
 - **Implementasi Aktual Menang:** Kode sumber, migrasi, dan lockfile adalah single source of truth. Jangan berasumsi dari dokumen jika kode berbeda.
 - **Aturan Domain Spesifik:** `.agents/rules/` (`financial-domain.md`, `database-access.md`, `frontend-design.md`, `project-architecture.md`).
+- **Single Source of Truth Aturan:** Aturan teknis baru hanya ditulis pada 1 berkas terkait di `.agents/rules/`. Dilarang menduplikasi isi aturan ke `AGENTS.md` atau dokumen lain agar hemat token.
 - **Riwayat Persetujuan:** Fase B1–B5 dan F1–F5 sudah disetujui. Dilarang menghapus atau membatalkan riwayat tanpa izin.
 
 ## 2. Alur Pengerjaan & Gerbang Persetujuan (Approval Gate)
