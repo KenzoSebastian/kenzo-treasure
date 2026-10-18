@@ -51,3 +51,15 @@ Aturan Global Cecillia sudah mencakup komunikasi, kualitas kode, verifikasi, pen
 
 - Wajib mengikuti `.agents/rules/frontend-design.md` dan `docs/DESIGN-SYSTEM.md`.
 - **Dilarang keras menggunakan font monospace (`font-mono`)** untuk angka, nominal uang/mata uang (Rupiah), saldo, persen, rasio, metrik, atau penomoran pada antarmuka (UI). Semua angka wajib menggunakan font sans-serif proporsional standar dengan `tabular-nums` jika membutuhkan perataan digit.
+
+## 6. Pemisahan Tanggung Jawab Modul & Anti-Hardcode Finansial
+
+- **Pemisahan Server Actions vs Queries vs Domain Services:**
+  - `src/actions/`: HANYA untuk mutasi data server (write operations: create, update, delete, toggle). Dilarang menumpuk query data agregasi, fungsi pembacaan data panjang, atau konstanta template ke dalam file Server Action.
+  - `src/lib/queries/`: Khusus fungsi pembacaan data (read/query) yang dapat dipanggil langsung oleh React Server Components tanpa overhead Server Action RPC.
+  - `src/lib/`: Khusus fungsi kalkulasi domain murni, generator data (`*-generator.ts`), atau helper integrasi.
+  - `src/types/`: Kontrak tipe bersama domain terkait (`src/types/<domain>.ts`).
+- **Anti-Hardcode Finansial (Database-First Invariant):**
+  - **Dilarang keras men-hardcode nominal finansial** (seperti nominal cicilan 735.000, 500.000, atau sisa saldo) dan pencocokan keyword string kaku di dalam kode logika.
+  - Seluruh data utang, nominal cicilan (`monthlyPayment`), status pelunasan (`isSettled`), serta daftar pos kategori bulanan **wajib dibaca secara dinamis langsung dari tabel database** (`liabilities`, `budgetCategories`, `months`).
+  - Pembuatan bulan baru wajib mewarisi (*inherit*) susunan pos anggaran dan target dari bulan sebelumnya yang ada di database jika riwayat tersedia, bukan selalu mereset ke template statis awal. Baseline template hanya digunakan sebagai *fallback* saat database benar-benar kosong (first-time user).

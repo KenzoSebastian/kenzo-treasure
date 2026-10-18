@@ -91,8 +91,11 @@ kenzo-treasure/
 │   │   ├── use-offline-sync.ts
 │   │   └── use-countdown.ts
 │   ├── lib/
+│   │   ├── queries/                  # Modul query pembacaan data (read access layer untuk Server Components)
+│   │   │   └── months.ts             # getActiveMonth, getAllMonths, getMonthDetailById
+│   │   ├── month-generator.ts        # Generator pos anggaran bulanan dinamis (inherit dari DB & relokasi cicilan)
 │   │   ├── query-client.ts
-│   │   ├── financial-calculations.ts  # Fungsi domain murni; boleh dipecah bila perlu
+│   │   ├── financial-calculations.ts  # Fungsi domain murni; Single Source of Truth rumus finansial
 │   │   ├── image-compressor.ts
 │   │   ├── utils.ts
 │   │   ├── formatters.ts
@@ -107,6 +110,8 @@ kenzo-treasure/
 │   │   ├── transaction.schema.ts
 │   │   └── wishlist.schema.ts
 │   ├── types/                       # Tipe bersama yang benar-benar diperlukan
+│   │   ├── index.ts                  # ActionResponse dsb
+│   │   └── month.ts                  # MonthlyCycleDetail, MonthSummary, CategoryDetailItem
 │   └── proxy.ts                     # Next.js 16 Edge Proxy (Session Refresh & Route Protection)
 ├── drizzle.config.ts
 ├── next.config.ts

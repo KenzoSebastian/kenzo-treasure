@@ -18,11 +18,13 @@ description: "Aturan arsitektur Kenzo Treasury untuk menentukan lokasi file, men
   3. **Workspace Terproteksi (`/dashboard/*`):** Panel dashboard finansial privat di `src/app/(dashboard)/dashboard/` (ikhtisar bulanan, pos anggaran, wishlist, analitik, vault, dan pengaturan).
   Jangan tempatkan logika finansial atau query DB langsung di halaman.
 - `src/components/ui/`: primitive atau komponen Shadcn yang dapat dipakai ulang; `src/components/layout/`: kerangka navigasi/layout aplikasi & dashboard; `src/components/features/<domain>/`: komponen fitur (termask `landing/` untuk seksi halaman depan).
-- `src/actions/`: batas mutasi server dan koordinasi kebutuhan request; validasi input, autentikasi, dan otorisasi tetap wajib. Jangan menganggap semua pembacaan data harus berupa Server Action.
+- `src/actions/`: HANYA untuk mutasi server (write operations: create, update, delete, action); validasi input Zod, autentikasi sesi, dan otorisasi tetap wajib. Dilarang menumpuk query data agregasi, fungsi pembacaan data panjang, atau konstanta template di sini.
+- `src/lib/queries/`: modul query pembacaan data (read-only access layer) yang dapat dipanggil langsung oleh React Server Components tanpa overhead Server Action RPC.
 - `src/db/`: schema, koneksi, dan migrasi; ikuti lokasi migrasi yang **benar-benar dikonfigurasi** oleh Drizzle, bukan asumsi dari diagram.
-- `src/schemas/`: validasi Zod yang layak digunakan lintas client/server; `src/hooks/`: hook React; `src/lib/`: utilitas murni, adaptor SDK, atau helper terfokus.
-- `src/types/`: tipe bersama hanya jika tidak dapat lebih tepat diletakkan dekat pemakaiannya; utamakan inferensi tipe Drizzle/Zod untuk mencegah definisi ganda.
+- `src/schemas/`: validasi Zod yang layak digunakan lintas client/server; `src/hooks/`: hook React; `src/lib/`: utilitas murni, generator domain (`*-generator.ts`), adaptor SDK, atau helper terfokus.
+- `src/types/`: tipe bersama domain terkait (`src/types/<domain>.ts`) hanya jika tidak dapat lebih tepat diletakkan dekat pemakaiannya; utamakan inferensi tipe Drizzle/Zod untuk mencegah definisi ganda.
 - `public/`: aset statis/PWA; `docs/`: dokumentasi desain dan keputusan teknis; `.changelog/` dan `laporan.md`: dokumentasi perubahan sesuai Global Cecillia.
+- **Invarian Database-Driven:** Dilarang keras men-hardcode nominal finansial (seperti nominal cicilan) atau string keyword di dalam kode. Seluruh data utang, cicilan, dan kategori wajib dibaca secara dinamis langsung dari database, serta mewarisi (*inherit*) konfigurasi bulan sebelumnya.
 
 ## Keputusan perubahan struktur
 - Ikuti penamaan, import alias, konfigurasi, dan idiom yang sudah ada. Hindari folder abstrak baru atau satu-file-per-function tanpa manfaat nyata.

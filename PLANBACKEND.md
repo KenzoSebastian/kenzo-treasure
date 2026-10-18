@@ -57,14 +57,14 @@ Dokumen ini adalah rencana kerja backend bertahap (granular) untuk **Kenzo Treas
 ---
 
 ### Fase B5: Server Actions — Month Lifecycle & Master 7 Category Generator
-- [ ] Buat `src/actions/months.ts`.
-- [ ] Implementasikan `createMonthlyCycle(userId, year, monthIndex)`:
+- [x] Buat `src/actions/months.ts` (mutasi), `src/lib/queries/months.ts` (queries), dan `src/lib/month-generator.ts` (generator dinamis).
+- [x] Implementasikan `createMonthlyCycle(userId, year, monthIndex)`:
   - Generate record tabel `months`.
   - Otomatis generate baris `incomes` default `💵 Gaji Pokok: Rp 4.000.000`.
-  - Otomatis generate 7 pos anggaran default (`budget_categories`): Perpuluhan, Listrik, Tabungan, Bensin, Jajan, Cicilan iPhone, Talangan Mama.
-  - Link otomatis ke record `liabilities` aktif untuk pos cicilan.
-- [ ] Implementasikan `getActiveMonth(userId)` dan `getAllMonths(userId)`.
-- [ ] Implementasikan `closeMonth(monthId)` untuk mengunci siklus bulan.
+  - Otomatis generate 7 pos anggaran default (`budget_categories`): Perpuluhan, Listrik, Tabungan, Bensin, Jajan, Cicilan iPhone, Talangan Mama (atau inherit dinamis dari bulan sebelumnya di DB).
+  - Link otomatis dinamis ke record `liabilities` aktif untuk pos cicilan dari DB (tanpa hardcode).
+- [x] Implementasikan `getActiveMonth(userId)` dan `getAllMonths(userId)`.
+- [x] Implementasikan `closeMonth(monthId)` untuk mengunci siklus bulan.
 
 ---
 

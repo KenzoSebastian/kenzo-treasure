@@ -43,9 +43,10 @@ Dokumen ini adalah aturan absolut untuk seluruh operasi, kalkulasi, mutasi, dan 
 - **Relasi Pos ke Utang:** Pos anggaran cicilan terhubung ke data `liabilities` via `liability_id`.
 - **Akumulasi Pembayaran Atomik:** Setiap transaksi pembayaran pada pos cicilan otomatis menambah `paid_amount` pada tabel `liabilities`.
 - **Status Lunas (`is_settled`):** Ketika $\text{paid\_amount} \ge \text{total\_amount}$, cicilan ditandai lunas (`is_settled = true`).
-- **Otomasi Pembuatan Bulan Baru:**
-  - Pos cicilan yang sudah berstatus lunas **tidak dimunculkan kembali** di bulan-bulan berikutnya.
+- **Otomasi Pembuatan Bulan Baru & Relokasi Kas Dinamis:**
+  - Pos cicilan yang sudah berstatus lunas (`is_settled = true`) **tidak dimunculkan kembali** di bulan-bulan berikutnya.
   - Kuota anggaran dari cicilan yang lunas otomatis dialihkan untuk memperbesar kapasitas baseline `uang_bebas_tabungan` (kapasitas finansial bertambah seiring berkurangnya utang).
+  - **Invarian Dinamis dari Database:** Nominal yang dialihkan **wajib dijumlahkan dari nilai `liabilities.monthlyPayment` aktual di database**, bukan di-hardcode angka (seperti 735.000 atau 500.000) dan bukan dengan mencocokkan string nama/keyword.
 - **Rekonsiliasi Edit/Hapus/Undo:** Jika transaksi pembayaran cicilan diubah atau dihapus (undo), `paid_amount` wajib direkonsiliasi secara atomik dalam transaksi database yang sama.
 
 ---

@@ -6,7 +6,7 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 
 ## 📌 Ringkasan Status Proyek
 
-- **Status Saat Ini:** **Fase B4 Disetujui (Approved ✅)** $\rightarrow$ Siap untuk commit manual Git oleh Kenzo sebelum melangkah ke Fase berikutnya
+- **Status Saat Ini:** **Fase B5 Disetujui (Approved ✅)** $\rightarrow$ Siap untuk commit manual Git oleh Kenzo sebelum melangkah ke Fase berikutnya
 - **Tech Stack Terkunci:**
   - Runtime & Package Manager: Bun (v1.4.2)
   - Frontend: Next.js 16 (App Router, React 19, TypeScript)
@@ -23,7 +23,7 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 ## 🚀 Roadmap Pelaksanaan Fase
 
 Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua berkas roadmap:
-- 🛠️ **Backend Roadmap:** [`PLANBACKEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANBACKEND.md) (13 Fase Granular: B1 - B13, Fase B4 Disetujui ✅)
+- 🛠️ **Backend Roadmap:** [`PLANBACKEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANBACKEND.md) (13 Fase Granular: B1 - B13, Fase B5 Disetujui ✅)
 - 🎨 **Frontend Roadmap:** [`PLANFRONTEND.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PLANFRONTEND.md) (18 Fase Granular: F1 - F18, Fase F4 Disetujui ✅)
 
 > **Protokol:** Agent hanya mengerjakan 1 fase per sesi. Checklist baru boleh dicentang (`- [x]`) setelah di-approve oleh Kenzo. Pasca-approval, Agent menyajikan rekomendasi commit git dan menahan eksekusi fase berikutnya (HOLD).
@@ -31,6 +31,23 @@ Seluruh fase teknis telah dipecah secara granular dan didokumentasikan di dua be
 ---
 
 ## 📝 Log Checkpoint Terbaru
+
+### Checkpoint: Persetujuan Resmi Fase B5 — Month Lifecycle & Master 7 Category Generator (2026-10-18 18:12 WIB)
+- **Status:** Approved by Kenzo ✅
+- **Capaian:**
+  1. Pemisahan Modular 4 Lapis:
+     - `src/types/month.ts`: Kontrak tipe bersama (`MonthSummary`, `CategoryDetailItem`, `MonthlyCycleDetail`).
+     - `src/lib/month-generator.ts`: Domain service 100% database-driven untuk pembuatan pos bulanan, pewarisan (*inheritance*) pos dari bulan sebelumnya di DB, dan relokasi kuota cicilan lunas dinamis dari `liabilities.monthlyPayment` di DB (tanpa hardcode 735k/500k atau string keyword).
+     - `src/lib/queries/months.ts`: Data access layer khusus pembacaan (queries: `getActiveMonth`, `getAllMonths`, `getMonthDetailById`) yang ramah Server Components.
+     - `src/actions/months.ts`: Server Actions ramping khusus mutasi (`createMonthlyCycle`, `closeMonth`, `reopenMonth`).
+  2. Aksi `createMonthlyCycle`: Membuat bulan baru, generate otomatis gaji pokok default Rp 4.000.000 di tabel `incomes`, dan meng-generate pos anggaran secara dinamis dari database.
+  3. Aksi `closeMonth`: Menutup siklus bulan aktif (`isClosed = true`) dan mengeksekusi Automatic Savings Sweep (memindahkan sisa kuota uang bebas ke akumulasi `savings_account.balance`).
+  4. Aksi `reopenMonth`: Membuka kembali bulan yang telah ditutup untuk koreksi catatan transaksi masa lalu.
+  5. Kodifikasi Aturan: Memperbarui aturan arsitektur di `AGENTS.md` (Seksi 6), `.agents/rules/project-architecture.md`, `.agents/rules/financial-domain.md`, `docs/PROJECT-STRUCTURE.md`, dan `PLANBACKEND.md` agar anti-hardcode data finansial dan pemisahan modul ditegakkan secara permanen.
+  6. Unit Test Suite (`src/actions/__tests__/months.test.ts`): 9 pengujian mandiri lolos memverifikasi baseline 7 pos anggaran, 3 kelompok pos, relokasi utang dinamis dari DB, 12 bulan Indonesia, dan skema validasi.
+  7. Penyelesaian Checklist: Seluruh 4 butir checklist Fase B5 di `PLANBACKEND.md` telah diverifikasi dan resmi dicentang (`- [x]`).
+  8. Lolos seluruh pengujian: `bun test` (46/46 tests PASS), `bun run typecheck` (PASS, 0 error), dan `bun run build` (Next.js 16 Turbopack PASS).
+- **File Changelog:** [`2026-10-16_fase_b5_server_actions_month_lifecycle.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/.changelog/2026-10-16_fase_b5_server_actions_month_lifecycle.md).
 
 ### Checkpoint: Persetujuan Resmi Fase B4 — Shared Zod Validation Schemas (Client-Server Contract) (2026-10-16 13:45 WIB)
 - **Status:** Approved by Kenzo ✅
