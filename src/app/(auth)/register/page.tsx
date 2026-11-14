@@ -75,7 +75,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center p-4">
+    <div className="flex min-h-dvh items-center justify-center p-4">
       <div className="w-full max-w-sm rounded-xl border bg-card p-6 shadow-sm">
         <div className="mb-6 text-center">
           <div className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold tracking-wide text-muted-foreground">

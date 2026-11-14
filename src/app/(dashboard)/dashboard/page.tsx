@@ -6,8 +6,11 @@ import {
   getActiveMonth,
   getMonthDetailById,
 } from "@/lib/queries/months";
-import { MonthSelector } from "@/components/features/months/MonthSelector";
-import { CreateMonthDialog } from "@/components/features/months/CreateMonthDialog";
+import { getLiabilities } from "@/lib/queries/liabilities";
+import { getSavingsAccount } from "@/lib/queries/savings";
+import { getWishlists } from "@/lib/queries/wishlists";
+import { calculateSavingsRate } from "@/lib/financial-calculations";
+import { MonthSelector, CreateMonthDialog } from "@/components/features/months";
 import {
   CashflowSummaryCard,
   DashboardHubCard,
@@ -16,7 +19,14 @@ import {
 import {
   BudgetCategoryList,
   type BudgetCategoryItem,
-} from "@/components/features/categories/BudgetCategoryList";
+} from "@/components/features/categories";
+import { QuickTransactionDrawer } from "@/components/features/transactions";
+import { IncomeSection } from "@/components/features/incomes";
+import { LiabilityTrackerCard } from "@/components/features/liabilities";
+import { EmergencyVaultCard } from "@/components/features/savings";
+import { AiMonthlyReviewModal } from "@/components/features/ai";
+import type { LiabilityWithProgress } from "@/types/liability";
+import type { SavingsVaultSummary } from "@/types/savings";
 
 /**
  * ==============================================================================
@@ -25,14 +35,10 @@ import {
  *
  * ── Kenapa berkas ini ada ──────────────────────────────────────────────────────
  *
- * Berkas ini bertindak sebagai Server Component Orchestrator utama untuk panel
- * kerja bulanan. Mengambil sesi pengguna dan data siklus bulan dari database,
- * lalu mendistribusikannya ke komponen-komponen fitur modular terisolasi:
- * 1. MonthSelector & CreateMonthDialog (Navigasi & Generator Siklus)
- * 2. CashflowSummaryCard (3 Metrik Utama Kas)
- * 3. BudgetCategoryList & BudgetCategoryCard (Alokasi 7 Pos Anggaran)
- * 4. DashboardWishlistCard (Sinking Fund Barang Impian)
- * 5. DashboardAnalyticsCard (KPI & Tren Historis)
+ * Berkas ini bertindak murni sebagai Server Component Orchestrator utama untuk
+ * panel kerja bulanan. Mengambil sesi pengguna dan data siklus bulan dari
+ * database via `src/lib/queries/*`, lalu mendistribusikannya ke komponen fitur
+ * modular terisolasi (F5–F16).
  */
 
 interface DashboardPageProps {
@@ -73,7 +79,20 @@ export default async function DashboardPage(props: DashboardPageProps) {
     }
   }
 
-  // Data referensi finansial siklus berjalan (Swiss Functional Invariants)
+  // Ambil data cicilan, brankas dana darurat, dan wishlist secara paralel
+  const [liabilitiesRes, savingsRes, wishlistsRes] = user?.id
+    ? await Promise.all([
+        getLiabilities(user.id),
+        getSavingsAccount(user.id),
+        getWishlists(user.id),
+      ])
+    : [
+        { success: false as const, error: "" },
+        { success: false as const, error: "" },
+        { success: false as const, error: "" },
+      ];
+
+  // Data referensi finansial siklus berjalan
   const salaryBase = currentMonthDetail
     ? currentMonthDetail.totalIncome
     : 4000000;
@@ -86,7 +105,6 @@ export default async function DashboardPage(props: DashboardPageProps) {
         currentMonthDetail.totalIncome - currentMonthDetail.totalSpent
       )
     : 2580000;
-  const savingsBalance = 5000000;
   const usageRatio =
     salaryBase > 0 ? Math.round((totalSpent / salaryBase) * 100) : 0;
 
@@ -99,11 +117,12 @@ export default async function DashboardPage(props: DashboardPageProps) {
       ?.filter((inc) => !inc.isBaseSalary)
       .reduce((sum, inc) => sum + inc.amount, 0) ?? 0;
 
-  // 7 Pos Anggaran Wajib Bulanan (Fallback Mock untuk First-Time Preview)
+  // 7 Pos Anggaran Wajib Bulanan (Fallback Preview saat DB kosong)
   const defaultBudgetCategories: BudgetCategoryItem[] = [
     {
       name: "Bensin & Mobilitas",
       icon: "⛽",
+      group: "kebutuhan",
       target: 200000,
       spent: 135000,
       remaining: 65000,
@@ -113,6 +132,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
     {
       name: "Belanja & Jajan",
       icon: "🍿",
+      group: "uang_bebas_tabungan",
       target: 300000,
       spent: 190000,
       remaining: 110000,
@@ -122,47 +142,57 @@ export default async function DashboardPage(props: DashboardPageProps) {
     {
       name: "Listrik & Air",
       icon: "⚡",
+      group: "pos_wajib",
       target: 450000,
       spent: 0,
       remaining: 450000,
       usagePercent: 0,
       status: "Terkunci",
+      isLocked: true,
     },
     {
       name: "Gereja / Persepuluhan",
       icon: "✝️",
+      group: "pos_wajib",
       target: 400000,
       spent: 0,
       remaining: 400000,
       usagePercent: 0,
       status: "Terkunci",
+      isLocked: true,
     },
     {
       name: "Tabungan Otomatis",
       icon: "💰",
+      group: "uang_bebas_tabungan",
       target: 500000,
       spent: 500000,
       remaining: 0,
       usagePercent: 100,
       status: "Teralokasi",
+      isLocked: true,
     },
     {
       name: "Cicilan iPhone (24 bln)",
       icon: "📱",
+      group: "pos_wajib",
       target: 735000,
       spent: 0,
       remaining: 735000,
       usagePercent: 0,
       status: "18 Bln Tersisa",
+      isLocked: true,
     },
     {
       name: "Talangan Mama (5 bln)",
       icon: "👩‍👦",
+      group: "pos_wajib",
       target: 500000,
       spent: 0,
       remaining: 500000,
       usagePercent: 0,
       status: "3 Bln Tersisa",
+      isLocked: true,
     },
   ];
 
@@ -173,6 +203,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
           id: cat.id,
           name: cat.name,
           icon: cat.icon || "📁",
+          group: cat.group,
           target: cat.targetBudget,
           spent: cat.spentAmount,
           remaining: cat.remainingBudget,
@@ -181,6 +212,8 @@ export default async function DashboardPage(props: DashboardPageProps) {
               ? Math.round((cat.spentAmount / cat.targetBudget) * 100)
               : 0,
           status: cat.status,
+          isLocked: cat.group === "pos_wajib",
+          transactions: cat.transactions,
         }))
       : defaultBudgetCategories;
 
@@ -189,17 +222,86 @@ export default async function DashboardPage(props: DashboardPageProps) {
     0
   );
 
+  // Data cicilan: utamakan DB, fallback ke preview jika DB kosong
+  const fallbackLiabilities: LiabilityWithProgress[] = [
+    {
+      id: "preview-iphone",
+      userId: user?.id ?? "preview",
+      name: "Cicilan iPhone",
+      totalAmount: 17640000,
+      paidAmount: 4410000,
+      monthlyPayment: 735000,
+      totalMonths: 24,
+      isSettled: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      remainingAmount: 13230000,
+      percentage: 25,
+      remainingMonths: 18,
+    },
+    {
+      id: "preview-mama",
+      userId: user?.id ?? "preview",
+      name: "Talangan Mama",
+      totalAmount: 2500000,
+      paidAmount: 1000000,
+      monthlyPayment: 500000,
+      totalMonths: 5,
+      isSettled: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      remainingAmount: 1500000,
+      percentage: 40,
+      remainingMonths: 3,
+    },
+  ];
+
+  const activeLiabilities =
+    liabilitiesRes.success && liabilitiesRes.data.items.length > 0
+      ? liabilitiesRes.data.items
+      : fallbackLiabilities;
+
+  // Data brankas simpanan & dana darurat
+  const fallbackVault: SavingsVaultSummary = {
+    id: "preview-vault",
+    userId: user?.id ?? "preview",
+    freeSavingsBalance: 2500000,
+    emergencyFundBalance: 12600000,
+    emergencyFundTarget: 18000000,
+    totalVaultBalance: 15100000,
+    percentageOfTarget: 70,
+    isTargetReached: false,
+    safetyMonths: 4.2,
+    monthlyFixedExpense: 3000000,
+    updatedAt: new Date(),
+  };
+
+  const activeVault =
+    savingsRes.success && savingsRes.data ? savingsRes.data : fallbackVault;
+
+  const topWishlist =
+    wishlistsRes.success && wishlistsRes.data.items.length > 0
+      ? wishlistsRes.data.items[0]
+      : null;
+
+  const currentSavingsRate = currentMonthDetail
+    ? calculateSavingsRate(
+        currentMonthDetail.totalIncome,
+        currentMonthDetail.netCashflow
+      )
+    : 28.5;
+
   return (
     <div className="space-y-8 animate-in fade-in-50 duration-200">
       {/* 1. Header Ringkasan: Sapaan Personal, Status Siklus & Month Selector */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-border/60 pb-5">
+      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 border-b border-border/60 pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1.5 text-xs text-muted-foreground font-medium">
             <Calendar className="size-3.5 text-foreground/70" />
             <span>
               {currentMonthDetail
                 ? currentMonthDetail.name
-                : "Belum Ada Siklus"}{" "}
+                : "Oktober 2026 (Preview)"}{" "}
               • Siklus Mandiri
             </span>
             <span className="text-border">•</span>
@@ -224,13 +326,37 @@ export default async function DashboardPage(props: DashboardPageProps) {
           </p>
         </div>
 
-        {/* Dropdown Pemilih Bulan & 1-Click Generator */}
-        <div className="flex items-center gap-2">
+        {/* Dropdown Pemilih Bulan, AI Review Modal & Quick Transaction Drawer */}
+        <div className="flex flex-wrap items-center gap-2">
           <MonthSelector
             months={monthsList}
             currentMonthId={currentMonthDetail?.id}
             isClosed={currentMonthDetail?.isClosed}
           />
+          <AiMonthlyReviewModal
+            monthId={currentMonthDetail?.id}
+            monthName={currentMonthDetail?.name ?? "Oktober 2026"}
+            isClosed={currentMonthDetail?.isClosed}
+            totalIncome={salaryBase}
+            totalSpent={totalSpent}
+            categories={activeCategories}
+          />
+          {currentMonthDetail && (
+            <QuickTransactionDrawer
+              monthId={currentMonthDetail.id}
+              isClosed={currentMonthDetail.isClosed}
+              cycleYear={currentMonthDetail.year}
+              cycleMonthIndex={currentMonthDetail.monthIndex}
+              categories={activeCategories
+                .filter((c) => Boolean(c.id))
+                .map((c) => ({
+                  id: c.id!,
+                  name: c.name,
+                  icon: c.icon,
+                  remaining: c.remaining,
+                }))}
+            />
+          )}
         </div>
       </div>
 
@@ -276,21 +402,19 @@ export default async function DashboardPage(props: DashboardPageProps) {
 
       {/* 3. Kartu Pilar Arus Kas (Cashflow Summary Breakdown) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Total Simpanan & Brankas Dana Darurat */}
         <CashflowSummaryCard
           title="Total Brankas Simpanan"
-          amount={savingsBalance}
+          amount={activeVault.totalVaultBalance}
           footer={
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Ketahanan Darurat:</span>
               <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                6,2 Bulan Aman
+                {activeVault.safetyMonths.toLocaleString("id-ID")} Bulan Aman
               </span>
             </div>
           }
         />
 
-        {/* Realisasi Pengeluaran Bulan Ini */}
         <CashflowSummaryCard
           title="Realisasi Pengeluaran Kas"
           amount={totalSpent}
@@ -298,7 +422,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">
-                  Terpakai dari Gaji:
+                  Terpakai dari Pemasukan:
                 </span>
                 <span className="font-semibold text-foreground tabular-nums">
                   {usageRatio}%
@@ -307,14 +431,13 @@ export default async function DashboardPage(props: DashboardPageProps) {
               <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
                 <div
                   className="h-full rounded-full bg-foreground/80 transition-all duration-300"
-                  style={{ width: `${usageRatio}%` }}
+                  style={{ width: `${Math.min(100, usageRatio)}%` }}
                 />
               </div>
             </div>
           }
         />
 
-        {/* Sisa Anggaran Bebas / Buffer */}
         <CashflowSummaryCard
           title="Sisa Kuota Uang Bebas"
           amount={remainingCash}
@@ -322,7 +445,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
           footer={
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">
-                Pemasukan Gaji Pokok:
+                Total Pemasukan Bulan Ini:
               </span>
               <span className="font-semibold text-foreground tabular-nums">
                 Rp {salaryBase.toLocaleString("id-ID")}
@@ -332,16 +455,36 @@ export default async function DashboardPage(props: DashboardPageProps) {
         />
       </div>
 
-      {/* 3. Seksi 7 Pos Anggaran Wajib */}
+      {/* 4. Seksi Pemasukan: Gaji Pokok vs Freelance (Fase F10) */}
+      <IncomeSection
+        monthId={currentMonthDetail?.id}
+        isClosed={currentMonthDetail?.isClosed}
+        baseSalary={baseSalary}
+        incomes={currentMonthDetail?.incomes}
+        cycleYear={currentMonthDetail?.year}
+        cycleMonthIndex={currentMonthDetail?.monthIndex}
+      />
+
+      {/* 5. Seksi 7 Pos Anggaran Wajib & Sub-List Transaksi (Fase F7 & F9) */}
       <BudgetCategoryList
         categories={activeCategories}
         salaryBase={salaryBase}
         totalTarget={totalTargetWajib}
+        monthId={currentMonthDetail?.id}
+        isClosed={currentMonthDetail?.isClosed}
       />
 
-      {/* 4. Seksi Sinking Fund & Pelunasan Cicilan */}
+      {/* 6. Seksi Tracking Cicilan / Utang Bertarget Lunas (Fase F11) */}
+      <LiabilityTrackerCard
+        liabilities={activeLiabilities}
+        isClosed={currentMonthDetail?.isClosed}
+      />
+
+      {/* 7. Seksi Brankas Dana Darurat & Safety Months Meter (Fase F14) */}
+      <EmergencyVaultCard vault={activeVault} />
+
+      {/* 8. Seksi Hub Sinking Fund & Analitik */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
-        {/* Hub Wishlist Barang Impian */}
         <DashboardHubCard
           icon={<Sparkles className="size-4 text-amber-500" />}
           title="Wishlist Barang Impian"
@@ -352,23 +495,37 @@ export default async function DashboardPage(props: DashboardPageProps) {
           <div className="space-y-3 rounded-xl border border-border/60 bg-muted/20 p-3.5">
             <div className="flex justify-between items-center text-xs">
               <span className="font-medium text-foreground">
-                🎯 Target Tabungan Kamera & Lensa
+                🎯 {topWishlist ? topWishlist.name : "Target Tabungan Kamera & Lensa"}
               </span>
               <span className="font-semibold text-foreground tabular-nums">
-                50% Tercapai
+                {topWishlist ? topWishlist.progress.percentage : 50}% Tercapai
               </span>
             </div>
             <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-              <div className="h-full rounded-full bg-amber-500 w-1/2" />
+              <div
+                className="h-full rounded-full bg-amber-500"
+                style={{
+                  width: `${topWishlist ? topWishlist.progress.percentage : 50}%`,
+                }}
+              />
             </div>
             <div className="flex justify-between text-[11px] text-muted-foreground tabular-nums">
-              <span>Terkumpul: Rp 6.000.000</span>
-              <span>Target: Rp 12.000.000</span>
+              <span>
+                Terkumpul: Rp{" "}
+                {(topWishlist ? topWishlist.savedAmount : 6000000).toLocaleString(
+                  "id-ID"
+                )}
+              </span>
+              <span>
+                Target: Rp{" "}
+                {(topWishlist ? topWishlist.targetAmount : 12000000).toLocaleString(
+                  "id-ID"
+                )}
+              </span>
             </div>
           </div>
         </DashboardHubCard>
 
-        {/* Hub Analitik & Historis Kas */}
         <DashboardHubCard
           icon={<BarChart3 className="size-4 text-blue-500" />}
           title="Analitik & Historis Kas"
@@ -382,7 +539,7 @@ export default async function DashboardPage(props: DashboardPageProps) {
                 Rasio Tabungan
               </span>
               <span className="text-base font-bold text-foreground tabular-nums">
-                28,5%
+                {currentSavingsRate}%
               </span>
             </div>
             <div className="h-8 w-px bg-border/60" />
@@ -391,16 +548,16 @@ export default async function DashboardPage(props: DashboardPageProps) {
                 Cicilan Aktif
               </span>
               <span className="text-base font-bold text-foreground tabular-nums">
-                2 Pos
+                {activeLiabilities.filter((l) => !l.isSettled).length} Pos
               </span>
             </div>
             <div className="h-8 w-px bg-border/60" />
             <div>
               <span className="text-[11px] text-muted-foreground block">
-                Kepatuhan Pos
+                Ketahanan Darurat
               </span>
               <span className="text-base font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                100%
+                {activeVault.safetyMonths.toLocaleString("id-ID")} Bln
               </span>
             </div>
           </div>

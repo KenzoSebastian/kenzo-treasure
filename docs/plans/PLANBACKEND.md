@@ -1,11 +1,11 @@
 # PLANBACKEND.md — Roadmap Pengembangan Backend Kenzo Treasury
 
-Dokumen ini adalah rencana kerja backend bertahap (granular) untuk **Kenzo Treasury**. Setiap fase memiliki checklist mandiri dan **wajib mengikuti Protokol Eksekusi & Approval Gate** di [`AGENTS.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/AGENTS.md).
+Dokumen ini adalah rencana kerja backend bertahap (granular) untuk **Kenzo Treasury**. Setiap fase memiliki checklist mandiri dan **wajib mengikuti Protokol Eksekusi & Approval Gate** di [`AGENTS.md`](../../AGENTS.md).
 
 > [!IMPORTANT]
 > **ATURAN KERJA AGENT:**
 > 1. Kerjakan **hanya 1 fase per turn/sesi**. Dilarang melompat ke fase lain.
-> 2. Sebelum mulai, baca [`PRD.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/PRD.md) dan [`AGENTS.md`](file:///C:/Users/kenzo/ngoding/kenzo-treasure/AGENTS.md).
+> 2. Sebelum mulai, baca [`PRD.md`](../../PRD.md) dan [`AGENTS.md`](../../AGENTS.md).
 > 3. Setelah fase selesai, laporkan daftar file yang diubah/dibuat beserta fungsinya secara detail.
 > 4. **DILARANG MENCENTANG (`- [x]`)** checklist sebelum Kenzo memberikan approval eksplisit.
 

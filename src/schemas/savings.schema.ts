@@ -1,0 +1,29 @@
+/**
+ * ==============================================================================
+ * Kenzo Treasury — Zod Savings & Emergency Fund Vault Schemas (Fase B11)
+ * ==============================================================================
+ *
+ * Mendefinisikan kontrak validasi mutasi Brankas Dana Darurat (`savings_account`):
+ * - Setor dari tabungan bebas ke brankas dana darurat
+ * - Tarik dari brankas dana darurat ke tabungan bebas
+ * - Pembaruan target dana darurat ideal
+ */
+
+import { z } from "zod";
+
+export const transferEmergencyFundSchema = z.object({
+  amount: z.coerce
+    .number({ message: "Nominal transfer wajib diisi" })
+    .int({ message: "Nominal transfer harus berupa integer bulat tanpa desimal" })
+    .positive({ message: "Nominal transfer harus lebih besar dari Rp 0" }),
+});
+
+export const updateEmergencyTargetSchema = z.object({
+  targetAmount: z.coerce
+    .number({ message: "Target dana darurat wajib diisi" })
+    .int({ message: "Target dana darurat harus berupa integer bulat" })
+    .positive({ message: "Target dana darurat harus lebih besar dari Rp 0" }),
+});
+
+export type TransferEmergencyFundInput = z.infer<typeof transferEmergencyFundSchema>;
+export type UpdateEmergencyTargetInput = z.infer<typeof updateEmergencyTargetSchema>;

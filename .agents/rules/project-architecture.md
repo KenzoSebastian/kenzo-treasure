@@ -39,5 +39,5 @@ description: "Aturan arsitektur Kenzo Treasury untuk menentukan lokasi file, men
 - Tampilan: `.agents/rules/frontend-design.md` dan `docs/DESIGN-SYSTEM.md`.
 - Mutasi keuangan: `.agents/rules/financial-domain.md` serta skill `financial-integrity`.
 - Database dan autentikasi: `.agents/rules/database-access.md`.
-- Fase pengerjaan: `AGENTS.md`, `PLANBACKEND.md`, dan `PLANFRONTEND.md`.
+- Fase pengerjaan: `AGENTS.md`, `docs/plans/PLANBACKEND.md`, dan `docs/plans/PLANFRONTEND.md`.
 - Global Cecillia tetap mengatur verifikasi, pelaporan file, changelog, dan batas keselamatan; jangan duplikasi isi lengkapnya di sini.

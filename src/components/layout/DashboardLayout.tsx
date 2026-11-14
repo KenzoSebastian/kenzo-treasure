@@ -2,6 +2,7 @@ import * as React from "react";
 import { getCurrentUser, type UserSessionData } from "@/actions/auth";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { NetworkStatusBanner } from "@/components/common/NetworkStatusBanner";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -10,8 +11,8 @@ interface DashboardLayoutProps {
 
 /**
  * Layout wrapper responsif utama untuk zona dashboard privat Kenzo Treasury.
- * Mengintegrasikan AppHeader di bagian atas, konten utama dengan batas lebar Swiss grid,
- * serta MobileBottomNav di layar mobile.
+ * Mengintegrasikan NetworkStatusBanner (PWA Offline Sync), AppHeader di bagian atas,
+ * konten utama dengan batas lebar Swiss grid, serta MobileBottomNav di layar mobile.
  */
 export async function DashboardLayout({
   children,
@@ -27,6 +28,9 @@ export async function DashboardLayout({
 
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground antialiased">
+      {/* Banner Konektivitas Offline/Online (Fase F18) */}
+      <NetworkStatusBanner />
+
       {/* Header Aplikasi (Sticky Top) */}
       <AppHeader user={currentUser ?? null} />
 

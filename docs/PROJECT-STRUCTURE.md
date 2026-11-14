@@ -1,6 +1,6 @@
 # Struktur Proyek — Kenzo Treasury
 
-> **Status: blueprint, bukan inventaris repository.** Disusun dari peta `AGENTS.md` lama, `PRD.md`, `PLANBACKEND.md`, `PLANFRONTEND.md`, dan `laporan.md`. Belum diverifikasi terhadap folder source code aktual. **Jangan membuat semua file di bawah ini sekaligus.** Buat hanya ketika fitur/fase yang sesuai dikerjakan.
+> **Status: Tersinkronisasi dengan Implementasi Aktual (Fase B1–B13 & F1–F18).** Disusun dan diverifikasi terhadap struktur source code aktual, `PRD.md`, `docs/plans/PLANBACKEND.md`, `docs/plans/PLANFRONTEND.md`, dan `laporan.md`.
 
 ## 1. Prinsip organisasi
 
@@ -9,18 +9,15 @@
 - **Prinsip DRY (Don't Repeat Yourself) & Reusability:** Komponen antarmuka yang memiliki kerangka visual atau pola styling serupa (seperti kartu ringkasan atau kartu hub) wajib diabstraksi menjadi *reusable primitive* dengan memanfaatkan props konfigurasi dan slot `children`, bukan diduplikasi menjadi beberapa file terpisah yang redundan.
 - **Prinsip Public Entry Point & Barrel Export:** Setiap direktori atau modul yang menampung banyak berkas sejenis (seperti tipe data, skema validasi, hooks, utilitas, atau komponen fitur) wajib menyediakan berkas `index.ts` sebagai pintu masuk tunggal (*single entry point*). Seluruh pemanggil di luar folder tersebut selalu mengimpor secara bersih via nama modul utama (misal: `@/types`, `@/schemas`) tanpa bergantung pada struktur berkas internal.
 - **Ikuti repository:** bila struktur aktual berbeda dari blueprint, periksa alasan dan jangan melakukan pemindahan massal tanpa kebutuhan.
-- **Nama direktori adalah konvensi, bukan target jumlah file.** Jangan membuat folder kosong atau boilerplate untuk fitur yang belum dikerjakan.
 
-## 2. Peta direktori yang direncanakan
+## 2. Peta direktori aktual
 
 ```text
 kenzo-treasure/
 ├── AGENTS.md                         # Instruksi agent khusus proyek (ringkas)
 ├── PRD.md                            # Spesifikasi produk
-├── PLANBACKEND.md                    # Roadmap dan checklist backend
-├── PLANFRONTEND.md                   # Roadmap dan checklist frontend
-├── laporan.md                        # Ringkasan status dan checkpoint proyek
-├── .changelog/                      # Satu catatan ringkas per tugas/perubahan bermakna
+├── laporan.md                        # Ringkasan status dan checkpoint proyek (Rolling Window <= 5)
+├── .changelog/                       # Satu catatan ringkas per tugas/perubahan bermakna
 ├── .agents/
 │   ├── rules/
 │   │   ├── financial-domain.md       # Invarian keuangan
@@ -31,160 +28,138 @@ kenzo-treasure/
 │       ├── phase-delivery/SKILL.md
 │       └── financial-integrity/SKILL.md
 ├── docs/
-│   ├── PROJECT-STRUCTURE.md          # Blueprint ini
+│   ├── plans/
+│   │   ├── PLANBACKEND.md            # Roadmap dan checklist backend (B1–B13)
+│   │   └── PLANFRONTEND.md           # Roadmap dan checklist frontend (F1–F18)
+│   ├── PROJECT-STRUCTURE.md          # Dokumentasi arsitektur & struktur direktori ini
 │   ├── DESIGN-SYSTEM.md              # Identitas visual yang disepakati
-│   ├── REVIEW-AUDIT.md               # Audit bila tersedia
-│   └── DECISIONS-NEEDED.md           # Keputusan terbuka bila tersedia
+│   ├── REVIEW-AUDIT.md               # Audit teknis
+│   └── DECISIONS-NEEDED.md           # Keputusan terbuka
 ├── public/
-│   ├── icons/                        # Ikon instalasi PWA jika diperlukan
-│   └── manifest.json                 # Manifest jika dipakai konfigurasi PWA
+│   ├── icons/
+│   │   ├── icon-192.svg              # Ikon PWA 192x192
+│   │   └── icon-512.svg              # Ikon PWA 512x512
+│   ├── manifest.json                 # Web App Manifest PWA (Fase F18)
+│   └── sw.js                         # Service Worker caching aset statis PWA
 ├── src/
-│   ├── app/                          # Next.js App Router
-│   │   ├── page.tsx                  # Root URL '/' — Public Landing Page (Navbar publik, Hero, Fitur, CTA, Footer)
+│   ├── app/                          # Next.js 16 App Router (Server Component Orchestrators)
+│   │   ├── page.tsx                  # Root URL '/' — Public Landing Page (12 seksi)
 │   │   ├── (auth)/                   # Zona Autentikasi Publik
 │   │   │   ├── login/page.tsx        # Halaman Masuk Akun
 │   │   │   └── register/page.tsx     # Halaman Registrasi Akun
 │   │   ├── (dashboard)/              # Zona Workspace Privat Terproteksi
 │   │   │   └── dashboard/
-│   │   │       ├── page.tsx          # Panel Utama (Ikhtisar Finansial Bulanan)
+│   │   │       ├── page.tsx          # Panel Utama (Orchestrator Ikhtisar Bulanan)
 │   │   │       ├── wishlists/page.tsx# Sinking Fund & Wishlist Barang Impian
-│   │   │       ├── analytics/page.tsx# Grafik Tren Tabungan & Cashflow
+│   │   │       ├── analytics/page.tsx# Grafik Tren Tabungan & Cashflow Recharts
 │   │   │       ├── vault/page.tsx    # Brankas Dana Darurat (Safety Months)
-│   │   │       └── settings/page.tsx # Pengaturan & Ekspor Data Backup
-│   │   ├── api/                      # Route Handler bila diperlukan
-│   │   ├── globals.css               # Tailwind/theme/global CSS
-│   │   ├── layout.tsx                # Root layout
-│   │   └── providers.tsx             # Komposisi provider
-│   ├── actions/                      # Mutasi dan operasi server terotorisasi
-│   │   ├── auth.ts
-│   │   ├── months.ts
-│   │   ├── incomes.ts
-│   │   ├── liabilities.ts
-│   │   ├── categories.ts
-│   │   ├── transactions.ts
-│   │   ├── wishlists.ts
-│   │   ├── savings.ts
-│   │   ├── analytics.ts               # Hanya bila antarmuka server memang perlu
-│   │   ├── ai-review.ts
-│   │   └── export.ts
+│   │   │       └── settings/page.tsx # Pengaturan & Ekspor Data Backup Mandiri
+│   │   ├── globals.css               # Tailwind v4 / theme / global CSS
+│   │   ├── layout.tsx                # Root layout & PWA metadata/viewport
+│   │   └── providers.tsx             # Komposisi provider (Theme + TanStack Query)
+│   ├── actions/                      # Mutasi server terotorisasi (Write Layer)
+│   │   ├── auth.ts                   # Fase B2: login, register, logout, getCurrentUser
+│   │   ├── months.ts                 # Fase B5: createMonthlyCycle, closeMonth, reopenMonth
+│   │   ├── incomes.ts                # Fase B6: addIncome, updateIncome, deleteIncome
+│   │   ├── liabilities.ts            # Fase B7: createLiability, recordInstallmentPayment, updateLiability
+│   │   ├── categories.ts             # Fase B8: updateCategoryTarget, addCustomCategory, reorderCategories
+│   │   ├── transactions.ts           # Fase B9: createTransaction, softDeleteTransaction, restoreTransaction, hardDeleteExpiredTransactions
+│   │   ├── wishlists.ts              # Fase B10: createWishlist, allocateSavings, withdrawFromWishlist, markWishlistAsPurchased
+│   │   ├── savings.ts                # Fase B11: transferToEmergencyFund, withdrawFromEmergencyFund, updateEmergencyFundTarget, topUpFreeSavings
+│   │   ├── analytics.ts              # Fase B12: Server Action wrapper analitik
+│   │   ├── ai-review.ts              # Fase B13: generateMonthlyReview (Gemini + Deterministic Fallback)
+│   │   └── export.ts                 # Fase B13: exportFinancialData (CSV, Excel, JSON)
 │   ├── components/
-│   │   ├── ui/                        # Primitif/reusable Shadcn UI
-│   │   ├── layout/                    # Header, navigasi, shell aplikasi
-│   │   ├── features/
-│   │   │   ├── landing/               # Komponen Halaman Depan (Navbar, Hero, Fitur, CTA, Footer)
-│   │   │   ├── months/                # MonthSelector, CreateMonthDialog
-│   │   │   ├── dashboard/             # CashflowSummaryCard, DashboardHubCard
-│   │   │   ├── categories/            # BudgetCategoryCard, BudgetCategoryList
-│   │   │   ├── transactions/
-│   │   │   ├── incomes/
-│   │   │   ├── liabilities/
-│   │   │   ├── wishlists/
-│   │   │   ├── savings/
-│   │   │   ├── analytics/
-│   │   │   ├── ai/
-│   │   │   └── settings/
-│   │   └── common/                   # Hanya untuk komponen lintas fitur
+│   │   ├── ui/                       # Primitif/reusable Shadcn UI
+│   │   ├── layout/                   # AppHeader, MobileBottomNav, DashboardLayout, ThemeToggle
+│   │   ├── common/
+│   │   │   ├── NetworkStatusBanner.tsx # Fase F18: Banner Offline & Auto-Sync
+│   │   │   └── index.ts
+│   │   └── features/
+│   │       ├── landing/              # Komponen Halaman Depan Publik (Fase F3)
+│   │       ├── months/               # MonthSelector, CreateMonthDialog, index.ts (Fase F5)
+│   │       ├── dashboard/            # ExecutiveSummaryCard, CashflowSummaryCard, DashboardHubCard, index.ts (Fase F6)
+│   │       ├── categories/           # BudgetCategoryCard, BudgetCategoryList, index.ts (Fase F7)
+│   │       ├── transactions/         # QuickTransactionDrawer, TransactionSubList, index.ts (Fase F8 & F9)
+│   │       ├── incomes/              # IncomeSection, index.ts (Fase F10)
+│   │       ├── liabilities/          # LiabilityTrackerCard, index.ts (Fase F11)
+│   │       ├── wishlists/            # WishlistCard, WishlistGrid, AllocateWishlistDrawer, index.ts (Fase F12 & F13)
+│   │       ├── savings/              # EmergencyVaultCard, index.ts (Fase F14)
+│   │       ├── analytics/            # AnalyticsDashboard, index.ts (Fase F15)
+│   │       ├── ai/                   # AiMonthlyReviewModal, index.ts (Fase F16)
+│   │       └── settings/             # DataExportPanel, index.ts (Fase F17)
 │   ├── db/
-│   │   ├── index.ts                  # Koneksi/klien DB
-│   │   ├── schema.ts                 # Skema Drizzle
-│   │   └── migrations/               # Contoh; cek `drizzle.config.ts` aktual
-│   ├── hooks/                        # Hook React, bukan business logic server
+│   │   ├── index.ts                  # Koneksi/klien DB Drizzle + Postgres
+│   │   ├── schema.ts                 # Skema 9 Tabel Drizzle ORM
+│   │   └── migrations/               # Migrasi SQL & RLS policies
+│   ├── hooks/                        # Hook React (Fase F18)
 │   │   ├── use-mobile.ts
 │   │   ├── use-offline-sync.ts
-│   │   └── use-countdown.ts
+│   │   ├── use-countdown.ts
+│   │   └── index.ts
 │   ├── lib/
-│   │   ├── queries/                  # Modul query pembacaan data (read access layer untuk Server Components)
-│   │   │   └── months.ts             # getActiveMonth, getAllMonths, getMonthDetailById
-│   │   ├── month-generator.ts        # Generator pos anggaran bulanan dinamis (inherit dari DB & relokasi cicilan)
+│   │   ├── queries/                  # Read-Only Data Access Layer untuk Server Components
+│   │   │   ├── months.ts
+│   │   │   ├── incomes.ts
+│   │   │   ├── liabilities.ts
+│   │   │   ├── categories.ts
+│   │   │   ├── transactions.ts
+│   │   │   ├── wishlists.ts
+│   │   │   ├── savings.ts
+│   │   │   ├── analytics.ts
+│   │   │   └── index.ts
+│   │   ├── ai/
+│   │   │   └── gemini.ts             # Fase B13: Google GenAI SDK client & deterministic evaluator
+│   │   ├── supabase/                 # Helper SSR/browser Supabase Auth
+│   │   ├── month-generator.ts        # Generator pos anggaran bulanan dinamis dari DB
 │   │   ├── query-client.ts
-│   │   ├── financial-calculations.ts  # Fungsi domain murni; Single Source of Truth rumus finansial
-│   │   ├── image-compressor.ts
-│   │   ├── utils.ts
-│   │   ├── formatters.ts
-│   │   ├── supabase/                 # Helper SSR/browser bila diperlukan
-│   │   └── ai/                       # Adaptor provider AI bila fitur dibuat
-│   ├── schemas/                     # Kontrak validasi Zod
+│   │   ├── financial-calculations.ts # Single Source of Truth rumus finansial murni
+│   │   ├── image-compressor.ts       # Fase F12: Kompresor foto HTML5 Canvas ke WebP <200KB
+│   │   └── utils.ts
+│   ├── schemas/                      # Kontrak validasi Zod (Single Entry Point via index.ts)
 │   │   ├── auth.schema.ts
 │   │   ├── month.schema.ts
 │   │   ├── income.schema.ts
 │   │   ├── liability.schema.ts
 │   │   ├── category.schema.ts
 │   │   ├── transaction.schema.ts
-│   │   └── wishlist.schema.ts
-│   ├── types/                       # Tipe bersama yang benar-benar diperlukan
-│   │   ├── index.ts                  # ActionResponse dsb
-│   │   └── month.ts                  # MonthlyCycleDetail, MonthSummary, CategoryDetailItem
-│   └── proxy.ts                     # Next.js 16 Edge Proxy (Session Refresh & Route Protection)
+│   │   ├── wishlist.schema.ts
+│   │   ├── savings.schema.ts
+│   │   └── index.ts
+│   ├── types/                        # Kontrak tipe bersama lintas modul (Single Entry Point via index.ts)
+│   │   ├── month.ts
+│   │   ├── income.ts
+│   │   ├── liability.ts
+│   │   ├── category.ts
+│   │   ├── transaction.ts
+│   │   ├── wishlist.ts
+│   │   ├── savings.ts
+│   │   ├── analytics.ts
+│   │   ├── ai-review.ts
+│   │   └── index.ts
+│   └── proxy.ts                      # Next.js 16 Edge Proxy (Session Refresh & Route Protection)
 ├── drizzle.config.ts
 ├── next.config.ts
 ├── package.json
-├── bun.lock                          # Contoh; ikuti lockfile yang benar-benar ada
+├── bun.lock
 ├── postcss.config.mjs
 ├── tsconfig.json
 └── .gitignore
 ```
 
-**Penjelasan status:** daftar nama pada pohon di atas terutama berasal dari blueprint `AGENTS.md` lama, **bukan bukti** semuanya telah dibuat. `bun.lock` hanyalah contoh lockfile yang mungkin digunakan; periksa file aktual. Route group `(auth)` dan `(dashboard)` tidak otomatis membuat segmen URL. Posisi dan nama migrasi mengikuti `drizzle.config.ts` aktual.
-
 ## 3. Tanggung jawab setiap lapisan
 
 | Lokasi | Isi yang tepat | Hindari |
 |---|---|---|
-| `src/app/` | Halaman, layout, route handler, boundary loading/error | Query DB atau rumus finansial yang disalin berulang dalam JSX |
-| `src/actions/` | Mutasi server yang terotentikasi/terotorisasi dan penghubung ke domain/data | Menjadi gudang seluruh query atau logika presentasi |
+| `src/app/` | Halaman Server Component Orchestrator, layout, boundary loading/error | Query DB langsung atau rumus finansial yang disalin berulang dalam JSX |
+| `src/actions/` | Mutasi server (write) yang terautentikasi/terotorisasi | Menaruh query pembacaan panjang atau logika presentasi |
+| `src/lib/queries/` | Fungsi pembacaan data (read-only) untuk Server Components | Mutasi database |
 | `src/components/ui/` | Komponen UI umum dan adaptasi Shadcn | Aturan khusus cicilan, tabungan, atau ownership |
-| `src/components/features/<domain>/` | Komponen dan presentasi khusus satu fitur | Duplikasi komponen generik lintas fitur |
+| `src/components/features/<domain>/` | Komponen dan presentasi khusus satu fitur + `index.ts` barrel | Duplikasi komponen generik lintas fitur |
 | `src/components/layout/` | Shell, header, navigasi, layout | Perhitungan atau mutasi data |
 | `src/db/` | Skema, koneksi, migrasi dan helper persistensi | UI, secret client, atau asumsi hak akses user |
-| `src/schemas/` | Validasi input dan kontrak yang dibagi | Mendefinisikan ulang tipe yang dapat diinferensikan |
-| `src/hooks/` | State UI, event handling, komposisi React | Proses keuangan otoritatif yang seharusnya di server |
-| `src/lib/` | Formatters, utilitas murni, adaptor integrasi | File serbaguna tanpa domain yang jelas |
-| `src/types/` | Tipe lintas modul bila diperlukan | Tipe duplikat dari Drizzle/Zod |
-| `public/` | Aset publik, ikon/manifest PWA | Kredensial, data privat pengguna |
-| `docs/` | Dokumentasi arsitektur, desain dan keputusan | Menyalin seluruh kode sumber sebagai spesifikasi kedua |
-
-## 4. Konvensi domain fitur
-
-Gunakan domain `months`, `incomes`, `categories`, `transactions`, `liabilities`, `wishlists`, `savings`, `analytics`, `ai`, dan `settings` **bila fiturnya ada**. Nama yang sama dapat muncul di `actions/` dan `components/features/` karena perannya berbeda. Buat modul bersama hanya untuk kebutuhan lintas domain yang jelas.
-
-### Contoh alur transaksi
-
-1. `src/components/features/transactions/` menangani form, status loading dan umpan balik pengguna.
-2. `src/schemas/transaction.schema.ts` memvalidasi bentuk input.
-3. `src/actions/transactions.ts` memastikan sesi dan kepemilikan kategori/bulan, lalu memanggil lapisan data/domain yang sesuai.
-4. `src/db/` menyimpan data dan menjamin constraint/transaksi atomik bila diperlukan.
-5. `src/lib/financial-calculations.ts` atau modul domain murni lain menghitung nilai turunan tanpa mengakses React.
-
-Ini contoh pembagian tanggung jawab, **bukan klaim implementasi saat ini**. Operasi baca dapat dilakukan lewat Server Components atau modul server lain yang sesuai; tidak semua data harus diakses menggunakan Server Actions.
-
-## 5. Dokumentasi dan keputusan desain
-
-- `docs/DESIGN-SYSTEM.md` menjelaskan identitas visual; `src/app/globals.css` menyimpan token dan global style yang benar-benar diterapkan.
-- `docs/PROJECT-STRUCTURE.md` berisi **rancangan struktur**; implementasi aktual dan konfigurasi proyek menentukan fakta saat ini.
-- `.changelog/` mencatat tugas yang mengubah repository; `laporan.md` merangkum status proyek. Ikuti aturan dokumentasi Global Cecillia tanpa membuat satu changelog untuk setiap file.
-- Perubahan struktur yang disepakati diperbarui di dokumen ini secara terarah. Jangan mengubah checklist di plan tanpa approval yang diminta.
-
-## 6. Catatan untuk fase implementasi berikutnya
-
-Berdasarkan plan dan laporan yang diberikan, **F1 dan B1 sudah ditandai selesai/approved**. B2/F2 dan fase berikutnya masih dijadwalkan; jangan mengasumsikan semua folder pada blueprint telah dibuat.
-
-- Sebelum B2, tinjau konflik **Supabase Auth** dengan kolom password aplikasi dan instruksi hashing tersendiri. Perubahan schema/database memerlukan migrasi yang aman.
-- Sesi autentikasi dan proteksi rute telah dimigrasikan ke konvensi resmi Next.js 16 menggunakan `src/proxy.ts` (menggantikan konvensi `middleware.ts` lama).
-- Jangan mengunci nomor versi dependency, port pooler, atau nama model AI berdasarkan diagram lama. Periksa manifest, lockfile, konfigurasi, dan dokumentasi versi terkait.
-
-## 7. Checklist saat menambah/memindahkan file
-
-1. Apakah file serupa sudah ada? Apakah perubahan ini masih dalam fase yang diminta?
-2. Apa tanggung jawabnya dan lapisan/domain yang paling dekat?
-3. Apakah perubahan memengaruhi import, route, validasi, otorisasi atau migrasi?
-4. Apakah diperlukan pembaruan dokumentasi arsitektur karena keputusan yang benar-benar baru?
-5. Sudahkah perubahan diuji sesuai scope dan dilaporkan tanpa mengklaim hasil yang belum diverifikasi?
-
-
-## 8. Komposisi Providers
-
-- Gunakan `src/app/providers.tsx` sebagai tempat komposisi React Context Providers.
-- Pisahkan konfigurasi dan inisialisasi SDK atau client yang kompleks ke modul khusus jika membantu pengujian dan pemeliharaan.
-- Jangan menempatkan business logic, query database, atau kalkulasi finansial di dalam provider wrapper.
-- Pertahankan lifecycle dan scope instance yang benar, khususnya untuk TanStack Query agar cache tidak terbagi secara tidak sengaja antar-request pengguna.
-- Jangan memecah provider sederhana menjadi banyak file tanpa manfaat nyata.
+| `src/schemas/` | Validasi input dan kontrak Zod bersama | Mendefinisikan ulang tipe yang dapat diinferensikan |
+| `src/hooks/` | State UI, event handling, offline sync React | Proses keuangan otoritatif yang seharusnya di server |
+| `src/lib/` | Kalkulasi finansial murni, generator bulan, kompresor WebP, adaptor AI | File serbaguna tanpa domain yang jelas |
+| `src/types/` | Tipe lintas modul per domain | Tipe duplikat dari Drizzle/Zod |
+| `public/` | Aset publik, ikon/manifest/service worker PWA | Kredensial, data privat pengguna |

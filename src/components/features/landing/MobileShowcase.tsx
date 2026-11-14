@@ -88,11 +88,11 @@ export function MobileShowcase() {
               <div className="relative mx-auto w-[280px] sm:w-[312px]">
                 {/* Hardware Buttons on the sides */}
                 {/* Left: Action Button & Volume Buttons */}
-                <div className="absolute -left-[3px] top-24 w-[3.5px] h-7 rounded-l-xs bg-neutral-600/90 shadow-xs pointer-events-none" />
-                <div className="absolute -left-[3px] top-35 w-[3.5px] h-11 rounded-l-xs bg-neutral-600/90 shadow-xs pointer-events-none" />
-                <div className="absolute -left-[3px] top-49 w-[3.5px] h-11 rounded-l-xs bg-neutral-600/90 shadow-xs pointer-events-none" />
+                <div className="absolute left-[-3px] top-24 w-[3.5px] h-7 rounded-l-xs bg-neutral-600/90 shadow-xs pointer-events-none" />
+                <div className="absolute left-[-3px] top-35 w-[3.5px] h-11 rounded-l-xs bg-neutral-600/90 shadow-xs pointer-events-none" />
+                <div className="absolute left-[-3px] top-49 w-[3.5px] h-11 rounded-l-xs bg-neutral-600/90 shadow-xs pointer-events-none" />
                 {/* Right: Power / Side Button */}
-                <div className="absolute -right-[3px] top-32 w-[3.5px] h-16 rounded-r-xs bg-neutral-600/90 shadow-xs pointer-events-none" />
+                <div className="absolute right-[-3px] top-32 w-[3.5px] h-16 rounded-r-xs bg-neutral-600/90 shadow-xs pointer-events-none" />
 
                 {/* Outer iPhone Titanium Chassis (Tegak 2 Dimensi) */}
                 <div className="relative rounded-[50px] p-[9px] bg-neutral-900 border-[3px] border-neutral-700/80 ring-1 ring-white/10 shadow-2xl">

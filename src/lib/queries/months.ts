@@ -10,7 +10,7 @@
  * langsung oleh React Server Components tanpa overhead Server Action RPC.
  */
 
-import { eq, and, desc, asc, sql } from "drizzle-orm";
+import { eq, and, desc, asc, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
   months,
@@ -31,6 +31,7 @@ import type {
   CategoryDetailItem,
   MonthlyCycleDetail,
 } from "@/types/month";
+import type { TransactionItem } from "@/types/transaction";
 import type { ActionResponse } from "@/types";
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -156,24 +157,44 @@ export async function getMonthDetailById(
     .where(eq(budgetCategories.monthId, monthId))
     .orderBy(asc(budgetCategories.sortOrder));
 
-  // 3. Ambil agregasi pengeluaran per kategori dari tabel transaksi (non-deleted)
-  const spentAggregations = await db
-    .select({
-      categoryId: transactions.categoryId,
-      totalSpent: sql<number>`cast(coalesce(sum(${transactions.amount}), 0) as int)`,
-    })
-    .from(transactions)
-    .where(
-      and(
-        eq(transactions.userId, userId),
-        eq(transactions.isDeleted, false)
-      )
-    )
-    .groupBy(transactions.categoryId);
+  // 3. Ambil seluruh transaksi aktif (non-deleted) bulan ini beserta agregasi pengeluaran per kategori
+  const categoryIds = categoriesList.map((c) => c.id);
+  const monthTransactions =
+    categoryIds.length > 0
+      ? await db
+          .select()
+          .from(transactions)
+          .where(
+            and(
+              eq(transactions.userId, userId),
+              inArray(transactions.categoryId, categoryIds),
+              eq(transactions.isDeleted, false)
+            )
+          )
+          .orderBy(desc(transactions.date), desc(transactions.createdAt))
+      : [];
 
   const spentMap = new Map<string, number>();
-  for (const item of spentAggregations) {
-    spentMap.set(item.categoryId, item.totalSpent);
+  const txMap = new Map<string, TransactionItem[]>();
+  for (const txItem of monthTransactions) {
+    spentMap.set(
+      txItem.categoryId,
+      (spentMap.get(txItem.categoryId) ?? 0) + txItem.amount
+    );
+    const list = txMap.get(txItem.categoryId) ?? [];
+    list.push({
+      id: txItem.id,
+      userId: txItem.userId,
+      categoryId: txItem.categoryId,
+      amount: txItem.amount,
+      date: txItem.date,
+      description: txItem.description,
+      method: txItem.method,
+      isDeleted: txItem.isDeleted,
+      createdAt: txItem.createdAt,
+      updatedAt: txItem.updatedAt,
+    });
+    txMap.set(txItem.categoryId, list);
   }
 
   // 4. Ambil liabilities jika ada pos yang ditautkan ke cicilan
@@ -255,6 +276,7 @@ export async function getMonthDetailById(
       isTemporary: cat.isTemporary,
       sortOrder: cat.sortOrder,
       liability: cat.liabilityId ? liabilitiesMap.get(cat.liabilityId) ?? null : null,
+      transactions: txMap.get(cat.id) ?? [],
     };
   });
 

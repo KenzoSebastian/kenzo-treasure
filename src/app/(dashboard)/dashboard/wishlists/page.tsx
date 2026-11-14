@@ -1,14 +1,70 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Sparkles, ArrowLeft, Target, Plus } from "lucide-react";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getCurrentUser } from "@/actions/auth";
+import { getWishlists } from "@/lib/queries/wishlists";
+import { getSavingsAccount } from "@/lib/queries/savings";
+import { calculateWishlistProgress } from "@/lib/financial-calculations";
+import { WishlistGrid } from "@/components/features/wishlists";
+import type { WishlistWithProgress } from "@/types/wishlist";
 
 export const metadata = {
   title: "Wishlist Impian • Kenzo Treasury",
-  description: "Daftar barang impian dan tabungan terencana.",
+  description: "Daftar barang impian dan tabungan Sinking Fund terencana.",
 };
 
-export default function WishlistsPage() {
+export default async function WishlistsPage() {
+  const userRes = await getCurrentUser();
+  const userId = userRes.success ? userRes.data?.id : undefined;
+
+  const [wishlistsRes, savingsRes] = userId
+    ? await Promise.all([getWishlists(userId), getSavingsAccount(userId)])
+    : [
+        { success: false as const, error: "" },
+        { success: false as const, error: "" },
+      ];
+
+  const fallbackWishlists: WishlistWithProgress[] = [
+    {
+      id: "preview-camera",
+      userId: userId ?? "preview",
+      name: "Kamera Sony A6700 + Lensa Sigma 18-50mm",
+      targetAmount: 12000000,
+      savedAmount: 6000000,
+      icon: "📷",
+      imageUrl: null,
+      isPurchased: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      progress: calculateWishlistProgress(6000000, 12000000),
+      allocations: [],
+    },
+    {
+      id: "preview-desk",
+      userId: userId ?? "preview",
+      name: "Standing Desk Ergonomis & Monitor Arm",
+      targetAmount: 4000000,
+      savedAmount: 3800000,
+      icon: "🖥️",
+      imageUrl: null,
+      isPurchased: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      progress: calculateWishlistProgress(3800000, 4000000),
+      allocations: [],
+    },
+  ];
+
+  const wishlists =
+    wishlistsRes.success && wishlistsRes.data.items.length > 0
+      ? wishlistsRes.data.items
+      : fallbackWishlists;
+
+  const freeSavingsBalance =
+    savingsRes.success && savingsRes.data
+      ? savingsRes.data.freeSavingsBalance
+      : 2500000;
+
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-200">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/60 pb-5">
@@ -17,11 +73,17 @@ export default function WishlistsPage() {
             Wishlist Barang Impian
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Sinking fund barang impian bertahap dengan milestone progres dan kompresor foto WebP.
+            Sinking fund barang impian bertahap dengan milestone progres,
+            selebrasi Confetti, dan kompresor foto WebP.
           </p>
         </div>
 
-        <Button asChild variant="outline" size="sm" className="gap-1.5 text-xs self-start sm:self-auto">
+        <Button
+          asChild
+          variant="outline"
+          size="sm"
+          className="gap-1.5 text-xs self-start sm:self-auto rounded-xl"
+        >
           <Link href="/dashboard">
             <ArrowLeft className="size-3.5" />
             <span>Kembali ke Dashboard</span>
@@ -29,25 +91,10 @@ export default function WishlistsPage() {
         </Button>
       </div>
 
-      <Card className="rounded-2xl border border-dashed border-border/80 bg-card/60 p-8 text-center space-y-4">
-        <div className="flex size-12 items-center justify-center rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 mx-auto">
-          <Sparkles className="size-6" />
-        </div>
-        <div className="space-y-1 max-w-sm mx-auto">
-          <CardTitle className="text-base font-bold text-foreground">
-            Sinking Fund Barang Impian
-          </CardTitle>
-          <CardDescription className="text-xs leading-relaxed text-muted-foreground">
-            Ruang perencanaan barang impian Anda. Di sini Anda dapat menambahkan foto barang, menetapkan target nominal, dan memindahkan sisa uang bebas bulanan.
-          </CardDescription>
-        </div>
-        <div className="pt-2">
-          <Button disabled variant="outline" size="sm" className="gap-1.5 text-xs opacity-60">
-            <Plus className="size-3.5" />
-            <span>Tambah Barang Impian</span>
-          </Button>
-        </div>
-      </Card>
+      <WishlistGrid
+        wishlists={wishlists}
+        freeSavingsBalance={freeSavingsBalance}
+      />
     </div>
   );
 }

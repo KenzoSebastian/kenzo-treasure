@@ -8,6 +8,7 @@
  */
 
 import type { BudgetStatus } from "@/lib/financial-calculations";
+import type { TransactionItem } from "./transaction";
 
 export interface MonthSummary {
   id: string;
@@ -41,6 +42,7 @@ export interface CategoryDetailItem {
     monthlyPayment: number;
     isSettled: boolean;
   } | null;
+  transactions?: TransactionItem[];
 }
 
 export interface MonthlyCycleDetail extends MonthSummary {

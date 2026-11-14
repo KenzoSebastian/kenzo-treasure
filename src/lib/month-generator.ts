@@ -18,7 +18,7 @@
  *    bulan di database.
  */
 
-import { eq, and, desc, asc } from "drizzle-orm";
+import { eq, ne, and, desc, asc } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import {
   months,
@@ -194,7 +194,7 @@ export async function generateMonthCategories({
   const [previousMonth] = await tx
     .select()
     .from(months)
-    .where(and(eq(months.userId, userId), eq(months.id, newMonthId))) // exclude newly inserted month
+    .where(and(eq(months.userId, userId), ne(months.id, newMonthId))) // exclude newly inserted month
     .orderBy(desc(months.year), desc(months.monthIndex))
     .limit(1);
 

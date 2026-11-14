@@ -8,8 +8,9 @@ import {
   Wallet,
   Sparkles,
   BarChart3,
+  ShieldCheck,
+  Settings,
   LogOut,
-  User as UserIcon,
   ChevronDown,
   Loader2,
 } from "lucide-react";
@@ -23,7 +24,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import { logout, type UserSessionData } from "@/actions/auth";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -46,10 +46,10 @@ export function AppHeader({ user }: AppHeaderProps) {
       isActive: pathname === "/dashboard",
     },
     {
-      href: "/dashboard#pos-anggaran",
-      label: "Pos Anggaran",
-      icon: Wallet,
-      isActive: pathname.startsWith("/dashboard#pos-anggaran"),
+      href: "/dashboard/vault",
+      label: "Brankas",
+      icon: ShieldCheck,
+      isActive: pathname.startsWith("/dashboard/vault"),
     },
     {
       href: "/dashboard/wishlists",
@@ -62,6 +62,12 @@ export function AppHeader({ user }: AppHeaderProps) {
       label: "Analitik",
       icon: BarChart3,
       isActive: pathname.startsWith("/dashboard/analytics"),
+    },
+    {
+      href: "/dashboard/settings",
+      label: "Data & Backup",
+      icon: Settings,
+      isActive: pathname.startsWith("/dashboard/settings"),
     },
   ];
 
@@ -77,7 +83,7 @@ export function AppHeader({ user }: AppHeaderProps) {
         toast.error(res.error ?? "Gagal memproses logout");
         setIsLoggingOut(false);
       }
-    } catch (err) {
+    } catch {
       toast.error("Terjadi kesalahan koneksi saat logout");
       setIsLoggingOut(false);
     }
@@ -151,7 +157,7 @@ export function AppHeader({ user }: AppHeaderProps) {
 
         {/* Sisi Kanan: Theme Toggle & Profile Dropdown */}
         <div className="flex items-center gap-2">
-          <ThemeToggle className="size-8 rounded-full border border-border/60" />
+          <ThemeToggle className="size-9 rounded-full border border-border/60" />
 
           {/* User Profile Menu */}
           <DropdownMenu>
@@ -159,7 +165,7 @@ export function AppHeader({ user }: AppHeaderProps) {
               className="flex items-center gap-2 rounded-full border border-border/70 bg-card p-1 pr-2.5 text-xs font-medium text-foreground shadow-xs transition-colors hover:bg-muted/50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Menu akun pengguna"
             >
-              <div className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary border border-primary/20">
+              <div className="flex size-7 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary border border-primary/20">
                 {initial}
               </div>
               <span className="hidden sm:inline-block max-w-27.5 truncate text-xs font-medium">
@@ -198,7 +204,14 @@ export function AppHeader({ user }: AppHeaderProps) {
                   className="cursor-pointer gap-2 text-xs"
                 >
                   <Wallet className="size-3.5 text-muted-foreground" />
-                  <span>Pos Anggaran</span>
+                  <span>7 Pos Anggaran</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => router.push("/dashboard/vault")}
+                  className="cursor-pointer gap-2 text-xs"
+                >
+                  <ShieldCheck className="size-3.5 text-muted-foreground" />
+                  <span>Brankas Dana Darurat</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => router.push("/dashboard/wishlists")}
@@ -213,6 +226,13 @@ export function AppHeader({ user }: AppHeaderProps) {
                 >
                   <BarChart3 className="size-3.5 text-muted-foreground" />
                   <span>Grafik Analitik</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => router.push("/dashboard/settings")}
+                  className="cursor-pointer gap-2 text-xs"
+                >
+                  <Settings className="size-3.5 text-muted-foreground" />
+                  <span>Ekspor Data & Backup</span>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
 

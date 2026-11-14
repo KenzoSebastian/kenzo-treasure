@@ -447,3 +447,58 @@ export function calculateMonthSweep(remainingFreeBudget: number): number {
   const safeRemaining = toIntegerRupiah(remainingFreeBudget);
   return Math.max(0, safeRemaining);
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   8. VALIDASI BATAS TANGGAL SIKLUS BULAN & SKOR DISIPLIN ANGGARAN
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Memvalidasi apakah tanggal transaksi (`YYYY-MM-DD`) berada tepat di dalam
+ * rentang kalender tahun (`year`) dan bulan (`monthIndex` 1–12) dari siklus bulan terkait.
+ * Mencegah transaksi lintas bulan mencemari lembar kerja siklus yang salah (Strict Month-Date Boundary).
+ */
+export function isDateWithinMonthCycle(
+  dateStr: string,
+  year: number,
+  monthIndex: number
+): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return false;
+  }
+
+  const [yStr, mStr, dStr] = dateStr.split("-");
+  const parsedYear = Number(yStr);
+  const parsedMonth = Number(mStr);
+  const parsedDay = Number(dStr);
+
+  if (parsedYear !== year || parsedMonth !== monthIndex) {
+    return false;
+  }
+
+  // Hitung jumlah hari valid pada bulan dan tahun tersebut
+  const maxDaysInMonth = new Date(Date.UTC(year, monthIndex, 0)).getUTCDate();
+  return parsedDay >= 1 && parsedDay <= maxDaysInMonth;
+}
+
+/**
+ * Menghitung skor disiplin anggaran (0 - 100) berdasarkan kepatuhan pos dan rasio tabungan:
+ * - 70% bobot dari rasio pos yang tidak overbudget.
+ * - 30% bobot dari pencapaian rasio tabungan sehat (target >= 20% pemasukan).
+ */
+export function calculateDisciplineScore(params: {
+  totalCategories: number;
+  overbudgetCategoriesCount: number;
+  savingsRate: number;
+}): number {
+  const { totalCategories, overbudgetCategoriesCount, savingsRate } = params;
+
+  const adherenceRatio =
+    totalCategories > 0
+      ? Math.max(0, (totalCategories - overbudgetCategoriesCount) / totalCategories)
+      : 1;
+
+  const adherencePoints = Math.round(adherenceRatio * 70);
+  const savingsPoints = Math.min(30, Math.round((Math.max(0, savingsRate) / 20) * 30));
+
+  return Math.min(100, Math.max(0, adherencePoints + savingsPoints));
+}

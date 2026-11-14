@@ -1,0 +1,274 @@
+import { describe, expect, it } from "bun:test";
+import {
+  isDateWithinMonthCycle,
+  calculateDisciplineScore,
+  calculateSafetyMonths,
+  calculateWishlistProgress,
+} from "@/lib/financial-calculations";
+import { enrichLiabilityWithProgress } from "@/lib/queries/liabilities";
+import { enrichWishlist } from "@/lib/queries/wishlists";
+import { buildDeterministicMonthlyEvaluation } from "@/lib/ai/gemini";
+import {
+  transferEmergencyFundSchema,
+  updateEmergencyTargetSchema,
+  createLiabilitySchema,
+  recordInstallmentSchema,
+  updateCategoryTargetSchema,
+  createTransactionSchema,
+  allocateWishlistSchema,
+} from "@/schemas";
+import type { MonthlyCycleDetail } from "@/types";
+
+describe("Backend Phases B7 - B13 Comprehensive Suite", () => {
+  describe("Fase B7: Finite Liabilities & Installment Tracker", () => {
+    it("harus menghitung progres cicilan aktif dan sisa bulan dengan presisi", () => {
+      const now = new Date();
+      const iphoneDebt = enrichLiabilityWithProgress({
+        id: "11111111-1111-4111-8111-111111111111",
+        userId: "22222222-2222-4222-8222-222222222222",
+        name: "📱 Cicilan Pokok iPhone",
+        totalAmount: 17_640_000,
+        paidAmount: 5_000_000,
+        monthlyPayment: 735_000,
+        totalMonths: 24,
+        isSettled: false,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      expect(iphoneDebt.remainingAmount).toBe(12_640_000);
+      expect(iphoneDebt.percentage).toBe(28);
+      expect(iphoneDebt.remainingMonths).toBe(18);
+      expect(iphoneDebt.isSettled).toBe(false);
+    });
+
+    it("harus otomatis menandai isSettled = true ketika paidAmount >= totalAmount", () => {
+      const now = new Date();
+      const settledDebt = enrichLiabilityWithProgress({
+        id: "11111111-1111-4111-8111-111111111112",
+        userId: "22222222-2222-4222-8222-222222222222",
+        name: "👩‍👦 Talangan Mama",
+        totalAmount: 2_500_000,
+        paidAmount: 2_500_000,
+        monthlyPayment: 500_000,
+        totalMonths: 5,
+        isSettled: false,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      expect(settledDebt.isSettled).toBe(true);
+      expect(settledDebt.remainingAmount).toBe(0);
+      expect(settledDebt.remainingMonths).toBe(0);
+      expect(settledDebt.percentage).toBe(100);
+    });
+
+    it("harus memvalidasi skema createLiability dan recordInstallment", () => {
+      const validCreate = createLiabilitySchema.safeParse({
+        name: "Cicilan Laptop Kerja",
+        totalAmount: 12_000_000,
+        monthlyPayment: 1_000_000,
+        totalMonths: 12,
+      });
+      expect(validCreate.success).toBe(true);
+
+      const validInstallment = recordInstallmentSchema.safeParse({
+        liabilityId: "11111111-1111-4111-8111-111111111111",
+        amount: 735_000,
+      });
+      expect(validInstallment.success).toBe(true);
+    });
+  });
+
+  describe("Fase B8: Budget Categories Management", () => {
+    it("harus memvalidasi pembaruan plafon target pos anggaran integer non-negatif", () => {
+      const valid = updateCategoryTargetSchema.safeParse({
+        categoryId: "11111111-1111-4111-8111-111111111111",
+        targetBudget: 350_000,
+      });
+      expect(valid.success).toBe(true);
+
+      const invalidNegative = updateCategoryTargetSchema.safeParse({
+        categoryId: "11111111-1111-4111-8111-111111111111",
+        targetBudget: -10_000,
+      });
+      expect(invalidNegative.success).toBe(false);
+    });
+  });
+
+  describe("Fase B9: Sub-Second Transactions & Strict Month-Date Boundary", () => {
+    it("harus memvalidasi tanggal transaksi tepat di dalam siklus bulan terkait (isDateWithinMonthCycle)", () => {
+      expect(isDateWithinMonthCycle("2026-10-01", 2026, 10)).toBe(true);
+      expect(isDateWithinMonthCycle("2026-10-31", 2026, 10)).toBe(true);
+      // Salah bulan
+      expect(isDateWithinMonthCycle("2026-11-01", 2026, 10)).toBe(false);
+      // Salah tahun
+      expect(isDateWithinMonthCycle("2025-10-15", 2026, 10)).toBe(false);
+      // Tanggal tidak valid (31 Februari)
+      expect(isDateWithinMonthCycle("2026-02-31", 2026, 2)).toBe(false);
+    });
+
+    it("harus menolak nominal pengeluaran desimal/float atau <= 0", () => {
+      const floatTx = createTransactionSchema.safeParse({
+        categoryId: "11111111-1111-4111-8111-111111111111",
+        amount: 25000.5,
+        date: "2026-10-15",
+        description: "Bensin Pertamax",
+        method: "qris",
+      });
+      expect(floatTx.success).toBe(false);
+
+      const validTx = createTransactionSchema.safeParse({
+        categoryId: "11111111-1111-4111-8111-111111111111",
+        amount: 25000,
+        date: "2026-10-15",
+        description: "Bensin Pertamax",
+        method: "qris",
+      });
+      expect(validTx.success).toBe(true);
+    });
+  });
+
+  describe("Fase B10: Gamified Wishlists & Sinking Fund", () => {
+    it("harus memetakan milestone wishlist (50%, 75%, 90%, 95%, 100%) secara akurat", () => {
+      const now = new Date();
+      const item = enrichWishlist(
+        {
+          id: "33333333-3333-4333-8333-333333333333",
+          userId: "22222222-2222-4222-8222-222222222222",
+          name: "📷 Sony A7 IV",
+          targetAmount: 10_000_000,
+          savedAmount: 7_500_000,
+          icon: "📷",
+          imageUrl: null,
+          isPurchased: false,
+          createdAt: now,
+          updatedAt: now,
+        },
+        []
+      );
+
+      expect(item.progress.percentage).toBe(75);
+      expect(item.progress.milestone).toBe("major_milestone");
+      expect(item.progress.remainingAmount).toBe(2_500_000);
+      expect(calculateWishlistProgress(9_500_000, 10_000_000).milestone).toBe(
+        "one_step_away"
+      );
+    });
+
+    it("harus memvalidasi skema setor & tarik alokasi wishlist", () => {
+      const deposit = allocateWishlistSchema.safeParse({
+        wishlistId: "33333333-3333-4333-8333-333333333333",
+        amount: 500_000,
+        direction: "deposit",
+      });
+      expect(deposit.success).toBe(true);
+
+      const withdraw = allocateWishlistSchema.safeParse({
+        wishlistId: "33333333-3333-4333-8333-333333333333",
+        amount: 250_000,
+        direction: "withdraw",
+      });
+      expect(withdraw.success).toBe(true);
+    });
+  });
+
+  describe("Fase B11: Brankas Dana Darurat (Emergency Fund Vault)", () => {
+    it("harus memvalidasi transfer dana darurat dan menghitung Safety Months", () => {
+      expect(
+        transferEmergencyFundSchema.safeParse({ amount: 1_000_000 }).success
+      ).toBe(true);
+      expect(
+        transferEmergencyFundSchema.safeParse({ amount: 0 }).success
+      ).toBe(false);
+      expect(
+        updateEmergencyTargetSchema.safeParse({ targetAmount: 18_000_000 })
+          .success
+      ).toBe(true);
+
+      const safety = calculateSafetyMonths(12_600_000, 3_000_000, 18_000_000);
+      expect(safety.safetyMonths).toBe(4.2);
+      expect(safety.percentageOfTarget).toBe(70);
+      expect(safety.isTargetReached).toBe(false);
+    });
+  });
+
+  describe("Fase B13: AI Monthly Review Evaluation Engine", () => {
+    it("harus menghasilkan skor disiplin, pos paling hemat, pos overbudget, dan rekomendasi taktis", () => {
+      const now = new Date();
+      const mockDetail: MonthlyCycleDetail = {
+        id: "44444444-4444-4444-8444-444444444444",
+        userId: "22222222-2222-4222-8222-222222222222",
+        name: "Oktober 2026",
+        year: 2026,
+        monthIndex: 10,
+        isClosed: false,
+        createdAt: now,
+        updatedAt: now,
+        totalIncome: 5_000_000,
+        totalBudget: 5_000_000,
+        totalSpent: 3_200_000,
+        netCashflow: 1_800_000,
+        incomes: [
+          {
+            id: "inc-1",
+            source: "💵 Gaji Pokok",
+            amount: 4_000_000,
+            date: "2026-10-01",
+            isBaseSalary: true,
+          },
+          {
+            id: "inc-2",
+            source: "Freelance Edit Video",
+            amount: 1_000_000,
+            date: "2026-10-12",
+            isBaseSalary: false,
+          },
+        ],
+        categories: [
+          {
+            id: "cat-1",
+            monthId: "44444444-4444-4444-8444-444444444444",
+            liabilityId: null,
+            name: "⛽ Bensin",
+            icon: "⛽",
+            group: "kebutuhan",
+            targetBudget: 250_000,
+            spentAmount: 100_000,
+            remainingBudget: 150_000,
+            status: "healthy",
+            isTemporary: false,
+            sortOrder: 1,
+          },
+          {
+            id: "cat-2",
+            monthId: "44444444-4444-4444-8444-444444444444",
+            liabilityId: null,
+            name: "🍿 Uang Bebas / Tabungan",
+            icon: "🍿",
+            group: "uang_bebas_tabungan",
+            targetBudget: 1_915_000,
+            spentAmount: 2_100_000,
+            remainingBudget: -185_000,
+            status: "overbudget",
+            isTemporary: false,
+            sortOrder: 2,
+          },
+        ],
+      };
+
+      const review = buildDeterministicMonthlyEvaluation(mockDetail);
+      expect(review.disciplineScore).toBe(
+        calculateDisciplineScore({
+          totalCategories: 2,
+          overbudgetCategoriesCount: 1,
+          savingsRate: 36,
+        })
+      );
+      expect(review.mostFrugalCategory?.name).toBe("⛽ Bensin");
+      expect(review.mostOverspentCategory?.name).toBe("🍿 Uang Bebas / Tabungan");
+      expect(review.tacticalRecommendations.length).toBeGreaterThan(0);
+      expect(review.nextMonthAllocationAdvice.length).toBeGreaterThan(0);
+    });
+  });
+});

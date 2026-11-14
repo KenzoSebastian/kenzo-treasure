@@ -1,6 +1,6 @@
 ---
 name: phase-delivery
-description: "Use when implementing, verifying or closing a named Kenzo Treasury phase from PLANBACKEND.md or PLANFRONTEND.md, including strict approval checks and manual commit recommendations."
+description: "Use when implementing, verifying or closing a named Kenzo Treasury phase from docs/plans/PLANBACKEND.md or docs/plans/PLANFRONTEND.md, including strict approval checks and manual commit recommendations."
 ---
 # Named phase delivery
 1. Announce actual Project skill path/scope/reason before using. Confirm requested phase ID and status in the relevant plan and `laporan.md`.

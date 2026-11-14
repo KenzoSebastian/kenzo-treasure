@@ -20,3 +20,4 @@ export * from "./liability.schema";
 export * from "./category.schema";
 export * from "./transaction.schema";
 export * from "./wishlist.schema";
+export * from "./savings.schema";

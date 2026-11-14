@@ -100,20 +100,20 @@ export function ComparisonTable() {
   function renderStatusIcon(status: boolean | "warn") {
     if (status === true) {
       return (
-        <div className="flex size-5 shrink-0 aspect-square items-center justify-center rounded-full p-[1px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+        <div className="flex size-5 shrink-0 aspect-square items-center justify-center rounded-full p-px bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
           <Check className="size-3 shrink-0" strokeWidth={2.5} />
         </div>
       );
     }
     if (status === "warn") {
       return (
-        <div className="flex size-5 shrink-0 aspect-square items-center justify-center rounded-full p-[1px] bg-amber-500/15 text-amber-600 dark:text-amber-400">
+        <div className="flex size-5 shrink-0 aspect-square items-center justify-center rounded-full p-px bg-amber-500/15 text-amber-600 dark:text-amber-400">
           <AlertTriangle className="size-3 shrink-0" strokeWidth={2.5} />
         </div>
       );
     }
     return (
-      <div className="flex size-5 shrink-0 aspect-square items-center justify-center rounded-full p-[1px] bg-destructive/15 text-destructive">
+      <div className="flex size-5 shrink-0 aspect-square items-center justify-center rounded-full p-px bg-destructive/15 text-destructive">
         <X className="size-3 shrink-0" strokeWidth={2.5} />
       </div>
     );
