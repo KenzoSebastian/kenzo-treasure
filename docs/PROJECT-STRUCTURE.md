@@ -30,7 +30,8 @@ kenzo-treasure/
 ├── docs/
 │   ├── plans/
 │   │   ├── PLANBACKEND.md            # Roadmap dan checklist backend (B1–B13)
-│   │   └── PLANFRONTEND.md           # Roadmap dan checklist frontend (F1–F18)
+│   │   ├── PLANFRONTEND.md           # Roadmap dan checklist frontend (F1–F18)
+│   │   └── PLANREVISI.md             # Backlog & rencana kerja revisi terkumpul (Fase R*)
 │   ├── PROJECT-STRUCTURE.md          # Dokumentasi arsitektur & struktur direktori ini
 │   ├── DESIGN-SYSTEM.md              # Identitas visual yang disepakati
 │   ├── REVIEW-AUDIT.md               # Audit teknis

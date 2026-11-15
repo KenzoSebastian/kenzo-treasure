@@ -8,7 +8,8 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 
 - **Status Saat Ini:**
   - **Seluruh Fase Backend (B1–B13) & Frontend (F1–F18):** `Approved by Kenzo ✅ (2026-11-15 13:21 WIB)` — Seluruh roadmap telah tuntas 100%.
-  - **Revisi UI Pasca-Fase (2026-11-15 13:45 WIB):** Detail rincian `BudgetCategoryCard` diubah dari dropdown inline menjadi Modal Box (`Dialog`) + kompatibilitas Toast Undo 5 detik (`Approved by Kenzo ✅ 2026-11-15 13:46 WIB`). Uji otomatis (`bun test` 81/81 PASS, `bun run typecheck` PASS, Tailwind v4 Canonical Audit PASS, `bun run build` PASS).
+  - **Revisi UI Pasca-Fase (2026-11-15 13:45 WIB):** Detail rincian `BudgetCategoryCard` diubah dari dropdown inline menjadi Modal Box (`Dialog`) + kompatibilitas Toast Undo 5 detik (`Approved by Kenzo ✅ 2026-11-15 13:46 WIB`).
+  - **Mode Revisi Batch Aktif (`2026-11-15 16:22 WIB`):** [`docs/plans/PLANREVISI.md`](docs/plans/PLANREVISI.md) berstatus `REVIEW RESOLVED` (`17` temuan `/egm-review` diterapkan ke R1–R10, [`goldfish_review_report.md`](docs/review/goldfish_review_report.md) bertanda `resolved`) — siap dieksekusi setelah Kenzo memilih mode eksekusi (**Pilihan A: Batch Terkendali** vs **Pilihan B: Per-Fase `AGENTS.md` §2**).
 - **Tech Stack Terkunci:**
   - Runtime & Package Manager: Bun (v1.4+)
   - Frontend: Next.js 16 (App Router, React 19, TypeScript)
@@ -34,7 +35,17 @@ Seluruh fase teknis didokumentasikan di dua berkas roadmap:
 
 ## 📝 Log Checkpoint Terbaru (Maksimal 5 Checkpoint Aktif)
 
-### Checkpoint 1: Revisi UI — Modal Box Rincian Pos Pengeluaran (2026-11-15 13:45 WIB • Approved 2026-11-15 13:46 WIB)
+### Checkpoint 1: Master Plan Revisi `PLANREVISI.md` (R1–R10) & Resolusi Review EGM (2026-11-15 16:22 WIB)
+- **Status:** `REVIEW RESOLVED — Menunggu Konfirmasi Mode Eksekusi Kenzo (Issue 9A: Batch vs Per-Fase) • Belum Eksekusi src/`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. Membuat & mengunci [`docs/plans/PLANREVISI.md`](docs/plans/PLANREVISI.md) mencakup **Fase R1–R10** lewat `/grill-me`.
+  2. Menjalankan audit multi-perspektif (`/egm-review` Stages 5–9) dan menerapkan **17 `PROPOSE FIX`** melalui `/egm-resolve` (menjaga `Issue 11A` `CONTEST` `SlidingSegmentedControl` dan menandai `Issue 9A` `ESCALATE` Pilihan A vs Pilihan B).
+  3. Menetapkan SSOT `user_budget_templates` vs `/dashboard` (`Kasus A`), penyederhanaan 1 kolom `onboardingCompletedAt` + backfill + RLS, sapu bersih dummy lintas 4 rute + `emergencyFundTarget: 0`, row lock `.for("update")` & `Asia/Jakarta` timezone `R8`, `React.cache` + fix `export.ts#L128` + penundaan `staleTimes.dynamic = 20` (`R9`), serta `deleteCategory` aman `ON DELETE RESTRICT` (`Hentikan Bulan Depan` / `1-Click Bulk Reassign`).
+  4. Menandai [`goldfish_review_report.md`](docs/review/goldfish_review_report.md) `Status: resolved` serta memperbarui changelog terkait; belum menyentuh `src/` (`bun test`/`build` **NOT RUN**).
+- **File Changelog:** [`2026-11-15_create_planrevisi_workflow.md`](.changelog/2026-11-15_create_planrevisi_workflow.md).
+
+### Checkpoint 2: Revisi UI — Modal Box Rincian Pos Pengeluaran (2026-11-15 13:45 WIB • Approved 2026-11-15 13:46 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -43,7 +54,7 @@ Seluruh fase teknis didokumentasikan di dua berkas roadmap:
   3. Memperbarui unit test `frontend-phases-f7-f18.test.tsx`; hasil `bun test` (81/81 PASS), `bun run typecheck` PASS, Tailwind v4 Canonical Audit (`Total non-canonical: 0`), dan `bun run build` PASS.
 - **File Changelog:** [`2026-11-15_replace_budget_category_dropdown_with_modal.md`](.changelog/2026-11-15_replace_budget_category_dropdown_with_modal.md).
 
-### Checkpoint 2: Persetujuan & Penuntasan Penuh Backend B7–B13 & Frontend F7–F18 (2026-11-14 23:03 WIB • Approved 2026-11-15 13:21 WIB)
+### Checkpoint 3: Persetujuan & Penuntasan Penuh Backend B7–B13 & Frontend F7–F18 (2026-11-14 23:03 WIB • Approved 2026-11-15 13:21 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -52,25 +63,19 @@ Seluruh fase teknis didokumentasikan di dua berkas roadmap:
   3. **Verifikasi Otomatis:** `bun test` (81/81 PASS), `bun run typecheck` (0 error), Audit Kanonikalisasi Tailwind v4 (`Total non-canonical: 0`), Audit `font-mono` (0 pelanggaran), dan `bun run build` (PASS).
 - **File Changelog:** [`2026-11-14_complete_phases_b7_b13_and_f7_f18.md`](.changelog/2026-11-14_complete_phases_b7_b13_and_f7_f18.md).
 
-### Checkpoint 3: Relokasi Dokumen Plan ke `docs/plans/` & Sinkronisasi Referensi (2026-11-14 22:10 WIB)
+### Checkpoint 4: Relokasi Dokumen Plan ke `docs/plans/` & Sinkronisasi Referensi (2026-11-14 22:10 WIB)
 - **Status:** COMPLETED ✅
 - **Capaian:**
   1. Memindahkan `PLANBACKEND.md` dan `PLANFRONTEND.md` dari root repositori ke `docs/plans/` serta mengubah link internal ke jalur relatif (`../../AGENTS.md`, `../../PRD.md`).
   2. Memperbarui referensi path roadmap di `AGENTS.md`, `.agents/rules/project-architecture.md`, `.agents/skills/phase-delivery/SKILL.md`, `docs/PROJECT-STRUCTURE.md`, dan `laporan.md`.
 - **File Changelog:** [`2026-11-14_move_plans_to_docs_plans.md`](.changelog/2026-11-14_move_plans_to_docs_plans.md).
 
-### Checkpoint 4: Persetujuan Resmi Fase F6 — Executive Summary Card & Cashflow KPI Bulanan (2026-10-18 21:26 WIB)
+### Checkpoint 5: Persetujuan Resmi Fase F6 — Executive Summary Card & Cashflow KPI Bulanan (2026-10-18 21:26 WIB)
 - **Status:** Approved by Kenzo ✅
 - **Capaian:**
   1. Membuat `src/components/features/dashboard/ExecutiveSummaryCard.tsx` (Total Pemasukan, Realisasi Kas Keluar, Net Tabungan & Savings Rate) dengan Multi-Zone Health Progress Bar (`Healthy`, `Warning`, `Overbudget`).
   2. Menyediakan barrel export `src/components/features/dashboard/index.ts` dan 7 unit test di `ExecutiveSummaryCard.test.tsx`.
 - **File Changelog:** [`2026-10-18_fase_f6_executive_summary_card_cashflow_kpi.md`](.changelog/2026-10-18_fase_f6_executive_summary_card_cashflow_kpi.md).
-
-### Checkpoint 5: Persetujuan Resmi Fase B6 — Server Actions Multi-Source Incomes Engine (2026-10-18 21:02 WIB)
-- **Status:** Approved by Kenzo ✅
-- **Capaian:**
-  1. Membuat kontrak tipe `src/types/income.ts`, query read-only `src/lib/queries/incomes.ts`, dan Server Actions mutasi `src/actions/incomes.ts` (`addIncome`, `updateIncome`, `deleteIncome`) beserta 11 unit test di `src/actions/__tests__/incomes.test.ts`.
-- **File Changelog:** [`2026-10-18_fase_b6_server_actions_multi_source_incomes.md`](.changelog/2026-10-18_fase_b6_server_actions_multi_source_incomes.md).
 
 ---
 
@@ -80,6 +85,7 @@ Seluruh rincian teknis, log kode, dan verifikasi fase terdahulu telah terdokumen
 
 | Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
 | :--- | :--- | :--- | :--- |
+| **Fase B6: Multi-Source Incomes Engine** | 2026-10-18 | Kontrak tipe, query read-only, dan Server Actions pemasukan (`addIncome`, `updateIncome`, `deleteIncome`) + 11 unit test. | [`2026-10-18_fase_b6_server_actions_multi_source_incomes.md`](.changelog/2026-10-18_fase_b6_server_actions_multi_source_incomes.md) |
 | **Optimasi Token Efisiensi Dokumentasi** | 2026-10-18 | Perampingan `AGENTS.md` (~45% hemat token) dan penerapan mekanisme Rolling Window di `laporan.md`. | [`2026-10-18_optimize_markdown_token_efficiency.md`](.changelog/2026-10-18_optimize_markdown_token_efficiency.md) |
 | **Refactor Clean Page Architecture** | 2026-10-18 | Pemisahan `CashflowSummaryCard`, `DashboardHubCard`, `BudgetCategoryCard`, dan `BudgetCategoryList` dari `dashboard/page.tsx`. | [`2026-10-18_refactor_clean_page_architecture_and_feature_cards.md`](.changelog/2026-10-18_refactor_clean_page_architecture_and_feature_cards.md) |
 | **Fase F5: Month Selector & 1-Click Generator** | 2026-10-18 | Komponen `MonthSelector`, `CreateMonthDialog`, integrasi URL `/dashboard?month=<id>`, dan baseline query bulan. | [`2026-10-18_fase_f5_dropdown_pemilih_bulan_generator.md`](.changelog/2026-10-18_fase_f5_dropdown_pemilih_bulan_generator.md) |
