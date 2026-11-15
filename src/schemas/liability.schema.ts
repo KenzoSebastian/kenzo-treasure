@@ -1,6 +1,6 @@
 /**
  * ==============================================================================
- * Kenzo Treasury — Zod Liability & Installment Schemas
+ * Kenzo Treasury — Zod Liability & Installment Schemas (Fase B7 & R8)
  * ==============================================================================
  *
  * ── Kenapa berkas ini ada ──────────────────────────────────────────────────────
@@ -8,7 +8,7 @@
  * Mendefinisikan kontrak validasi untuk utang/cicilan bertarget lunas (`liabilities`).
  * Memastikan cicilan memiliki batas akhir yang pasti (finite debt lifetime),
  * nominal integer Rupiah murni, dan pencatatan pembayaran cicilan bulanan yang
- * terhubung ke pos anggaran.
+ * terhubung ke pos anggaran (Opsi A Zero-Based Rebalance).
  */
 
 import { z } from "zod";
@@ -23,6 +23,12 @@ export const createLiabilitySchema = z
       .trim()
       .min(2, { message: "Nama utang minimal 2 karakter" })
       .max(100, { message: "Nama utang maksimal 100 karakter" }),
+    icon: z
+      .string()
+      .trim()
+      .min(1, { message: "Icon wajib dipilih" })
+      .max(50, { message: "Icon maksimal 50 karakter" })
+      .default("credit-card"),
     totalAmount: z.coerce
       .number({ message: "Total kewajiban wajib diisi" })
       .int({ message: "Total kewajiban harus berupa integer bulat" })
@@ -42,14 +48,33 @@ export const createLiabilitySchema = z
       .int({ message: "Akumulasi terbayar harus integer bulat" })
       .min(0, { message: "Akumulasi terbayar tidak boleh negatif" })
       .default(0),
+    monthId: z
+      .string()
+      .uuid({ message: "Format ID bulan tidak valid" })
+      .optional()
+      .nullable(),
+    addToCurrentMonthBudget: z.boolean().default(true),
+    allocateToCurrentMonth: z.boolean().optional(),
   })
   .refine((data) => data.monthlyPayment <= data.totalAmount, {
     message: "Cicilan bulanan tidak boleh melebihi total kewajiban utang",
     path: ["monthlyPayment"],
-  });
+  })
+  .refine(
+    (data) => {
+      if (data.allocateToCurrentMonth === true) {
+        return Boolean(data.monthId);
+      }
+      return true;
+    },
+    {
+      message: "ID bulan wajib diisi saat mengalokasikan ke bulan berjalan",
+      path: ["monthId"],
+    }
+  );
 
 /**
- * Validasi pencatatan setoran cicilan bulanan.
+ * Validasi pencatatan setoran cicilan bulanan (Opsi A: sinkron ke tabel `transactions`).
  */
 export const recordInstallmentSchema = z.object({
   liabilityId: z
@@ -64,6 +89,23 @@ export const recordInstallmentSchema = z.object({
     .uuid({ message: "Format ID transaksi tidak valid" })
     .optional()
     .nullable(),
+  monthId: z
+    .string()
+    .uuid({ message: "Format ID bulan tidak valid" })
+    .optional()
+    .nullable(),
+  method: z.enum(["cash", "debit", "qris", "transfer"]).default("transfer"),
+  description: z
+    .string()
+    .trim()
+    .max(200, { message: "Keterangan maksimal 200 karakter" })
+    .optional(),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, {
+      message: "Format tanggal harus YYYY-MM-DD",
+    })
+    .optional(),
 });
 
 /**
@@ -79,6 +121,7 @@ export const updateLiabilitySchema = z.object({
     .min(2, { message: "Nama utang minimal 2 karakter" })
     .max(100, { message: "Nama utang maksimal 100 karakter" })
     .optional(),
+  icon: z.string().trim().min(1).max(50).optional(),
   totalAmount: z.coerce
     .number()
     .int({ message: "Total kewajiban harus berupa integer bulat" })

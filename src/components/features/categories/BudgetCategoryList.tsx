@@ -2,14 +2,14 @@
 
 /**
  * ==============================================================================
- * Kenzo Treasury — Budget Category List Grid (Fase F7)
+ * Kenzo Treasury — Budget Category List Grid (Fase F7, R1, R3, R4, R6)
  * ==============================================================================
  *
  * ── Kenapa komponen ini ada ───────────────────────────────────────────────────
  *
- * Menampilkan grid responsif seksi 7 pos pengeluaran wajib bulanan + pos kustom,
- * dilengkapi modal tambah pos kustom (`addCustomCategory`) dan pemicu Drawer
- * Catat Transaksi Kilat (`QuickTransactionDrawer`).
+ * Menampilkan grid responsif pos pengeluaran anggaran bulanan, dilengkapi modal
+ * tambah pos kustom (`addCustomCategory`) menggunakan `IconPicker` dan
+ * `SlidingSegmentedControl`.
  */
 
 import * as React from "react";
@@ -32,6 +32,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { IconPicker } from "@/components/common/IconPicker";
+import { SlidingSegmentedControl } from "@/components/common/SlidingSegmentedControl";
 import { formatRupiah, parseRupiah } from "@/lib/financial-calculations";
 import { addCustomCategory } from "@/actions/categories";
 import { cn } from "@/lib/utils";
@@ -61,6 +63,14 @@ interface BudgetCategoryListProps {
   isClosed?: boolean;
 }
 
+const GROUP_OPTIONS: Array<{
+  value: "kebutuhan" | "pos_wajib";
+  label: string;
+}> = [
+  { value: "kebutuhan", label: "Kebutuhan" },
+  { value: "pos_wajib", label: "Pos Wajib" },
+];
+
 export function BudgetCategoryList({
   categories,
   salaryBase,
@@ -71,13 +81,26 @@ export function BudgetCategoryList({
   const router = useRouter();
   const [openAddDialog, setOpenAddDialog] = React.useState(false);
   const [name, setName] = React.useState("");
-  const [icon, setIcon] = React.useState("📦");
-  const [group, setGroup] = React.useState<
-    "pos_wajib" | "kebutuhan" | "uang_bebas_tabungan"
-  >("kebutuhan");
+  const [icon, setIcon] = React.useState("package");
+  const [group, setGroup] = React.useState<"pos_wajib" | "kebutuhan">(
+    "kebutuhan"
+  );
   const [targetRaw, setTargetRaw] = React.useState("150000");
   const [formError, setFormError] = React.useState<string | null>(null);
   const [isPending, startTransition] = React.useTransition();
+
+  const reassignOptions = React.useMemo(
+    () =>
+      categories
+        .filter((cat) => Boolean(cat.id))
+        .map((cat) => ({
+          id: cat.id!,
+          name: cat.name,
+          group: cat.group,
+          liabilityId: cat.liabilityId,
+        })),
+    [categories]
+  );
 
   const handleAddCategory = (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,7 +123,7 @@ export function BudgetCategoryList({
       const res = await addCustomCategory({
         monthId,
         name: trimmedName,
-        icon: icon.trim() || "📦",
+        icon: icon.trim() || "package",
         group,
         targetBudget: numericTarget,
         isTemporary: true,
@@ -116,6 +139,8 @@ export function BudgetCategoryList({
         description: `Alokasi: ${formatRupiah(res.data.targetBudget)}`,
       });
       setName("");
+      setIcon("package");
+      setGroup("kebutuhan");
       setTargetRaw("150000");
       setOpenAddDialog(false);
       router.refresh();
@@ -126,10 +151,10 @@ export function BudgetCategoryList({
     <div id="pos-anggaran" className="space-y-4 pt-2">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold tracking-tight text-foreground">
-            7 Pos Pengeluaran Wajib & Alokasi Bulan Ini
+          <h2 className="text-lg font-bold tracking-tight text-foreground tabular-nums">
+            {categories.length} Pos Anggaran & Alokasi Bulan Ini
           </h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground tabular-nums">
             Alokasi pos terencana dari pemasukan {formatRupiah(salaryBase)} untuk
             mencegah kebocoran kas.
           </p>
@@ -153,7 +178,7 @@ export function BudgetCategoryList({
                 </Button>
               </DialogTrigger>
 
-              <DialogContent className="sm:max-w-md rounded-2xl p-6">
+              <DialogContent className="sm:max-w-md rounded-2xl p-6 max-h-[90dvh] overflow-y-auto">
                 <form onSubmit={handleAddCategory} className="space-y-4">
                   <DialogHeader>
                     <DialogTitle className="text-base font-bold">
@@ -164,41 +189,27 @@ export function BudgetCategoryList({
                     </DialogDescription>
                   </DialogHeader>
 
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-4 gap-2.5">
-                      <div className="space-y-1">
-                        <Label htmlFor="cat-icon" className="text-xs">
-                          Ikon
-                        </Label>
-                        <Input
-                          id="cat-icon"
-                          value={icon}
-                          onChange={(e) => setIcon(e.target.value)}
-                          maxLength={4}
-                          className="h-10 rounded-xl text-center text-base"
-                        />
-                      </div>
-                      <div className="col-span-3 space-y-1">
-                        <Label htmlFor="cat-name" className="text-xs">
-                          Nama Pos Anggaran
-                        </Label>
-                        <Input
-                          id="cat-name"
-                          placeholder="Contoh: Kursus & Buku"
-                          value={name}
-                          onChange={(e) => {
-                            setName(e.target.value);
-                            setFormError(null);
-                          }}
-                          className={cn(
-                            "h-10 rounded-xl text-xs",
-                            formError && "border-destructive"
-                          )}
-                        />
-                      </div>
+                  <div className="space-y-3.5">
+                    <div className="space-y-1">
+                      <Label htmlFor="cat-name" className="text-xs">
+                        Nama Pos Anggaran
+                      </Label>
+                      <Input
+                        id="cat-name"
+                        placeholder="Contoh: Kursus & Buku"
+                        value={name}
+                        onChange={(e) => {
+                          setName(e.target.value);
+                          setFormError(null);
+                        }}
+                        className={cn(
+                          "h-10 rounded-xl text-xs",
+                          formError && "border-destructive"
+                        )}
+                      />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <Label htmlFor="cat-target" className="text-xs">
                           Target Alokasi (Rp)
@@ -221,30 +232,25 @@ export function BudgetCategoryList({
 
                       <div className="space-y-1">
                         <Label className="text-xs">Kelompok Pos</Label>
-                        <div className="grid grid-cols-2 gap-1.5 pt-0.5">
-                          {(
-                            [
-                              { id: "kebutuhan", label: "Kebutuhan" },
-                              { id: "pos_wajib", label: "Pos Wajib" },
-                            ] as const
-                          ).map((opt) => (
-                            <button
-                              key={opt.id}
-                              type="button"
-                              onClick={() => setGroup(opt.id)}
-                              className={cn(
-                                "h-9 rounded-xl border text-xs font-medium transition-colors",
-                                group === opt.id
-                                  ? "border-primary bg-primary text-primary-foreground"
-                                  : "border-border/70 bg-background text-muted-foreground hover:text-foreground"
-                              )}
-                            >
-                              {opt.label}
-                            </button>
-                          ))}
-                        </div>
+                        <SlidingSegmentedControl
+                          options={GROUP_OPTIONS}
+                          value={group}
+                          onValueChange={setGroup}
+                          role="radiogroup"
+                          ariaLabel="Pilih kelompok pos anggaran"
+                          fullWidth
+                          size="sm"
+                          recalculateTrigger={openAddDialog}
+                        />
                       </div>
                     </div>
+
+                    <IconPicker
+                      value={icon}
+                      onChange={setIcon}
+                      fallbackGroup={group}
+                      label="Pilih Ikon Pos"
+                    />
 
                     {formError && (
                       <p className="text-xs font-medium text-destructive">
@@ -289,6 +295,7 @@ export function BudgetCategoryList({
           <BudgetCategoryCard
             key={cat.id ?? cat.name}
             category={cat}
+            otherCategories={reassignOptions}
             isClosed={isClosed}
           />
         ))}

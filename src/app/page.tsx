@@ -1,4 +1,4 @@
-import { getCurrentUser } from "@/actions/auth";
+import { getCachedAuthenticatedSession } from "@/lib/queries/auth";
 import { LandingNavbar } from "@/components/features/landing/LandingNavbar";
 import { HeroSection } from "@/components/features/landing/HeroSection";
 import { MetricsStrip } from "@/components/features/landing/MetricsStrip";
@@ -18,8 +18,8 @@ export const metadata = {
 };
 
 export default async function LandingPage() {
-  const userResult = await getCurrentUser();
-  const isLoggedIn = userResult.success && !!userResult.data;
+  const sessionRes = await getCachedAuthenticatedSession();
+  const isLoggedIn = sessionRes.success && Boolean(sessionRes.data.userId);
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground antialiased selection:bg-foreground selection:text-background">

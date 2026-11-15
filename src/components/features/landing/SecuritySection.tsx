@@ -29,7 +29,7 @@ export function SecuritySection() {
     {
       icon: WifiOff,
       title: "Bisa Dipakai Tanpa Sinyal",
-      desc: "Pasang aplikasi ke layar utama ponsel Android atau iPhone. Anda tetap bisa mencatat pengeluaran harian dengan lancar walau sedang berada di area tanpa sinyal.",
+      desc: "Pasang aplikasi ke layar utama ponsel Android atau iOS. Anda tetap bisa mencatat pengeluaran harian dengan lancar walau sedang berada di area tanpa sinyal.",
     },
   ];
 

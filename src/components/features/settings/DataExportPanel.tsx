@@ -2,16 +2,16 @@
 
 /**
  * ==============================================================================
- * Kenzo Treasury — Data Export & Sovereign Backup Panel (Fase F17)
+ * Kenzo Treasury — Data Export & Sovereign Backup Panel (Fase F17 & R1)
  * ==============================================================================
  *
  * ── Kenapa komponen ini ada ───────────────────────────────────────────────────
  *
  * Menyediakan antarmuka kedaulatan data mandiri (Data Sovereignty) dengan
- * 3 tombol unduhan langsung:
- * 1. `📥 Download CSV Transaksi Bulanan`
- * 2. `📊 Download Excel (.xlsx / .csv) Rekap Keuangan`
- * 3. `💾 Full JSON Backup (Kedaulatan Data)`
+ * 3 tombol unduhan langsung menggunakan ikon Lucide semantik (tanpa emoji literal):
+ * 1. `Download CSV Transaksi Bulanan`
+ * 2. `Download Excel (.xlsx) Rekap Keuangan`
+ * 3. `Full JSON Backup (Kedaulatan Data)`
  * Dilengkapi indikator status unduhan yang jelas bagi pengguna.
  */
 
@@ -35,7 +35,7 @@ interface DataExportPanelProps {
   monthId?: string;
 }
 
-export function DataExportPanel({ monthId }: DataExportPanelProps) {
+export function DataExportPanel(_props: DataExportPanelProps) {
   const [downloadingFormat, setDownloadingFormat] =
     React.useState<ExportFormat | null>(null);
   const [lastDownloaded, setLastDownloaded] = React.useState<{
@@ -117,7 +117,7 @@ export function DataExportPanel({ monthId }: DataExportPanelProps) {
             ) : (
               <Download className="size-4 text-emerald-600 dark:text-emerald-400" />
             )}
-            <span>📥 Download CSV Transaksi Bulanan</span>
+            <span>Download CSV Transaksi Bulanan</span>
           </div>
           <span className="text-[11px] text-muted-foreground font-normal">
             Format tabel transaksi standar siap olah
@@ -137,7 +137,7 @@ export function DataExportPanel({ monthId }: DataExportPanelProps) {
             ) : (
               <FileSpreadsheet className="size-4 text-blue-600 dark:text-blue-400" />
             )}
-            <span>📊 Download Excel (.xlsx) Rekap Keuangan</span>
+            <span>Download Excel (.xlsx) Rekap Keuangan</span>
           </div>
           <span className="text-[11px] text-muted-foreground font-normal">
             Kompatibel langsung dengan Microsoft Excel & Sheets
@@ -157,7 +157,7 @@ export function DataExportPanel({ monthId }: DataExportPanelProps) {
             ) : (
               <FileJson className="size-4 text-amber-600 dark:text-amber-400" />
             )}
-            <span>💾 Full JSON Backup (Kedaulatan Data)</span>
+            <span>Full JSON Backup (Kedaulatan Data)</span>
           </div>
           <span className="text-[11px] text-muted-foreground font-normal">
             Snapshot penuh seluruh tabel keuangan pribadi Anda

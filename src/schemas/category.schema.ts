@@ -39,8 +39,8 @@ export const createCategorySchema = z.object({
     .string()
     .trim()
     .min(1, { message: "Icon wajib dipilih" })
-    .max(10, { message: "Icon maksimal 10 karakter" })
-    .default("💰"),
+    .max(50, { message: "Icon maksimal 50 karakter" })
+    .default("wallet"),
   group: categoryGroupSchema,
   targetBudget: z.coerce
     .number({ message: "Target anggaran wajib diisi" })
@@ -81,7 +81,7 @@ export const updateCategorySchema = z.object({
     .min(2, { message: "Nama pos minimal 2 karakter" })
     .max(50, { message: "Nama pos maksimal 50 karakter" })
     .optional(),
-  icon: z.string().trim().min(1).max(10).optional(),
+  icon: z.string().trim().min(1).max(50).optional(),
   group: categoryGroupSchema.optional(),
   targetBudget: z.coerce
     .number()
@@ -110,8 +110,44 @@ export const reorderCategoriesSchema = z.object({
     .min(1, { message: "Daftar urutan kategori tidak boleh kosong" }),
 });
 
+/**
+ * Validasi penghapusan pos anggaran bulan berjalan secara aman (`ON DELETE RESTRICT`).
+ * - `deactivate_next_month`: set `targetBudget = 0, isTemporary = true` (0 transaksi dipindah)
+ * - `permanent_delete`: hapus permanen (langsung jika kosong, atau 1-click bulk reassign jika bertransaksi)
+ */
+export const deleteCategorySchema = z
+  .object({
+    categoryId: z
+      .string({ message: "ID pos anggaran wajib diisi" })
+      .uuid({ message: "Format ID pos anggaran tidak valid" }),
+    mode: z
+      .enum(["deactivate_next_month", "permanent_delete"])
+      .default("deactivate_next_month"),
+    reassignToCategoryId: z
+      .string()
+      .uuid({ message: "Format ID pos tujuan tidak valid" })
+      .optional()
+      .nullable(),
+    targetCategoryId: z
+      .string()
+      .uuid({ message: "Format ID pos tujuan tidak valid" })
+      .optional()
+      .nullable(),
+  })
+  .refine(
+    (data) => {
+      const target = data.reassignToCategoryId ?? data.targetCategoryId;
+      return !target || target !== data.categoryId;
+    },
+    {
+      message: "Tidak dapat memindahkan transaksi ke pos yang sama",
+      path: ["reassignToCategoryId"],
+    }
+  );
+
 export type CategoryGroup = z.infer<typeof categoryGroupSchema>;
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
 export type UpdateCategoryTargetInput = z.infer<typeof updateCategoryTargetSchema>;
 export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;
 export type ReorderCategoriesInput = z.infer<typeof reorderCategoriesSchema>;
+export type DeleteCategoryInput = z.infer<typeof deleteCategorySchema>;

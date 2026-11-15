@@ -2,23 +2,17 @@
 
 /**
  * ==============================================================================
- * Kenzo Treasury — Server Actions: Multi-Source Incomes Engine (Fase B6)
+ * Kenzo Treasury — Server Actions: Multi-Source Incomes Engine (Fase B6 + R10)
  * ==============================================================================
- *
- * ── Kenapa berkas ini ada ──────────────────────────────────────────────────────
  *
  * Mengelola seluruh operasi mutasi (Server Actions) pemasukan multi-sumber:
  * 1. `addIncome`: Menambah pemasukan baru (gaji pokok atau freelance/bonus) dengan
  *    validasi Zod dan integrasi Dynamic Freedom Buffer.
  * 2. `updateIncome`: Memperbarui nominal, sumber, atau tanggal pemasukan.
- * 3. `deleteIncome`: Menghapus catatan pemasukan dengan proteksi bulan aktif.
- *
- * Catatan Arsitektur:
- * Operasi pembacaan data (queries) diisolasi di `src/lib/queries/incomes.ts`
- * sesuai aturan Clean Page Architecture dan Separation of Concerns.
+ * 3. `deleteIncome`: Menghapus catatan pemasukan tambahan dengan proteksi bulan aktif
+ *    serta memblokir penghapusan baris gaji pokok (`isBaseSalary = true`).
  */
 
-import { revalidatePath } from "next/cache";
 import { eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import { months, incomes } from "@/db/schema";
@@ -32,23 +26,15 @@ import {
 } from "@/schemas/income.schema";
 import { resolveAuthenticatedUserId } from "@/lib/queries/months";
 import { getMonthlyIncomes, getIncomeById } from "@/lib/queries/incomes";
+import { revalidateDashboardRoutes } from "@/lib/revalidate";
 import type { ActionResponse, Income } from "@/types";
 
-// Re-export query untuk kemudahan pemanggilan
 export { getMonthlyIncomes, getIncomeById };
 
 /* ══════════════════════════════════════════════════════════════════════════════
    1. SERVER ACTION: addIncome
    ══════════════════════════════════════════════════════════════════════════════ */
 
-/**
- * Menambahkan catatan pemasukan baru ke siklus bulan berjalan:
- * - Mendukung pemanggilan fleksibel:
- *   1. `addIncome(monthId, { source, amount, date, isBaseSalary })`
- *   2. `addIncome({ monthId, source, amount, date, isBaseSalary })`
- * - Memverifikasi bulan berstatus aktif (bukan arsip/tutup buku).
- * - Mencegah duplikasi gaji pokok ganda jika `isBaseSalary = true`.
- */
 export async function addIncome(
   monthIdOrInput: string | CreateIncomeInput,
   dataOrUserId?: Omit<CreateIncomeInput, "monthId"> | string,
@@ -59,13 +45,11 @@ export async function addIncome(
     let targetUserId = explicitUserId;
 
     if (typeof monthIdOrInput === "string") {
-      // Pola: addIncome(monthId, data, explicitUserId?)
       rawPayload = {
         monthId: monthIdOrInput,
         ...(typeof dataOrUserId === "object" ? dataOrUserId : {}),
       };
     } else {
-      // Pola: addIncome(payload, explicitUserId?)
       rawPayload = monthIdOrInput;
       if (typeof dataOrUserId === "string") {
         targetUserId = dataOrUserId;
@@ -76,7 +60,8 @@ export async function addIncome(
     if (!parsed.success) {
       return {
         success: false,
-        error: parsed.error.issues[0]?.message ?? "Validasi data pemasukan gagal.",
+        error:
+          parsed.error.issues[0]?.message ?? "Validasi data pemasukan gagal.",
         fieldErrors: parsed.error.flatten().fieldErrors,
       };
     }
@@ -89,14 +74,15 @@ export async function addIncome(
       };
     }
 
-    // 1. Verifikasi siklus bulan ada, dimiliki user, dan masih berstatus aktif
     const [monthRecord] = await db
       .select({
         id: months.id,
         isClosed: months.isClosed,
       })
       .from(months)
-      .where(and(eq(months.id, parsed.data.monthId), eq(months.userId, userId)))
+      .where(
+        and(eq(months.id, parsed.data.monthId), eq(months.userId, userId))
+      )
       .limit(1);
 
     if (!monthRecord) {
@@ -109,11 +95,11 @@ export async function addIncome(
     if (monthRecord.isClosed) {
       return {
         success: false,
-        error: "Tidak dapat menambah pemasukan pada siklus bulan yang telah ditutup (arsip).",
+        error:
+          "Tidak dapat menambah pemasukan pada siklus bulan yang telah ditutup (arsip).",
       };
     }
 
-    // 2. Proteksi Invarian: Gaji Pokok hanya boleh satu per siklus bulan
     if (parsed.data.isBaseSalary) {
       const [existingBaseSalary] = await db
         .select({ id: incomes.id })
@@ -130,12 +116,12 @@ export async function addIncome(
       if (existingBaseSalary) {
         return {
           success: false,
-          error: "Bulan ini sudah memiliki catatan gaji pokok. Gunakan tipe pemasukan sampingan/freelance untuk pemasukan tambahan.",
+          error:
+            "Bulan ini sudah memiliki catatan gaji pokok. Gunakan tipe pemasukan sampingan/freelance untuk pemasukan tambahan.",
         };
       }
     }
 
-    // 3. Simpan catatan pemasukan baru
     const [newIncome] = await db
       .insert(incomes)
       .values({
@@ -148,7 +134,7 @@ export async function addIncome(
       })
       .returning();
 
-    revalidatePath("/dashboard");
+    revalidateDashboardRoutes();
 
     return {
       success: true,
@@ -167,12 +153,6 @@ export async function addIncome(
    2. SERVER ACTION: updateIncome
    ══════════════════════════════════════════════════════════════════════════════ */
 
-/**
- * Memperbarui catatan pemasukan yang sudah ada:
- * - Mendukung pemanggilan: `updateIncome(incomeId, data)` atau `updateIncome(input)`
- * - Memverifikasi bahwa siklus bulan induk belum ditutup.
- * - Mencegah duplikasi gaji pokok ganda jika diubah menjadi gaji pokok.
- */
 export async function updateIncome(
   inputOrId: string | UpdateIncomeInput,
   dataOrUserId?: Partial<Omit<UpdateIncomeInput, "incomeId">> | string,
@@ -198,7 +178,9 @@ export async function updateIncome(
     if (!parsed.success) {
       return {
         success: false,
-        error: parsed.error.issues[0]?.message ?? "Validasi data pembaruan pemasukan gagal.",
+        error:
+          parsed.error.issues[0]?.message ??
+          "Validasi data pembaruan pemasukan gagal.",
         fieldErrors: parsed.error.flatten().fieldErrors,
       };
     }
@@ -211,7 +193,6 @@ export async function updateIncome(
       };
     }
 
-    // 1. Ambil catatan pemasukan saat ini beserta status bulan induknya
     const [existingIncome] = await db
       .select({
         id: incomes.id,
@@ -221,7 +202,9 @@ export async function updateIncome(
       })
       .from(incomes)
       .innerJoin(months, eq(incomes.monthId, months.id))
-      .where(and(eq(incomes.id, parsed.data.incomeId), eq(incomes.userId, userId)))
+      .where(
+        and(eq(incomes.id, parsed.data.incomeId), eq(incomes.userId, userId))
+      )
       .limit(1);
 
     if (!existingIncome) {
@@ -234,11 +217,11 @@ export async function updateIncome(
     if (existingIncome.isClosed) {
       return {
         success: false,
-        error: "Tidak dapat mengubah catatan pemasukan pada bulan yang telah ditutup (arsip).",
+        error:
+          "Tidak dapat mengubah catatan pemasukan pada bulan yang telah ditutup (arsip).",
       };
     }
 
-    // 2. Proteksi jika status gaji pokok diubah menjadi true
     if (parsed.data.isBaseSalary === true && !existingIncome.isBaseSalary) {
       const [otherBaseSalary] = await db
         .select({ id: incomes.id })
@@ -260,7 +243,6 @@ export async function updateIncome(
       }
     }
 
-    // 3. Eksekusi pembaruan
     const updateData: Partial<typeof incomes.$inferInsert> = {
       updatedAt: new Date(),
     };
@@ -268,15 +250,18 @@ export async function updateIncome(
     if (parsed.data.source !== undefined) updateData.source = parsed.data.source;
     if (parsed.data.amount !== undefined) updateData.amount = parsed.data.amount;
     if (parsed.data.date !== undefined) updateData.date = parsed.data.date;
-    if (parsed.data.isBaseSalary !== undefined) updateData.isBaseSalary = parsed.data.isBaseSalary;
+    if (parsed.data.isBaseSalary !== undefined)
+      updateData.isBaseSalary = parsed.data.isBaseSalary;
 
     const [updatedIncome] = await db
       .update(incomes)
       .set(updateData)
-      .where(and(eq(incomes.id, parsed.data.incomeId), eq(incomes.userId, userId)))
+      .where(
+        and(eq(incomes.id, parsed.data.incomeId), eq(incomes.userId, userId))
+      )
       .returning();
 
-    revalidatePath("/dashboard");
+    revalidateDashboardRoutes();
 
     return {
       success: true,
@@ -295,28 +280,20 @@ export async function updateIncome(
    3. SERVER ACTION: deleteIncome
    ══════════════════════════════════════════════════════════════════════════════ */
 
-/**
- * Menghapus catatan pemasukan:
- * - Memverifikasi kepemilikan dan memastikan siklus bulan induk masih berstatus aktif.
- */
 export async function deleteIncome(
   inputOrId: string | DeleteIncomeInput,
   explicitUserId?: string
 ): Promise<ActionResponse<{ id: string }>> {
   try {
-    let rawPayload: unknown;
-
-    if (typeof inputOrId === "string") {
-      rawPayload = { incomeId: inputOrId };
-    } else {
-      rawPayload = inputOrId;
-    }
+    const rawPayload =
+      typeof inputOrId === "string" ? { incomeId: inputOrId } : inputOrId;
 
     const parsed = deleteIncomeSchema.safeParse(rawPayload);
     if (!parsed.success) {
       return {
         success: false,
-        error: parsed.error.issues[0]?.message ?? "Validasi ID pemasukan gagal.",
+        error:
+          parsed.error.issues[0]?.message ?? "Validasi ID pemasukan gagal.",
         fieldErrors: parsed.error.flatten().fieldErrors,
       };
     }
@@ -329,15 +306,17 @@ export async function deleteIncome(
       };
     }
 
-    // 1. Ambil catatan pemasukan untuk verifikasi bulan induk
     const [existingIncome] = await db
       .select({
         id: incomes.id,
+        isBaseSalary: incomes.isBaseSalary,
         isClosed: months.isClosed,
       })
       .from(incomes)
       .innerJoin(months, eq(incomes.monthId, months.id))
-      .where(and(eq(incomes.id, parsed.data.incomeId), eq(incomes.userId, userId)))
+      .where(
+        and(eq(incomes.id, parsed.data.incomeId), eq(incomes.userId, userId))
+      )
       .limit(1);
 
     if (!existingIncome) {
@@ -350,16 +329,27 @@ export async function deleteIncome(
     if (existingIncome.isClosed) {
       return {
         success: false,
-        error: "Tidak dapat menghapus pemasukan pada bulan yang telah ditutup (arsip).",
+        error:
+          "Tidak dapat menghapus pemasukan pada bulan yang telah ditutup (arsip).",
       };
     }
 
-    // 2. Eksekusi penghapusan
+    // Invarian R10: Gaji pokok bulan aktif tidak dapat dihapus (hanya bisa diubah nominalnya)
+    if (existingIncome.isBaseSalary) {
+      return {
+        success: false,
+        error:
+          "Gaji pokok tidak dapat dihapus. Silakan ubah nominalnya apabila terdapat penyesuaian.",
+      };
+    }
+
     await db
       .delete(incomes)
-      .where(and(eq(incomes.id, parsed.data.incomeId), eq(incomes.userId, userId)));
+      .where(
+        and(eq(incomes.id, parsed.data.incomeId), eq(incomes.userId, userId))
+      );
 
-    revalidatePath("/dashboard");
+    revalidateDashboardRoutes();
 
     return {
       success: true,

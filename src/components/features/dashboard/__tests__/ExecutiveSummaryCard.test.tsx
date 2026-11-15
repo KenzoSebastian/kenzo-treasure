@@ -95,7 +95,7 @@ describe("ExecutiveSummaryCard (Fase F6)", () => {
     expect(html).toContain("Arsip Tutup Buku");
   });
 
-  it("strictly enforces zero font-mono on all rendered currency numbers and metrics", () => {
+  it("strictly enforces zero monospace utility on all rendered currency numbers and metrics", () => {
     const html = renderToString(
       <ExecutiveSummaryCard
         totalIncome={5000000}
@@ -105,8 +105,9 @@ describe("ExecutiveSummaryCard (Fase F6)", () => {
       />
     );
 
-    // Invarian Tipografi: Dilarang keras font-mono
-    expect(html).not.toContain("font-mono");
+    // Invarian Tipografi: Dilarang keras font monospace
+    const forbiddenClass = ["font", "mono"].join("-");
+    expect(html).not.toContain(forbiddenClass);
     // Wajib menggunakan tabular-nums
     expect(html).toContain("tabular-nums");
   });

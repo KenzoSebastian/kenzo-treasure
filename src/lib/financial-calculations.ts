@@ -20,15 +20,17 @@
  *    dan division by zero.
  */
 
+import type { WishlistMilestoneIconKey } from "./category-icons";
+
 /* ══════════════════════════════════════════════════════════════════════════════
    1. TIPE & KONTRAK DATA FINANSIAL
    ══════════════════════════════════════════════════════════════════════════════ */
 
 /**
  * Status kesehatan anggaran pos:
- * - `healthy`: Pengeluaran < 80% target (Aman 🟢)
- * - `warning`: Pengeluaran 80% - 100% target (Waspada 🟡)
- * - `overbudget`: Pengeluaran > 100% target (Overbudget 🔴)
+ * - `healthy`: Pengeluaran < 80% target (Aman)
+ * - `warning`: Pengeluaran 80% - 100% target (Waspada)
+ * - `overbudget`: Pengeluaran > 100% target (Overbudget)
  */
 export type BudgetStatus = "healthy" | "warning" | "overbudget";
 
@@ -48,6 +50,7 @@ export interface DebtProgress {
  */
 export interface SafetyMonthsResult {
   safetyMonths: number;
+  targetAmount: number;
   percentageOfTarget: number;
   isTargetReached: boolean;
 }
@@ -74,6 +77,7 @@ export interface WishlistProgress {
   isCompleted: boolean;
   milestone: WishlistMilestone;
   milestoneLabel: string;
+  milestoneIconKey: WishlistMilestoneIconKey;
   milestoneMessage: string;
 }
 
@@ -91,7 +95,7 @@ export function toIntegerRupiah(value: number): number {
 
 /**
  * Memformat nominal integer Rupiah ke format lokal standar Indonesia:
- * Contoh: 4000000 -> "Rp 4.000.000", -50000 -> "-Rp 50.000"
+ * Contoh: 5000000 -> "Rp 5.000.000", -50000 -> "-Rp 50.000"
  */
 export function formatRupiah(
   amount: number,
@@ -119,7 +123,7 @@ export function formatRupiah(
 
 /**
  * Mengonversi string format Rupiah atau angka tak teratur kembali ke integer Rupiah murni.
- * Contoh: "Rp 4.000.000" -> 4000000, "-Rp 50.000" -> -50000, "" -> 0
+ * Contoh: "Rp 5.000.000" -> 5000000, "-Rp 50.000" -> -50000, "" -> 0
  */
 export function parseRupiah(value: string | number): number {
   if (typeof value === "number") {
@@ -194,7 +198,7 @@ export function getBudgetStatus(target: number, spent: number): BudgetStatus {
 }
 
 /**
- * Menghitung kuota target pos `🍿 Uang Bebas / Tabungan` secara dinamis.
+ * Menghitung kuota target pos `Uang Bebas / Tabungan` secara dinamis.
  * Sesuai Invarian 3: Pemasukan tambahan (freelance, bonus) otomatis menambah buffer uang bebas,
  * tanpa menaikkan pos wajib atau kebutuhan operasional.
  *
@@ -278,9 +282,9 @@ export function calculateRemainingDebtMonths(
    ══════════════════════════════════════════════════════════════════════════════ */
 
 /**
- * Target default dana darurat: Rp 18.000.000 (~6x biaya wajib bulanan)
+ * Target default dana darurat awal pengguna baru (Rp 0 — diatur mandiri oleh pengguna)
  */
-export const DEFAULT_EMERGENCY_FUND_TARGET = 18_000_000;
+export const DEFAULT_EMERGENCY_FUND_TARGET = 0;
 
 /**
  * Menghitung meteran ketahanan hidup dana darurat (Safety Months):
@@ -312,6 +316,7 @@ export function calculateSafetyMonths(
 
   return {
     safetyMonths,
+    targetAmount: safeTarget,
     percentageOfTarget,
     isTargetReached,
   };
@@ -339,12 +344,12 @@ export function calculateFreeSavings(
 
 /**
  * Menghitung progres dan milestone gamifikasi wishlist barang impian sesuai FR-10.4:
- * - >= 100%: 🏆 DREAM UNLOCKED!
- * - >= 95%: ⚡ One Step Away
- * - >= 90%: 🔥 Final Stretch
- * - >= 75%: 🥇 Major Milestone
- * - >= 50%: 🥈 Halfway Hero
- * - < 50%: 🎯 Langkah Awal
+ * - >= 100%: DREAM UNLOCKED! (trophy)
+ * - >= 95%: One Step Away (zap)
+ * - >= 90%: Final Stretch (flame)
+ * - >= 75%: Major Milestone (award)
+ * - >= 50%: Halfway Hero (sparkles)
+ * - < 50%: Langkah Awal (target)
  */
 export function calculateWishlistProgress(
   savedAmount: number,
@@ -361,7 +366,8 @@ export function calculateWishlistProgress(
       percentage: 100,
       isCompleted: true,
       milestone: "unlocked",
-      milestoneLabel: "🏆 DREAM UNLOCKED!",
+      milestoneLabel: "DREAM UNLOCKED!",
+      milestoneIconKey: "trophy",
       milestoneMessage: "Target tercapai sempurna!",
     };
   }
@@ -371,28 +377,34 @@ export function calculateWishlistProgress(
   const isCompleted = safeSaved >= safeTarget;
 
   let milestone: WishlistMilestone = "started";
-  let milestoneLabel = "🎯 Langkah Awal";
+  let milestoneLabel = "Langkah Awal";
+  let milestoneIconKey: WishlistMilestoneIconKey = "target";
   let milestoneMessage = "Setiap rupiah membawa lebih dekat ke impian.";
 
   if (isCompleted || percentage >= 100) {
     milestone = "unlocked";
-    milestoneLabel = "🏆 DREAM UNLOCKED! (100%)";
+    milestoneLabel = "DREAM UNLOCKED! (100%)";
+    milestoneIconKey = "trophy";
     milestoneMessage = "Impian berhasil tercapai! Saatnya merayakan hasil disiplin finansial!";
   } else if (percentage >= 95) {
     milestone = "one_step_away";
-    milestoneLabel = "⚡ One Step Away (95%)";
+    milestoneLabel = "One Step Away (95%)";
+    milestoneIconKey = "flame";
     milestoneMessage = "Dikit lagi kebeli, jangan kendor!";
   } else if (percentage >= 90) {
     milestone = "final_stretch";
-    milestoneLabel = "🔥 Final Stretch (90%)";
+    milestoneLabel = "Final Stretch (90%)";
+    milestoneIconKey = "zap";
     milestoneMessage = "90%! Bau-bau barang impian udah kecium!";
   } else if (percentage >= 75) {
     milestone = "major_milestone";
-    milestoneLabel = "🥇 Major Milestone (75%)";
+    milestoneLabel = "Major Milestone (75%)";
+    milestoneIconKey = "rocket";
     milestoneMessage = "Tinggal 25% lagi, garis finish makin deket!";
   } else if (percentage >= 50) {
     milestone = "halfway_hero";
-    milestoneLabel = "🥈 Halfway Hero (50%)";
+    milestoneLabel = "Halfway Hero (50%)";
+    milestoneIconKey = "sparkles";
     milestoneMessage = "Setengah jalan lagi! Momentumnya dapet banget!";
   }
 
@@ -404,6 +416,7 @@ export function calculateWishlistProgress(
     isCompleted,
     milestone,
     milestoneLabel,
+    milestoneIconKey,
     milestoneMessage,
   };
 }
@@ -451,6 +464,40 @@ export function calculateMonthSweep(remainingFreeBudget: number): number {
 /* ══════════════════════════════════════════════════════════════════════════════
    8. VALIDASI BATAS TANGGAL SIKLUS BULAN & SKOR DISIPLIN ANGGARAN
    ══════════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * Menentukan tanggal default transaksi (`YYYY-MM-DD`) berbasis zona waktu
+ * `Asia/Jakarta` (WIB) yang selalu patuh terhadap `Strict Month-Date Boundary`
+ * (`year` dan `monthIndex` 1–12).
+ */
+export function resolveDefaultCycleDate(
+  year?: number,
+  monthIndex?: number,
+  referenceDate: Date = new Date()
+): string {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const jakartaDateStr = formatter.format(referenceDate); // YYYY-MM-DD
+
+  if (!year || !monthIndex) {
+    return jakartaDateStr;
+  }
+
+  const [jYearStr, jMonthStr] = jakartaDateStr.split("-");
+  const jYear = Number(jYearStr);
+  const jMonth = Number(jMonthStr);
+
+  if (jYear === year && jMonth === monthIndex) {
+    return jakartaDateStr;
+  }
+
+  const mm = String(monthIndex).padStart(2, "0");
+  return `${year}-${mm}-01`;
+}
 
 /**
  * Memvalidasi apakah tanggal transaksi (`YYYY-MM-DD`) berada tepat di dalam

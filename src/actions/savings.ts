@@ -14,7 +14,6 @@
  * 4. `topUpFreeSavings`: Menambah saldo tabungan bebas (opsional untuk penyesuaian saldo awal).
  */
 
-import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { savingsAccount } from "@/db/schema";
@@ -25,6 +24,7 @@ import {
 import { DEFAULT_EMERGENCY_FUND_TARGET } from "@/lib/financial-calculations";
 import { resolveAuthenticatedUserId } from "@/lib/queries/months";
 import { getSavingsAccount } from "@/lib/queries/savings";
+import { revalidateDashboardRoutes } from "@/lib/revalidate";
 import type { ActionResponse, SavingsVaultSummary } from "@/types";
 
 export { getSavingsAccount };
@@ -113,8 +113,7 @@ export async function transferToEmergencyFund(
         .where(eq(savingsAccount.userId, userId));
     });
 
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/vault");
+    revalidateDashboardRoutes();
 
     return getSavingsAccount(userId);
   } catch (err) {
@@ -188,8 +187,7 @@ export async function withdrawFromEmergencyFund(
         .where(eq(savingsAccount.userId, userId));
     });
 
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/vault");
+    revalidateDashboardRoutes();
 
     return getSavingsAccount(userId);
   } catch (err) {
@@ -270,8 +268,7 @@ export async function updateEmergencyFundTarget(
         },
       });
 
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/vault");
+    revalidateDashboardRoutes();
 
     return getSavingsAccount(userId);
   } catch (err) {
@@ -334,9 +331,7 @@ export async function topUpFreeSavings(
       }
     });
 
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/vault");
-    revalidatePath("/dashboard/wishlists");
+    revalidateDashboardRoutes();
 
     return getSavingsAccount(userId);
   } catch (err) {

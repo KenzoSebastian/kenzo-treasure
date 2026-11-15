@@ -14,7 +14,6 @@
  * 4. `markWishlistAsPurchased`: Menandai barang impian sebagai terbeli.
  */
 
-import { revalidatePath } from "next/cache";
 import { eq, and, desc } from "drizzle-orm";
 import { db } from "@/db";
 import { wishlists, wishlistAllocations, savingsAccount } from "@/db/schema";
@@ -26,8 +25,11 @@ import {
   type AllocateWishlistInput,
   type MarkWishlistPurchasedInput,
 } from "@/schemas/wishlist.schema";
+import { resolveCategoryIconKey } from "@/lib/category-icons";
+import { DEFAULT_EMERGENCY_FUND_TARGET } from "@/lib/financial-calculations";
 import { resolveAuthenticatedUserId } from "@/lib/queries/months";
 import { getWishlists, enrichWishlist } from "@/lib/queries/wishlists";
+import { revalidateDashboardRoutes } from "@/lib/revalidate";
 import type { ActionResponse, WishlistWithProgress } from "@/types";
 
 export { getWishlists };
@@ -67,14 +69,13 @@ export async function createWishlist(
         name: parsed.data.name,
         targetAmount: parsed.data.targetAmount,
         savedAmount: 0,
-        icon: parsed.data.icon || "🎯",
+        icon: resolveCategoryIconKey(parsed.data.icon, "kebutuhan"),
         imageUrl: parsed.data.imageUrl || null,
         isPurchased: false,
       })
       .returning();
 
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/wishlists");
+    revalidateDashboardRoutes();
 
     return {
       success: true,
@@ -202,8 +203,7 @@ export async function allocateSavings(
       return enrichWishlist(updatedWishlist, allocations);
     });
 
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/wishlists");
+    revalidateDashboardRoutes();
 
     return {
       success: true,
@@ -303,7 +303,7 @@ export async function withdrawFromWishlist(
           .values({
             userId,
             balance: 0,
-            emergencyFundTarget: 18000000,
+            emergencyFundTarget: DEFAULT_EMERGENCY_FUND_TARGET,
             emergencyFundBalance: 0,
           })
           .returning();
@@ -346,8 +346,7 @@ export async function withdrawFromWishlist(
       return enrichWishlist(updatedWishlist, allocations);
     });
 
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/wishlists");
+    revalidateDashboardRoutes();
 
     return {
       success: true,
@@ -449,8 +448,7 @@ export async function markWishlistAsPurchased(
       .where(eq(wishlistAllocations.wishlistId, parsed.data.wishlistId))
       .orderBy(desc(wishlistAllocations.createdAt));
 
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/wishlists");
+    revalidateDashboardRoutes();
 
     return {
       success: true,

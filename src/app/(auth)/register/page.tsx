@@ -27,7 +27,6 @@ export default function RegisterPage() {
     value: string
   ) {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // Hapus error spesifik field saat pengguna mulai mengetik ulang
     if (errors[field] || errors.form) {
       setErrors((prev) => ({ ...prev, [field]: undefined, form: undefined }));
     }
@@ -36,7 +35,6 @@ export default function RegisterPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    // 1. Validasi awal di client via Zod schema
     const validation = registerSchema.safeParse(formData);
     if (!validation.success) {
       const fieldErrors = validation.error.flatten().fieldErrors;
@@ -68,8 +66,10 @@ export default function RegisterPage() {
         return;
       }
 
-      toast.success("Akun berhasil didaftarkan! Mengalihkan ke dashboard...");
-      router.push("/dashboard");
+      toast.success(
+        "Akun berhasil didaftarkan! Silakan masuk menggunakan akun baru Anda."
+      );
+      router.push("/login?registered=1");
       router.refresh();
     });
   }
@@ -81,7 +81,9 @@ export default function RegisterPage() {
           <div className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold tracking-wide text-muted-foreground">
             Kenzo Treasury
           </div>
-          <h1 className="mt-3 text-2xl font-bold tracking-tight">Daftar Akun Baru</h1>
+          <h1 className="mt-3 text-2xl font-bold tracking-tight">
+            Daftar Akun Baru
+          </h1>
           <p className="mt-1 text-xs text-muted-foreground">
             Mulai kelola finansial mandiri bulananmu.
           </p>
@@ -105,7 +107,7 @@ export default function RegisterPage() {
               id="fullName"
               type="text"
               disabled={isPending}
-              placeholder="Kenzo Sebastian"
+              placeholder="Nama Lengkap Anda"
               value={formData.fullName}
               onChange={(e) => handleInputChange("fullName", e.target.value)}
               className={`w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 disabled:opacity-50 transition-colors ${

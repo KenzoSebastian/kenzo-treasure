@@ -55,9 +55,10 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isAuthRoute =
     pathname.startsWith("/login") || pathname.startsWith("/register");
-  const isProtectedRoute = pathname.startsWith("/dashboard");
+  const isProtectedRoute =
+    pathname.startsWith("/dashboard") || pathname.startsWith("/onboarding");
 
-  // Jika belum login dan mencoba mengakses rute terproteksi (/dashboard/*)
+  // Jika belum login dan mencoba mengakses rute terproteksi (/dashboard/* atau /onboarding)
   if (!user && isProtectedRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";

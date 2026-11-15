@@ -15,6 +15,20 @@
       "when": 1791818757932,
       "tag": "0001_busy_hiroim",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794735189325,
+      "tag": "0002_onboarding_templates_and_restrict",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794735189797,
+      "tag": "0003_cleanup_legacy_emojis",
+      "breakpoints": true
     }
   ]
 }

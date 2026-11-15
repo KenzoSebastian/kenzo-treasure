@@ -5,23 +5,24 @@
  * Kenzo Treasury — Server Actions: Autentikasi & Sinkronisasi Profil Pengguna
  * ==============================================================================
  *
- * ── Kenapa berkas ini ada ──────────────────────────────────────────────────────
- *
  * Menangani seluruh operasi autentikasi (login, register, logout, getCurrentUser)
- * secara aman di sisi server Next.js.
- *
- * ── Prinsip Integritas Keamanan & Data ─────────────────────────────────────────
- *
+ * secara aman di sisi server Next.js:
  * 1. Supabase Auth adalah satu-satunya otoritas kredensial & password (`auth.users`).
  * 2. Tabel `public.users` disinkronkan 1:1 saat register/login dengan ID yang sama.
- * 3. Baris default `public.savings_account` diinisialisasi otomatis untuk user baru.
- * 4. Mengembalikan kontrak discriminated union `ActionResponse<T>`.
- * 5. Input divalidasi ketat menggunakan Zod sebelum berinteraksi dengan API/database.
+ * 3. `register` tidak melakukan auto-login melainkan membersihkan sesi sementara agar
+ *    pengguna selalu masuk melalui `/login` sebelum diarahkan ke `/onboarding`.
+ * 4. Baris default `public.savings_account` diinisialisasi otomatis dengan target `0`.
  */
 
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users, savingsAccount } from "@/db/schema";
+import { DEFAULT_EMERGENCY_FUND_TARGET } from "@/lib/financial-calculations";
+import {
+  getCachedAuthenticatedSession,
+  type UserSessionData,
+} from "@/lib/queries/auth";
+import { revalidateDashboardRoutes } from "@/lib/revalidate";
 import { createClient } from "@/lib/supabase/server";
 import {
   loginSchema,
@@ -31,14 +32,11 @@ import {
 } from "@/schemas/auth.schema";
 import type { ActionResponse } from "@/types";
 
-export interface UserSessionData {
-  id: string;
-  email: string;
-  fullName: string | null;
-}
+export type { UserSessionData };
 
 /**
- * Registrasi pengguna baru di Supabase Auth dan inisialisasi profil database.
+ * Registrasi pengguna baru di Supabase Auth dan inisialisasi profil database
+ * tanpa auto-login (pengguna diarahkan ke halaman `/login`).
  */
 export async function register(
   input: RegisterInput
@@ -83,50 +81,52 @@ export async function register(
   const userEmail = authData.user.email ?? email;
 
   try {
-    // 1. Tautkan profil pengguna ke public.users (idempotent via onConflictDoNothing)
+    // 1. Tautkan profil pengguna ke public.users (onboardingCompletedAt = null untuk user baru)
     await db
       .insert(users)
       .values({
         id: userId,
         email: userEmail,
         fullName,
+        defaultBaseSalary: null,
+        onboardingCompletedAt: null,
       })
       .onConflictDoNothing();
 
-    // 2. Inisialisasi brankas default tabungan & dana darurat (target default Rp 18.000.000)
+    // 2. Inisialisasi brankas default tabungan & dana darurat netral (target 0)
     await db
       .insert(savingsAccount)
       .values({
         userId,
         balance: 0,
-        emergencyFundTarget: 18000000,
+        emergencyFundTarget: DEFAULT_EMERGENCY_FUND_TARGET,
         emergencyFundBalance: 0,
       })
       .onConflictDoNothing();
   } catch (dbError) {
     console.error("Gagal sinkronisasi profil pengguna ke PostgreSQL:", dbError);
-    // Catatan: Jika DB gagal, Supabase Auth user sudah dibuat.
-    // Error ditangani aman agar tidak membocorkan stack trace.
     return {
       success: false,
-      error: "Akun berhasil dibuat namun inisialisasi profil database gagal. Silakan login kembali.",
+      error:
+        "Akun berhasil dibuat namun inisialisasi profil database gagal. Silakan login kembali.",
     };
   }
 
-  // Otomatis buat sesi cookie login jika signUp belum menghasilkan sesi aktif (auto-confirm mode)
-  if (!authData.session) {
-    await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  // Pastikan sesi tidak langsung aktif saat registrasi agar alur selalu kembali ke /login
+  if (authData.session) {
+    await supabase.auth.signOut();
   }
 
   return {
     success: true,
     data: {
       id: userId,
+      userId,
       email: userEmail,
+      name: fullName,
       fullName,
+      defaultBaseSalary: null,
+      onboardingCompletedAt: null,
     },
   };
 }
@@ -179,7 +179,6 @@ export async function login(
     (authData.user.user_metadata?.full_name as string) ?? null;
 
   try {
-    // Idempotent sync: pastikan row profil dan savings account selalu ada
     await db
       .insert(users)
       .values({
@@ -194,33 +193,56 @@ export async function login(
       .values({
         userId,
         balance: 0,
-        emergencyFundTarget: 18000000,
+        emergencyFundTarget: DEFAULT_EMERGENCY_FUND_TARGET,
         emergencyFundBalance: 0,
       })
       .onConflictDoNothing();
 
     const [userProfile] = await db
-      .select({ fullName: users.fullName })
+      .select({
+        fullName: users.fullName,
+        defaultBaseSalary: users.defaultBaseSalary,
+        onboardingCompletedAt: users.onboardingCompletedAt,
+      })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
+
+    revalidateDashboardRoutes();
+
+    const resolvedFullName =
+      userProfile?.fullName ??
+      metadataFullName ??
+      userEmail.split("@")[0] ??
+      "Pengguna";
 
     return {
       success: true,
       data: {
         id: userId,
+        userId,
         email: userEmail,
+        name: resolvedFullName,
         fullName: userProfile?.fullName ?? metadataFullName,
+        defaultBaseSalary: userProfile?.defaultBaseSalary ?? null,
+        onboardingCompletedAt: userProfile?.onboardingCompletedAt ?? null,
       },
     };
   } catch (dbError) {
     console.error("Gagal memeriksa profil saat login:", dbError);
+    revalidateDashboardRoutes();
+    const fallbackName =
+      metadataFullName ?? userEmail.split("@")[0] ?? "Pengguna";
     return {
       success: true,
       data: {
         id: userId,
+        userId,
         email: userEmail,
+        name: fallbackName,
         fullName: metadataFullName,
+        defaultBaseSalary: null,
+        onboardingCompletedAt: null,
       },
     };
   }
@@ -240,6 +262,8 @@ export async function logout(): Promise<ActionResponse<void>> {
     };
   }
 
+  revalidateDashboardRoutes();
+
   return {
     success: true,
     data: undefined,
@@ -252,40 +276,5 @@ export async function logout(): Promise<ActionResponse<void>> {
 export async function getCurrentUser(): Promise<
   ActionResponse<UserSessionData>
 > {
-  const supabase = await createClient();
-
-  // Selalu verifikasi ke Supabase Auth server langsung
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return {
-      success: false,
-      error: "Pengguna tidak terautentikasi",
-    };
-  }
-
-  const [profile] = await db
-    .select({
-      id: users.id,
-      email: users.email,
-      fullName: users.fullName,
-    })
-    .from(users)
-    .where(eq(users.id, user.id))
-    .limit(1);
-
-  return {
-    success: true,
-    data: {
-      id: user.id,
-      email: user.email ?? profile?.email ?? "",
-      fullName:
-        profile?.fullName ??
-        (user.user_metadata?.full_name as string) ??
-        null,
-    },
-  };
+  return getCachedAuthenticatedSession();
 }

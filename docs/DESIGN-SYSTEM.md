@@ -123,7 +123,9 @@ Palet lama (hitam, putih, beige, abu-abu, taupe) menjadi **referensi karakter**,
 - Jangan pakai lorem ipsum atau nominal fiktif pada UI produksi; gunakan empty state atau fixture yang jelas hanya di development.
 - Hindari copywriting hiperbolik dan teks yang membuat aplikasi terasa seperti iklan.
 - Jangan mengubah desain semua halaman hanya demi konsistensi visual jika pengguna hanya meminta satu perubahan kecil.
-- **Khusus ikon pos anggaran:** PRD saat ini memakai emoji sebagai data kategori. Jangan diam-diam menghapus atau menggantinya. Untuk UI baru, utamakan sistem ikon Lucide; migrasi emoji kategori memerlukan keputusan produk tersendiri.
+- **Sistem Ikon Vektor Semantik (Zero Emoji Policy — Fase R1 & R2):** Seluruh antarmuka produksi, nama pos anggaran, cicilan, milestone wishlist, lencana status, dan landing page **dilarang menggunakan literal karakter emoji**. Gunakan 24 ikon kurasi `lucide-react` dari `src/lib/category-icons.ts` yang dirender melalui primitif `<AppCategoryIcon />` dan dipilih melalui `<IconPicker />`. Data historis di database yang masih menyimpan karakter emoji dinormalisasi secara transparan ke key Lucide yang sesuai.
+- **Sliding Segmented Control & Navigasi Taktil (Fase R6 & R10):** Seluruh selector tab, grup pos, metode pembayaran, dan toggle grafik wajib menggunakan `<SlidingSegmentedControl />` berbasis hook `useSlidingIndicator` (`ResizeObserver` + `window.resize` + `recalculateTrigger`) dengan indikator latar yang bergeser mulus (`transition-all duration-200 ease-out`).
+- **Grid Kontrol Siklus Desktop 2x2 (Fase R5):** Pada viewport desktop (`lg:`), area kontrol kanan header dashboard ditata dalam grid simetris 2 kolom × 2 baris (`lg:grid lg:grid-cols-2 lg:gap-2.5 lg:w-[440px]`) agar keempat tombol aksi siklus memiliki proporsi tinggi dan lebar yang seragam.
 
 ## 10. Kriteria Pemeriksaan Sebelum UI Dinyatakan Selesai
 

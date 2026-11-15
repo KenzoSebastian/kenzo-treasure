@@ -2,14 +2,14 @@
 
 /**
  * ==============================================================================
- * Kenzo Treasury — Sub-Log Riwayat Transaksi & 5-Second Undo Toast (Fase F9)
+ * Kenzo Treasury — Sub-Log Riwayat Transaksi & 5-Second Undo Toast (Fase F9 & R1)
  * ==============================================================================
  *
  * Menampilkan daftar transaksi harian di dalam masing-masing pos anggaran:
- * - Tanggal, nominal Rupiah (`tabular-nums`, bebas `font-mono`), keterangan,
+ * - Tanggal, nominal Rupiah (`tabular-nums`, bebas font monospace), keterangan,
  *   dan badge metode bayar (`QRIS`, `Tunai`, `Debit`, `Transfer`).
  * - Aksi hapus transaksi (`softDeleteTransaction`) dengan optimistic removal
- *   dan Toast Sonner 5 detik berisi tombol **"↩️ Batalkan (Undo)"** yang
+ *   dan Toast Sonner 5 detik berisi tombol **"Batalkan (Undo)"** yang
  *   memanggil `restoreTransaction` secara instan.
  */
 
@@ -76,7 +76,7 @@ export function TransactionSubList({
       description: `${formatRupiah(item.amount)} • Klik Undo dalam 5 detik untuk membatalkan.`,
       duration: 5000,
       action: {
-        label: "↩️ Batalkan (Undo)",
+        label: "Batalkan (Undo)",
         onClick: async () => {
           // Pulihkan secara instan di layar
           setItems((prev) => [item, ...prev]);

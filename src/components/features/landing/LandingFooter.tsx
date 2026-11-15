@@ -136,7 +136,7 @@ export function LandingFooter({ isLoggedIn = false }: LandingFooterProps) {
 
         {/* Bottom Copyright */}
         <div className="mt-12 border-t pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} Kenzo Treasury. Seluruh hak cipta dilindungi.</p>
+          <p>Copyright {new Date().getFullYear()} Kenzo Treasury. Seluruh hak cipta dilindungi.</p>
           <p className="text-[11px]">
             Dirancang untuk kemudahan dan kepraktisan pencatatan harian.
           </p>

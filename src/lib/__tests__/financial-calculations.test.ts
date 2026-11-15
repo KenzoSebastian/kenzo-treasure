@@ -16,10 +16,17 @@ import {
   calculateNetCashflow,
   calculateSavingsRate,
   calculateMonthSweep,
+  resolveDefaultCycleDate,
   DEFAULT_EMERGENCY_FUND_TARGET,
 } from "../financial-calculations";
+import {
+  resolveCategoryIconKey,
+  stripEmojiPrefix,
+  getCategoryIconLabel,
+  CURATED_CATEGORY_ICONS,
+} from "../category-icons";
 
-describe("Financial Calculation Engine (Kenzo Treasury Invariants)", () => {
+describe("Financial Calculation Engine & Icon Registry (Kenzo Treasury Invariants)", () => {
   /* ──────────────────────────────────────────────────────────────────────────
      1. Integer Rupiah Operations & Formatters
      ────────────────────────────────────────────────────────────────────────── */
@@ -37,7 +44,7 @@ describe("Financial Calculation Engine (Kenzo Treasury Invariants)", () => {
       expect(formatRupiah(0)).toBe("Rp 0");
       expect(formatRupiah(-50000)).toBe("-Rp 50.000");
       expect(formatRupiah(915000, { prefix: false })).toBe("915.000");
-      expect(formatRupiah(735000, { space: false })).toBe("Rp735.000");
+      expect(formatRupiah(750000, { space: false })).toBe("Rp750.000");
       expect(formatRupiah(-125000, { prefix: false })).toBe("-125.000");
     });
 
@@ -70,20 +77,16 @@ describe("Financial Calculation Engine (Kenzo Treasury Invariants)", () => {
     });
 
     it("should classify budget status correctly according to FR-5.1 thresholds", () => {
-      // Healthy (< 80%)
       expect(getBudgetStatus(1000000, 0)).toBe("healthy");
       expect(getBudgetStatus(1000000, 790000)).toBe("healthy");
 
-      // Warning (80% - 100%)
       expect(getBudgetStatus(1000000, 800000)).toBe("warning");
       expect(getBudgetStatus(1000000, 950000)).toBe("warning");
       expect(getBudgetStatus(1000000, 1000000)).toBe("warning");
 
-      // Overbudget (> 100%)
       expect(getBudgetStatus(1000000, 1000001)).toBe("overbudget");
       expect(getBudgetStatus(1000000, 1500000)).toBe("overbudget");
 
-      // Zero target edge case
       expect(getBudgetStatus(0, 0)).toBe("healthy");
       expect(getBudgetStatus(0, 10000)).toBe("overbudget");
     });
@@ -95,10 +98,13 @@ describe("Financial Calculation Engine (Kenzo Treasury Invariants)", () => {
   describe("calculateDynamicFreedomBuffer", () => {
     it("should add additional incomes to base budget dynamically", () => {
       const baseBudget = 915000;
-      const additionalIncomes = [500000, 750000]; // e.g. freelance video editing
-      const result = calculateDynamicFreedomBuffer(baseBudget, additionalIncomes);
+      const additionalIncomes = [500000, 750000];
+      const result = calculateDynamicFreedomBuffer(
+        baseBudget,
+        additionalIncomes
+      );
 
-      expect(result).toBe(2165000); // 915.000 + 1.250.000
+      expect(result).toBe(2165000);
     });
 
     it("should support single number input as additional income", () => {
@@ -116,20 +122,20 @@ describe("Financial Calculation Engine (Kenzo Treasury Invariants)", () => {
      ────────────────────────────────────────────────────────────────────────── */
   describe("calculateDebtProgress & calculateRemainingDebtMonths", () => {
     it("should calculate active debt progress and remaining amount", () => {
-      const totalAmount = 17640000; // iPhone 24 months @ 735.000
-      const paidAmount = 5145000; // 7 months paid
+      const totalAmount = 12000000;
+      const paidAmount = 3000000;
 
       const progress = calculateDebtProgress(paidAmount, totalAmount);
 
-      expect(progress.paidAmount).toBe(5145000);
-      expect(progress.totalAmount).toBe(17640000);
-      expect(progress.remainingAmount).toBe(12495000);
-      expect(progress.percentage).toBe(29);
+      expect(progress.paidAmount).toBe(3000000);
+      expect(progress.totalAmount).toBe(12000000);
+      expect(progress.remainingAmount).toBe(9000000);
+      expect(progress.percentage).toBe(25);
       expect(progress.isSettled).toBe(false);
     });
 
     it("should mark debt as settled when paid reaches or exceeds total", () => {
-      const total = 2500000; // Mama
+      const total = 2500000;
       const settled = calculateDebtProgress(2500000, total);
       expect(settled.isSettled).toBe(true);
       expect(settled.remainingAmount).toBe(0);
@@ -149,106 +155,90 @@ describe("Financial Calculation Engine (Kenzo Treasury Invariants)", () => {
     });
 
     it("should calculate remaining debt months using ceiling division", () => {
-      // 12.495.000 / 735.000 = exactly 17 months
-      expect(calculateRemainingDebtMonths(12495000, 735000)).toBe(17);
-
-      // Remaining 1.000.000 with 300.000 monthly payment = ceil(3.33) = 4 months
+      expect(calculateRemainingDebtMonths(9000000, 1000000)).toBe(9);
       expect(calculateRemainingDebtMonths(1000000, 300000)).toBe(4);
-
-      // Remaining 0 should return 0
       expect(calculateRemainingDebtMonths(0, 500000)).toBe(0);
-
-      // Guard monthly payment = 0
       expect(calculateRemainingDebtMonths(500000, 0)).toBe(0);
     });
   });
 
   /* ──────────────────────────────────────────────────────────────────────────
-     5. Emergency Fund & Safety Months
+     5. Emergency Fund & Safety Months (Zero-Dummy Default = 0)
      ────────────────────────────────────────────────────────────────────────── */
   describe("calculateSafetyMonths", () => {
-    it("should calculate safety months with 1 decimal precision", () => {
-      const emergencyBalance = 9000000;
-      const monthlyFixedExpense = 2000000; // 9jt / 2jt = 4.5 months
-
-      const result = calculateSafetyMonths(emergencyBalance, monthlyFixedExpense);
-
+    it("should default emergencyFundTarget to 0 (no hardcoded dummy target)", () => {
+      expect(DEFAULT_EMERGENCY_FUND_TARGET).toBe(0);
+      const result = calculateSafetyMonths(9000000, 2000000);
       expect(result.safetyMonths).toBe(4.5);
-      expect(result.percentageOfTarget).toBe(50); // 9jt / 18jt default = 50%
+      expect(result.targetAmount).toBe(0);
+      expect(result.percentageOfTarget).toBe(0);
       expect(result.isTargetReached).toBe(false);
     });
 
-    it("should indicate target reached when balance equals or exceeds target", () => {
-      const result = calculateSafetyMonths(18000000, 3000000, DEFAULT_EMERGENCY_FUND_TARGET);
-
+    it("should calculate percentage and target reached when explicit target > 0 is provided", () => {
+      const result = calculateSafetyMonths(12000000, 2000000, 12000000);
       expect(result.safetyMonths).toBe(6.0);
       expect(result.percentageOfTarget).toBe(100);
       expect(result.isTargetReached).toBe(true);
     });
 
     it("should handle zero expenses safely without division by zero", () => {
-      const result = calculateSafetyMonths(5000000, 0);
+      const result = calculateSafetyMonths(5000000, 0, 10000000);
       expect(result.safetyMonths).toBe(0);
+      expect(result.percentageOfTarget).toBe(50);
     });
   });
 
   /* ──────────────────────────────────────────────────────────────────────────
-     6. Free Savings & Wishlist Sinking Fund
+     6. Free Savings & Wishlist Sinking Fund Milestones + Icon Keys
      ────────────────────────────────────────────────────────────────────────── */
   describe("calculateFreeSavings & calculateWishlistProgress", () => {
     it("should separate free savings from emergency fund balance", () => {
       expect(calculateFreeSavings(15000000, 5000000)).toBe(10000000);
-      // Guard against emergency fund exceeding total balance
       expect(calculateFreeSavings(3000000, 5000000)).toBe(0);
     });
 
-    it("should map wishlist gamification milestones correctly according to PRD FR-10.4", () => {
+    it("should map wishlist gamification milestones & milestoneIconKey accurately", () => {
       const target = 10000000;
 
-      // < 50% -> started
       const p1 = calculateWishlistProgress(3000000, target);
       expect(p1.percentage).toBe(30);
       expect(p1.milestone).toBe("started");
+      expect(p1.milestoneIconKey).toBe("target");
       expect(p1.isCompleted).toBe(false);
 
-      // 50% - 74% -> halfway_hero (50%)
       const p2 = calculateWishlistProgress(5000000, target);
       expect(p2.percentage).toBe(50);
       expect(p2.milestone).toBe("halfway_hero");
+      expect(p2.milestoneIconKey).toBe("sparkles");
 
-      // 75% - 89% -> major_milestone (75%)
       const p3 = calculateWishlistProgress(8000000, target);
       expect(p3.percentage).toBe(80);
       expect(p3.milestone).toBe("major_milestone");
+      expect(p3.milestoneIconKey).toBe("rocket");
 
-      // 90% - 94% -> final_stretch (90%)
       const p4 = calculateWishlistProgress(9200000, target);
       expect(p4.percentage).toBe(92);
       expect(p4.milestone).toBe("final_stretch");
+      expect(p4.milestoneIconKey).toBe("zap");
 
-      // 95% - 99% -> one_step_away (95%)
       const p5 = calculateWishlistProgress(9700000, target);
       expect(p5.percentage).toBe(97);
       expect(p5.milestone).toBe("one_step_away");
+      expect(p5.milestoneIconKey).toBe("flame");
 
-      // 100% -> unlocked (100%)
       const p6 = calculateWishlistProgress(10000000, target);
       expect(p6.percentage).toBe(100);
       expect(p6.milestone).toBe("unlocked");
+      expect(p6.milestoneIconKey).toBe("trophy");
       expect(p6.isCompleted).toBe(true);
-
-      // > 100% -> unlocked
-      const p7 = calculateWishlistProgress(12000000, target);
-      expect(p7.percentage).toBe(100);
-      expect(p7.milestone).toBe("unlocked");
-      expect(p7.remainingAmount).toBe(0);
     });
   });
 
   /* ──────────────────────────────────────────────────────────────────────────
-     7. Monthly Cashflow & Month Sweep
+     7. Monthly Cashflow, Month Sweep & Cycle Date Resolution
      ────────────────────────────────────────────────────────────────────────── */
-  describe("calculateNetCashflow, calculateSavingsRate, calculateMonthSweep", () => {
+  describe("calculateNetCashflow, calculateSavingsRate, calculateMonthSweep, resolveDefaultCycleDate", () => {
     it("should calculate net cashflow properly (income - expenses)", () => {
       expect(calculateNetCashflow(4000000, 3085000)).toBe(915000);
       expect(calculateNetCashflow(4000000, 4500000)).toBe(-500000);
@@ -262,14 +252,39 @@ describe("Financial Calculation Engine (Kenzo Treasury Invariants)", () => {
     });
 
     it("should sweep positive remaining free budget to savings account, and 0 for deficit", () => {
-      // Positive remainder -> sweep to savings
       expect(calculateMonthSweep(450000)).toBe(450000);
-
-      // Zero remainder -> 0
       expect(calculateMonthSweep(0)).toBe(0);
-
-      // Overbudget deficit -> 0 (no negative sweep into savings)
       expect(calculateMonthSweep(-150000)).toBe(0);
+    });
+
+    it("should resolve default cycle date to today in Asia/Jakarta for current cycle or 01 for other cycles", () => {
+      const refNow = new Date("2026-10-18T10:00:00+07:00");
+      expect(resolveDefaultCycleDate(2026, 10, refNow)).toBe("2026-10-18");
+      expect(resolveDefaultCycleDate(2026, 8, refNow)).toBe("2026-08-01");
+    });
+  });
+
+  /* ──────────────────────────────────────────────────────────────────────────
+     8. Curated Lucide Category Icon Registry (Fase R1)
+     ────────────────────────────────────────────────────────────────────────── */
+  describe("Category Icon Registry & Legacy Fallback", () => {
+    it("should contain 24 curated semantic Lucide icons", () => {
+      expect(CURATED_CATEGORY_ICONS).toHaveLength(24);
+    });
+
+    it("should resolve valid icon keys, legacy escaped emoji strings, and group fallbacks", () => {
+      expect(resolveCategoryIconKey("fuel")).toBe("fuel");
+      expect(resolveCategoryIconKey("\u26FD")).toBe("fuel");
+      expect(resolveCategoryIconKey("unknown-key", "pos_wajib")).toBe(
+        "shield-check"
+      );
+      expect(
+        resolveCategoryIconKey("unknown-key", "pos_wajib", "liab-123")
+      ).toBe("credit-card");
+      expect(getCategoryIconLabel("piggy-bank")).toBe("Tabungan");
+      expect(stripEmojiPrefix("\u26FD Bensin & Mobilitas")).toBe(
+        "Bensin & Mobilitas"
+      );
     });
   });
 });

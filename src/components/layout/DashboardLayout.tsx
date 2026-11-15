@@ -1,5 +1,9 @@
 import * as React from "react";
-import { getCurrentUser, type UserSessionData } from "@/actions/auth";
+import { redirect } from "next/navigation";
+import {
+  getCachedAuthenticatedSession,
+  type UserSessionData,
+} from "@/lib/queries/auth";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { NetworkStatusBanner } from "@/components/common/NetworkStatusBanner";
@@ -11,8 +15,9 @@ interface DashboardLayoutProps {
 
 /**
  * Layout wrapper responsif utama untuk zona dashboard privat Kenzo Treasury.
- * Mengintegrasikan NetworkStatusBanner (PWA Offline Sync), AppHeader di bagian atas,
- * konten utama dengan batas lebar Swiss grid, serta MobileBottomNav di layar mobile.
+ * Menggunakan `getCachedAuthenticatedSession` (`React.cache`) dan mengarahkan
+ * pengguna baru yang belum menyelesaikan onboarding (`onboardingCompletedAt === null`)
+ * ke rute `/onboarding`.
  */
 export async function DashboardLayout({
   children,
@@ -20,10 +25,13 @@ export async function DashboardLayout({
 }: DashboardLayoutProps) {
   let currentUser = initialUser;
 
-  // Jika user belum diprovide oleh parent, ambil langsung dari sesi SSR
   if (currentUser === undefined) {
-    const userRes = await getCurrentUser();
-    currentUser = userRes.success ? userRes.data : null;
+    const sessionRes = await getCachedAuthenticatedSession();
+    currentUser = sessionRes.success ? sessionRes.data : null;
+  }
+
+  if (currentUser && currentUser.onboardingCompletedAt === null) {
+    redirect("/onboarding");
   }
 
   return (

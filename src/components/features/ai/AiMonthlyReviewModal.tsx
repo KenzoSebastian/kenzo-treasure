@@ -2,15 +2,15 @@
 
 /**
  * ==============================================================================
- * Kenzo Treasury — AI Monthly Financial Review Modal (Fase F16)
+ * Kenzo Treasury — AI Monthly Financial Review Modal (Fase F16, R1, R3)
  * ==============================================================================
  *
  * ── Kenapa komponen ini ada ───────────────────────────────────────────────────
  *
- * Menyediakan tombol trigger `[✨ Evaluasi Bulan Ini dengan AI]` dan modal dialog
+ * Menyediakan tombol trigger `[Evaluasi Bulan Ini dengan AI]` dan modal dialog
  * review cerdas di panel siklus/penutupan buku bulanan:
  * - Animasi loading shimmering saat AI sedang menganalisis data (`generateMonthlyReview`).
- * - Kartu evaluasi pos paling hemat vs pos overbudget.
+ * - Kartu evaluasi pos paling hemat vs pos overbudget dengan `AppCategoryIcon`.
  * - Kartu skor disiplin finansial (`0–100` dengan `tabular-nums`).
  * - Rekomendasi taktis penyesuaian alokasi untuk bulan berikutnya.
  * - Terintegrasi dengan aksi `closeMonth` (Automatic Savings Sweep) & `reopenMonth`.
@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AppCategoryIcon } from "@/components/common/AppCategoryIcon";
 import { formatRupiah } from "@/lib/financial-calculations";
 import { generateMonthlyReview } from "@/actions/ai-review";
 import { closeMonth, reopenMonth } from "@/actions/months";
@@ -86,13 +87,13 @@ export function AiMonthlyReviewModal({
         }
       }
 
-      // Fallback deterministik untuk mode preview (ketika belum ada bulan di DB)
+      // Fallback deterministik ketika dievaluasi secara lokal
       const fallback = buildDeterministicMonthlyEvaluation({
         id: monthId ?? "preview-month",
         userId: "preview-user",
         name: monthName,
-        year: 2026,
-        monthIndex: 10,
+        year: new Date().getFullYear(),
+        monthIndex: new Date().getMonth() + 1,
         isClosed,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -104,7 +105,7 @@ export function AiMonthlyReviewModal({
         categories: categories.map((c, idx) => ({
           id: c.id ?? `cat-${idx}`,
           monthId: monthId ?? "preview-month",
-          liabilityId: null,
+          liabilityId: c.liabilityId ?? null,
           name: c.name,
           icon: c.icon,
           group: c.group ?? "kebutuhan",
@@ -183,7 +184,7 @@ export function AiMonthlyReviewModal({
             className="h-9 px-3.5 rounded-xl gap-1.5 text-xs font-semibold border-primary/30 bg-primary/5 hover:bg-primary/10 text-foreground shadow-2xs"
           >
             <Sparkles className="size-3.5 text-amber-500" />
-            <span>✨ Evaluasi Bulan Ini dengan AI</span>
+            <span>Evaluasi Bulan Ini dengan AI</span>
           </Button>
         </DialogTrigger>
 
@@ -206,7 +207,7 @@ export function AiMonthlyReviewModal({
               Evaluasi Finansial Siklus {monthName}
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Analisis otomatis kepatuhan 7 pos anggaran, rasio tabungan, dan
+              Analisis otomatis kepatuhan pos anggaran, rasio tabungan, dan
               rekomendasi taktis bulan berikutnya.
             </DialogDescription>
           </DialogHeader>
@@ -254,9 +255,13 @@ export function AiMonthlyReviewModal({
                   </div>
                   {reviewData.mostFrugalCategory ? (
                     <div className="text-xs space-y-0.5 tabular-nums">
-                      <p className="font-bold text-foreground">
-                        {reviewData.mostFrugalCategory.icon}{" "}
-                        {reviewData.mostFrugalCategory.name}
+                      <p className="inline-flex items-center gap-1.5 font-bold text-foreground">
+                        <AppCategoryIcon
+                          iconKey={reviewData.mostFrugalCategory.icon}
+                          size="xs"
+                          variant="inline"
+                        />
+                        <span>{reviewData.mostFrugalCategory.name}</span>
                       </p>
                       <p className="text-[11px] text-muted-foreground">
                         Terpakai{" "}
@@ -285,9 +290,13 @@ export function AiMonthlyReviewModal({
                   </div>
                   {reviewData.mostOverspentCategory ? (
                     <div className="text-xs space-y-0.5 tabular-nums">
-                      <p className="font-bold text-foreground">
-                        {reviewData.mostOverspentCategory.icon}{" "}
-                        {reviewData.mostOverspentCategory.name}
+                      <p className="inline-flex items-center gap-1.5 font-bold text-foreground">
+                        <AppCategoryIcon
+                          iconKey={reviewData.mostOverspentCategory.icon}
+                          size="xs"
+                          variant="inline"
+                        />
+                        <span>{reviewData.mostOverspentCategory.name}</span>
                       </p>
                       <p className="text-[11px] text-rose-600 dark:text-rose-400 font-medium">
                         Melebihi target sebesar{" "}
@@ -299,8 +308,7 @@ export function AiMonthlyReviewModal({
                     </div>
                   ) : (
                     <p className="text-xs text-emerald-700 dark:text-emerald-400 font-medium">
-                      ✓ Nihil Overbudget! Seluruh pos terkendali di bawah
-                      plafon.
+                      Nihil Overbudget! Seluruh pos terkendali di bawah plafon.
                     </p>
                   )}
                 </div>

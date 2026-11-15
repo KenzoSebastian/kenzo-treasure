@@ -13,7 +13,7 @@ export function FaqAccordion() {
       id: "item-1",
       question: "Apakah aplikasi ini bisa dipasang langsung di layar utama HP?",
       answer:
-        "Bisa. Buka situs ini melalui Safari di iPhone lalu pilih 'Add to Home Screen', atau melalui Chrome di Android lalu pilih 'Install App'. Ikon aplikasi akan langsung terpasang di layar utama ponsel dan dapat dibuka layaknya aplikasi biasa tanpa perlu mengunduh dari toko aplikasi.",
+        "Bisa. Buka situs ini melalui Safari di iOS lalu pilih 'Add to Home Screen', atau melalui Chrome di Android lalu pilih 'Install App'. Ikon aplikasi akan langsung terpasang di layar utama ponsel dan dapat dibuka layaknya aplikasi biasa tanpa perlu mengunduh dari toko aplikasi.",
     },
     {
       id: "item-2",

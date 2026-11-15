@@ -30,8 +30,8 @@ export const createWishlistSchema = z.object({
     .string()
     .trim()
     .min(1, { message: "Icon wajib dipilih" })
-    .max(10, { message: "Icon maksimal 10 karakter" })
-    .default("🎯"),
+    .max(50, { message: "Icon maksimal 50 karakter" })
+    .default("target"),
   imageUrl: z
     .string()
     .url({ message: "Format URL gambar tidak valid" })
@@ -58,7 +58,7 @@ export const updateWishlistSchema = z.object({
     .int({ message: "Target harga harus berupa integer bulat" })
     .positive({ message: "Target harga harus lebih besar dari 0" })
     .optional(),
-  icon: z.string().trim().min(1).max(10).optional(),
+  icon: z.string().trim().min(1).max(50).optional(),
   imageUrl: z
     .string()
     .url({ message: "Format URL gambar tidak valid" })

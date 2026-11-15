@@ -1,45 +1,27 @@
 import { describe, it, expect } from "bun:test";
 import {
-  BASELINE_CATEGORIES_CONFIG,
+  NEUTRAL_PRESET_TEMPLATES,
   INDONESIAN_MONTH_NAMES,
   DEFAULT_BASE_SALARY,
+  buildNeutralPresetTemplates,
+  buildInheritedMonthCategories,
+  buildInitialMonthCategories,
 } from "@/lib/month-generator";
 import { createMonthSchema, closeMonthSchema } from "@/schemas/month.schema";
 
-describe("Month Lifecycle & Category Generator (Fase B5 Refactored)", () => {
-  describe("Baseline Categories Configuration (Fallback for New Users)", () => {
-    it("should contain exactly 7 baseline categories", () => {
-      expect(BASELINE_CATEGORIES_CONFIG).toHaveLength(7);
-    });
+describe("Month Lifecycle & Dynamic Category Generator (Fase B5 & R3)", () => {
+  describe("Neutral Preset Templates (Zero Personal Hardcode)", () => {
+    it("should provide 6 neutral preset templates with targetBudget = 0 and DEFAULT_BASE_SALARY = 0", () => {
+      expect(DEFAULT_BASE_SALARY).toBe(0);
+      expect(NEUTRAL_PRESET_TEMPLATES).toHaveLength(6);
 
-    it("should balance to exactly Rp 4.000.000 (Zero-Based Budget baseline)", () => {
-      const totalBaselineBudget = BASELINE_CATEGORIES_CONFIG.reduce(
-        (sum, item) => sum + item.baseTarget,
-        0
-      );
-      expect(totalBaselineBudget).toBe(DEFAULT_BASE_SALARY);
-      expect(totalBaselineBudget).toBe(4000000);
-    });
-
-    it("should correctly partition into the 3 invariant category groups", () => {
-      const posWajib = BASELINE_CATEGORIES_CONFIG.filter((c) => c.group === "pos_wajib");
-      const kebutuhan = BASELINE_CATEGORIES_CONFIG.filter((c) => c.group === "kebutuhan");
-      const uangBebas = BASELINE_CATEGORIES_CONFIG.filter((c) => c.group === "uang_bebas_tabungan");
-
-      expect(posWajib).toHaveLength(4); // Perpuluhan, iPhone, Mama, Listrik
-      expect(kebutuhan).toHaveLength(2); // Bensin, Jajan Popo
-      expect(uangBebas).toHaveLength(1); // Uang Bebas / Tabungan
-
-      const sumPosWajib = posWajib.reduce((s, c) => s + c.baseTarget, 0);
-      const sumKebutuhan = kebutuhan.reduce((s, c) => s + c.baseTarget, 0);
-      const sumUangBebas = uangBebas.reduce((s, c) => s + c.baseTarget, 0);
-
-      expect(sumPosWajib).toBe(2635000); // 400k + 735k + 500k + 1000k
-      expect(sumKebutuhan).toBe(450000); // 250k + 200k
-      expect(sumUangBebas).toBe(915000); // Baseline Uang Bebas
-
-      // Total Pos Wajib + Kebutuhan + Uang Bebas = 4.000.000
-      expect(sumPosWajib + sumKebutuhan + sumUangBebas).toBe(4000000);
+      const presets = buildNeutralPresetTemplates("user-1");
+      expect(presets).toHaveLength(6);
+      for (const item of presets) {
+        expect(item.userId).toBe("user-1");
+        expect(item.targetBudget).toBe(0);
+        expect(item.isActive).toBe(true);
+      }
     });
 
     it("should have exactly 12 Indonesian month names in order", () => {
@@ -50,89 +32,145 @@ describe("Month Lifecycle & Category Generator (Fase B5 Refactored)", () => {
     });
   });
 
-  describe("Dynamic Debt Reallocation Logic (Database-Driven Simulation)", () => {
-    it("should dynamically add settled liability monthlyPayment from DB to Uang Bebas", () => {
-      // Simulasi liabilities yang diambil dari DB
-      const mockDbLiabilities = [
-        { id: "1", name: "Cicilan iPhone", monthlyPayment: 735000, isSettled: true },
-        { id: "2", name: "Talangan Mama", monthlyPayment: 500000, isSettled: false },
+  describe("Inheritance & Debt Reallocation Logic (buildInheritedMonthCategories)", () => {
+    it("should filter out temporary categories and settled liabilities, and reallocate surplus to Uang Bebas", () => {
+      const prevCategories = [
+        {
+          id: "c-1",
+          monthId: "m-prev",
+          liabilityId: null,
+          name: "Tagihan Listrik",
+          icon: "zap",
+          group: "pos_wajib" as const,
+          targetBudget: 500000,
+          spentAmount: 450000,
+          isTemporary: false,
+          sortOrder: 1,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: "c-2",
+          monthId: "m-prev",
+          liabilityId: "liab-settled",
+          name: "Cicilan Kendaraan",
+          icon: "car",
+          group: "pos_wajib" as const,
+          targetBudget: 1000000,
+          spentAmount: 1000000,
+          isTemporary: false,
+          sortOrder: 2,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: "c-3",
+          monthId: "m-prev",
+          liabilityId: null,
+          name: "Pos Sementara Bulan Lalu",
+          icon: "package",
+          group: "kebutuhan" as const,
+          targetBudget: 200000,
+          spentAmount: 200000,
+          isTemporary: true,
+          sortOrder: 3,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: "c-4",
+          monthId: "m-prev",
+          liabilityId: null,
+          name: "Uang Bebas / Tabungan",
+          icon: "sparkles",
+          group: "uang_bebas_tabungan" as const,
+          targetBudget: 3300000,
+          spentAmount: 1000000,
+          isTemporary: false,
+          sortOrder: 99,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
       ];
 
-      let reallocatedFromDb = 0;
-      for (const l of mockDbLiabilities) {
-        if (l.isSettled) {
-          reallocatedFromDb += l.monthlyPayment; // Dinamis dari DB, bukan hardcoded!
-        }
-      }
+      // Liabilitas "liab-settled" sudah lunas -> tidak ada di activeLiabilities
+      const inherited = buildInheritedMonthCategories({
+        newMonthId: "m-new",
+        baseSalary: 5000000,
+        prevCategories,
+        activeLiabilities: [],
+      });
 
-      expect(reallocatedFromDb).toBe(735000);
+      expect(inherited).toHaveLength(2);
+      const listrik = inherited.find((c) => c.name === "Tagihan Listrik");
+      const freeCat = inherited.find(
+        (c) => c.group === "uang_bebas_tabungan"
+      );
 
-      const generatedCategories = [];
-      for (const tpl of BASELINE_CATEGORIES_CONFIG) {
-        if (tpl.liabilityKeyword === "iphone" && mockDbLiabilities[0].isSettled) continue;
-
-        if (tpl.group === "uang_bebas_tabungan") {
-          generatedCategories.push({
-            name: tpl.name,
-            target: tpl.baseTarget + reallocatedFromDb,
-          });
-          continue;
-        }
-
-        generatedCategories.push({
-          name: tpl.name,
-          target: tpl.baseTarget,
-        });
-      }
-
-      expect(generatedCategories).toHaveLength(6);
-      const freeCategory = generatedCategories.find((c) => c.name.includes("Uang Bebas"));
-      expect(freeCategory?.target).toBe(915000 + 735000); // 1.650.000
-
-      const totalTarget = generatedCategories.reduce((sum, c) => sum + c.target, 0);
-      expect(totalTarget).toBe(4000000);
+      expect(listrik?.targetBudget).toBe(500000);
+      // 5.000.000 - 500.000 = 4.500.000 otomatis masuk ke Uang Bebas
+      expect(freeCat?.targetBudget).toBe(4500000);
     });
+  });
 
-    it("should dynamically handle both liabilities settled from DB", () => {
-      const mockDbLiabilities = [
-        { id: "1", name: "Cicilan iPhone", monthlyPayment: 735000, isSettled: true },
-        { id: "2", name: "Talangan Mama", monthlyPayment: 500000, isSettled: true },
+  describe("Initial Month Categories from Templates (buildInitialMonthCategories)", () => {
+    it("should build initial categories from user_budget_templates and active liabilities", () => {
+      const userTemplates = [
+        {
+          id: "t-1",
+          userId: "u-1",
+          name: "Kebutuhan Rumah",
+          icon: "home",
+          group: "pos_wajib" as const,
+          targetBudget: 1500000,
+          sortOrder: 1,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: "t-2",
+          userId: "u-1",
+          name: "Transportasi",
+          icon: "fuel",
+          group: "kebutuhan" as const,
+          targetBudget: 400000,
+          sortOrder: 2,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
       ];
 
-      let reallocatedFromDb = 0;
-      for (const l of mockDbLiabilities) {
-        if (l.isSettled) {
-          reallocatedFromDb += l.monthlyPayment;
-        }
-      }
+      const activeLiabilities = [
+        {
+          id: "l-1",
+          userId: "u-1",
+          name: "Pinjaman Pendidikan",
+          icon: "graduation-cap",
+          totalAmount: 6000000,
+          paidAmount: 1000000,
+          monthlyPayment: 600000,
+          totalMonths: 10,
+          isSettled: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
 
-      expect(reallocatedFromDb).toBe(1235000); // 735k + 500k
+      const categories = buildInitialMonthCategories({
+        newMonthId: "m-first",
+        baseSalary: 5000000,
+        userTemplates,
+        activeLiabilities,
+      });
 
-      const generatedCategories = [];
-      for (const tpl of BASELINE_CATEGORIES_CONFIG) {
-        if (tpl.liabilityKeyword === "iphone" && mockDbLiabilities[0].isSettled) continue;
-        if (tpl.liabilityKeyword === "mama" && mockDbLiabilities[1].isSettled) continue;
-
-        if (tpl.group === "uang_bebas_tabungan") {
-          generatedCategories.push({
-            name: tpl.name,
-            target: tpl.baseTarget + reallocatedFromDb,
-          });
-          continue;
-        }
-
-        generatedCategories.push({
-          name: tpl.name,
-          target: tpl.baseTarget,
-        });
-      }
-
-      expect(generatedCategories).toHaveLength(5);
-      const freeCategory = generatedCategories.find((c) => c.name.includes("Uang Bebas"));
-      expect(freeCategory?.target).toBe(915000 + 1235000); // 2.150.000
-
-      const totalTarget = generatedCategories.reduce((sum, c) => sum + c.target, 0);
-      expect(totalTarget).toBe(4000000);
+      expect(categories).toHaveLength(4);
+      const freeCat = categories.find(
+        (c) => c.group === "uang_bebas_tabungan"
+      );
+      // 5.000.000 - (1.500.000 + 400.000 + 600.000) = 2.500.000
+      expect(freeCat?.targetBudget).toBe(2500000);
     });
   });
 
@@ -141,13 +179,13 @@ describe("Month Lifecycle & Category Generator (Fase B5 Refactored)", () => {
       const valid = createMonthSchema.safeParse({
         year: 2026,
         monthIndex: 10,
-        baseSalary: 4000000,
+        baseSalary: 5000000,
       });
       expect(valid.success).toBe(true);
       if (valid.success) {
         expect(valid.data.year).toBe(2026);
         expect(valid.data.monthIndex).toBe(10);
-        expect(valid.data.baseSalary).toBe(4000000);
+        expect(valid.data.baseSalary).toBe(5000000);
       }
     });
 

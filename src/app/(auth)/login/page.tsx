@@ -22,7 +22,6 @@ export default function LoginPage() {
 
   function handleInputChange(field: "email" | "password", value: string) {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // Hapus error spesifik field saat pengguna mulai mengetik ulang
     if (errors[field] || errors.form) {
       setErrors((prev) => ({ ...prev, [field]: undefined, form: undefined }));
     }
@@ -31,7 +30,6 @@ export default function LoginPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    // 1. Validasi awal di client via Zod schema
     const validation = loginSchema.safeParse(formData);
     if (!validation.success) {
       const fieldErrors = validation.error.flatten().fieldErrors;
@@ -61,8 +59,13 @@ export default function LoginPage() {
         return;
       }
 
-      toast.success("Berhasil masuk! Mengalihkan ke dashboard...");
-      router.push("/dashboard");
+      const needsOnboarding = result.data.onboardingCompletedAt === null;
+      toast.success(
+        needsOnboarding
+          ? "Berhasil masuk! Mari siapkan konfigurasi keuangan awal Anda..."
+          : "Berhasil masuk! Mengalihkan ke dashboard..."
+      );
+      router.push(needsOnboarding ? "/onboarding" : "/dashboard");
       router.refresh();
     });
   }
@@ -74,7 +77,9 @@ export default function LoginPage() {
           <div className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold tracking-wide text-muted-foreground">
             Kenzo Treasury
           </div>
-          <h1 className="mt-3 text-2xl font-bold tracking-tight">Masuk ke Akun</h1>
+          <h1 className="mt-3 text-2xl font-bold tracking-tight">
+            Masuk ke Akun
+          </h1>
           <p className="mt-1 text-xs text-muted-foreground">
             Kelola cashflow & pos finansial bulananmu.
           </p>

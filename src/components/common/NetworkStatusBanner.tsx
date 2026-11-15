@@ -2,14 +2,12 @@
 
 /**
  * ==============================================================================
- * Kenzo Treasury — Network Status & Offline Sync Banner (Fase F18)
+ * Kenzo Treasury — Network Status & Offline Sync Banner (Fase F18 + R1)
  * ==============================================================================
  *
- * ── Kenapa komponen ini ada ───────────────────────────────────────────────────
- *
  * Menampilkan banner konektivitas real-time di bagian atas aplikasi:
- * - Menampilkan badge `"🟡 Mode Offline — Disimpan di perangkat"` saat koneksi
- *   internet terputus.
+ * - Menampilkan indikator titik CSS + `"Mode Offline — Disimpan di perangkat"`
+ *   saat koneksi internet terputus (bebas karakter emoji).
  * - Otomatis men-trigger background sync TanStack Query saat perangkat kembali
  *   online.
  */
@@ -35,7 +33,11 @@ export function NetworkStatusBanner() {
         {!isOnline ? (
           <>
             <WifiOff className="size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
-            <span>🟡 Mode Offline — Disimpan di perangkat</span>
+            <span
+              className="size-2 shrink-0 aspect-square rounded-full bg-amber-500"
+              aria-hidden="true"
+            />
+            <span>Mode Offline — Disimpan di perangkat</span>
           </>
         ) : (
           <>

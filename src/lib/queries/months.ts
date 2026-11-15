@@ -19,7 +19,7 @@ import {
   liabilities,
   transactions,
 } from "@/db/schema";
-import { createClient } from "@/lib/supabase/server";
+import { getCachedUserId } from "./auth";
 import {
   calculateRemainingBudget,
   getBudgetStatus,
@@ -45,22 +45,7 @@ export async function resolveAuthenticatedUserId(
     return explicitUserId;
   }
 
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    if (error || !user) {
-      return null;
-    }
-
-    return user.id;
-  } catch (err) {
-    console.error("Gagal verifikasi sesi Supabase Auth:", err);
-    return null;
-  }
+  return getCachedUserId();
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════

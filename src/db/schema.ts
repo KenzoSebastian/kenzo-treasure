@@ -15,17 +15,17 @@
  *    lembar kerja mandiri (`months`), sehingga kalkulasi cashflow tiap siklus
  *    tidak saling mengontaminasi.
  * 2. Multi-Tenant by Design: Setiap data terikat pada `user_id` dengan integritas
- *    relasional cascading foreign key.
- * 3. Finite Debt Lifecycle: Cicilan (iPhone & Mama) memiliki target lunas di tabel
+ *    relasional foreign key dan kebijakan Row Level Security (RLS).
+ * 3. Finite Debt Lifecycle: Kewajiban cicilan memiliki target lunas di tabel
  *    `liabilities` yang ditautkan langsung ke pos anggaran bulanan.
  * 4. Uang dalam Integer Utuh: Seluruh nominal uang disimpan dalam format integer
  *    Rupiah murni (bukan float) untuk menghindari floating-point rounding bugs.
  *
  * ── Integritas Audit Trail ───────────────────────────────────────────────────
  *
- * Seluruh 9 tabel wajib memiliki kolom `created_at` dan `updated_at` untuk
- * keperluan tracking perubahan, invalidasi cache TanStack Query, dan sinkronisasi
- * antrean mutasi saat kembali online (PWA offline queue).
+ * Seluruh tabel memiliki kolom `created_at` dan `updated_at` untuk keperluan
+ * tracking perubahan, invalidasi cache TanStack Query, dan sinkronisasi antrean
+ * mutasi saat kembali online (PWA offline queue).
  */
 
 import {
@@ -37,6 +37,8 @@ import {
   pgEnum,
   boolean,
   date,
+  unique,
+  index,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -46,8 +48,8 @@ import { relations } from "drizzle-orm";
 
 /**
  * Kelompok pos anggaran bulanan:
- * - `pos_wajib`: Pos prioritas utama (Perpuluhan, Listrik, Cicilan iPhone, Talangan Mama).
- * - `kebutuhan`: Kebutuhan harian operasional (Bensin, Jajan).
+ * - `pos_wajib`: Pos komitmen prioritas utama (tagihan tetap, amal, cicilan).
+ * - `kebutuhan`: Kebutuhan harian operasional (konsumsi, transportasi).
  * - `uang_bebas_tabungan`: Pos fleksibel untuk simpanan atau pengeluaran bebas.
  */
 export const categoryGroupEnum = pgEnum("category_group", [
@@ -75,6 +77,10 @@ export const users = pgTable("users", {
   id: uuid("id").primaryKey(), // ID UUID yang sama persis dengan auth.users.id Supabase Auth
   email: text("email").notNull().unique(),
   fullName: text("full_name"),
+  defaultBaseSalary: integer("default_base_salary"), // Referensi gaji pokok rutin default (null = belum diatur)
+  onboardingCompletedAt: timestamp("onboarding_completed_at", {
+    withTimezone: true,
+  }), // Null jika user baru belum menyelesaikan wizard /onboarding Step 5
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -90,7 +96,7 @@ export const savingsAccount = pgTable("savings_account", {
     .notNull()
     .unique(),
   balance: integer("balance").default(0).notNull(), // Saldo tabungan bebas (Rp)
-  emergencyFundTarget: integer("emergency_fund_target").default(18000000).notNull(), // Target Safety Fund (misal 6x pengeluaran = Rp 18.000.000)
+  emergencyFundTarget: integer("emergency_fund_target").default(0).notNull(), // Target dana darurat pilihan pengguna (Rp)
   emergencyFundBalance: integer("emergency_fund_balance").default(0).notNull(), // Saldo dana darurat saat ini
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -104,11 +110,12 @@ export const liabilities = pgTable("liabilities", {
   userId: uuid("user_id")
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
-  name: text("name").notNull(), // Contoh: "📱 Cicilan Pokok iPhone", "👩‍👦 Talangan Mama"
-  totalAmount: integer("total_amount").notNull(), // Total kewajiban (e.g. 17.640.000 / 2.500.000)
+  name: text("name").notNull(), // Nama kewajiban cicilan
+  icon: text("icon").default("credit-card").notNull(), // Key ikon Lucide kurasi
+  totalAmount: integer("total_amount").notNull(), // Total kewajiban (Rp)
   paidAmount: integer("paid_amount").default(0).notNull(), // Akumulasi nominal terbayar
-  monthlyPayment: integer("monthly_payment").notNull(), // Target bayar per bulan (e.g. 735.000 / 500.000)
-  totalMonths: integer("total_months"), // Estimasi durasi (misal 24 bulan)
+  monthlyPayment: integer("monthly_payment").notNull(), // Target bayar per bulan (Rp)
+  totalMonths: integer("total_months"), // Estimasi durasi bulan
   isSettled: boolean("is_settled").default(false).notNull(), // True bila paidAmount >= totalAmount
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -118,18 +125,28 @@ export const liabilities = pgTable("liabilities", {
    4. TABEL: months (Siklus Kerja Bulanan Terisolasi)
    ══════════════════════════════════════════════════════════════════════════════ */
 
-export const months = pgTable("months", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id")
-    .references(() => users.id, { onDelete: "cascade" })
-    .notNull(),
-  name: text("name").notNull(), // Label tampilan manusia, misal: "Oktober 2026"
-  year: integer("year").notNull(), // 2026
-  monthIndex: integer("month_index").notNull(), // 1 - 12
-  isClosed: boolean("is_closed").default(false).notNull(), // Status tutup buku (read-only archive)
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const months = pgTable(
+  "months",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    name: text("name").notNull(), // Label tampilan manusia, misal: "Oktober 2026"
+    year: integer("year").notNull(), // 2026
+    monthIndex: integer("month_index").notNull(), // 1 - 12
+    isClosed: boolean("is_closed").default(false).notNull(), // Status tutup buku (read-only archive)
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique("months_user_year_month_unique").on(
+      table.userId,
+      table.year,
+      table.monthIndex
+    ),
+  ]
+);
 
 /* ══════════════════════════════════════════════════════════════════════════════
    5. TABEL: incomes (Log Pemasukan Rutin & Dinamis)
@@ -163,11 +180,11 @@ export const budgetCategories = pgTable("budget_categories", {
   liabilityId: uuid("liability_id").references(() => liabilities.id, {
     onDelete: "set null",
   }), // Ditautkan jika pos anggaran ini membayar cicilan tertentu
-  name: text("name").notNull(), // Contoh: "⚡ Listrik Rumah", "🍔 Jajan"
-  icon: text("icon").default("💰"),
+  name: text("name").notNull(), // Nama pos anggaran
+  icon: text("icon").default("wallet"), // Key ikon Lucide kurasi
   group: categoryGroupEnum("group").notNull(),
   targetBudget: integer("target_budget").notNull(), // Batas plafon anggaran (Rp)
-  isTemporary: boolean("is_temporary").default(false).notNull(), // True jika pos ini pensiun setelah utang lunas
+  isTemporary: boolean("is_temporary").default(false).notNull(), // True jika pos ini pensiun di siklus berikutnya
   sortOrder: integer("sort_order").default(0).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -183,7 +200,7 @@ export const transactions = pgTable("transactions", {
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
   categoryId: uuid("category_id")
-    .references(() => budgetCategories.id, { onDelete: "cascade" })
+    .references(() => budgetCategories.id, { onDelete: "restrict" })
     .notNull(),
   amount: integer("amount").notNull(), // Nominal pengeluaran (Rp)
   date: date("date").notNull(), // Tanggal pengeluaran
@@ -203,10 +220,10 @@ export const wishlists = pgTable("wishlists", {
   userId: uuid("user_id")
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
-  name: text("name").notNull(), // Contoh: "🚗 Honda Civic", "📷 Sony A7 IV"
+  name: text("name").notNull(), // Nama barang impian
   targetAmount: integer("target_amount").notNull(), // Target harga barang (Rp)
   savedAmount: integer("saved_amount").default(0).notNull(), // Alokasi dana yang terkumpul (Rp)
-  icon: text("icon").default("🎯"),
+  icon: text("icon").default("target"), // Key ikon Lucide kurasi
   imageUrl: text("image_url"), // URL gambar WebP di Supabase Storage bucket 'wishlist-images'
   isPurchased: boolean("is_purchased").default(false).notNull(), // True bila milestone 100% tercapai dan dibeli
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -232,6 +249,28 @@ export const wishlistAllocations = pgTable("wishlist_allocations", {
 });
 
 /* ══════════════════════════════════════════════════════════════════════════════
+   10. TABEL: user_budget_templates (Blueprint Pos Anggaran Bulan Pertama & Default)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+export const userBudgetTemplates = pgTable(
+  "user_budget_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    name: text("name").notNull(),
+    icon: text("icon").default("wallet").notNull(),
+    group: categoryGroupEnum("group").notNull(),
+    targetBudget: integer("target_budget").default(0).notNull(),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("user_budget_templates_user_id_idx").on(table.userId)]
+);
+
+/* ══════════════════════════════════════════════════════════════════════════════
    RELASI DRIZZLE ORM (Relational Queries Support)
    ══════════════════════════════════════════════════════════════════════════════ */
 
@@ -243,7 +282,18 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   transactions: many(transactions),
   wishlists: many(wishlists),
   wishlistAllocations: many(wishlistAllocations),
+  budgetTemplates: many(userBudgetTemplates),
 }));
+
+export const userBudgetTemplatesRelations = relations(
+  userBudgetTemplates,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userBudgetTemplates.userId],
+      references: [users.id],
+    }),
+  })
+);
 
 export const savingsAccountRelations = relations(savingsAccount, ({ one }) => ({
   user: one(users, {
@@ -358,6 +408,9 @@ export type NewWishlist = typeof wishlists.$inferInsert;
 
 export type WishlistAllocation = typeof wishlistAllocations.$inferSelect;
 export type NewWishlistAllocation = typeof wishlistAllocations.$inferInsert;
+
+export type UserBudgetTemplate = typeof userBudgetTemplates.$inferSelect;
+export type NewUserBudgetTemplate = typeof userBudgetTemplates.$inferInsert;
 
 export type CategoryGroup = (typeof categoryGroupEnum.enumValues)[number];
 export type TransactionMethod = (typeof transactionMethodEnum.enumValues)[number];

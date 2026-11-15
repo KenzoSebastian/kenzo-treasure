@@ -5,17 +5,14 @@
  * Kenzo Treasury — 1-Click Month Generator Dialog (CreateMonthDialog)
  * ==============================================================================
  *
- * ── Kenapa komponen ini ada ───────────────────────────────────────────────────
- *
  * Antarmuka modal untuk membuat siklus bulan baru (Zero-Based Budgeting).
- * Pengguna dapat menentukan tahun, bulan, gaji pokok baseline, serta opsi
- * pemindahan sisa anggaran bebas bulan sebelumnya ke saldo tabungan.
- * Mengintegrasikan Server Action `createMonthlyCycle` dengan feedback Sonner.
+ * Mewarisi `defaultBaseSalary` pengguna dari database dan menavigasikan ke
+ * siklus bulan baru menggunakan `startMonthSwitch` (`MonthNavigationContext`).
  */
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Loader2, Sparkles, AlertCircle } from "lucide-react";
+import { Plus, Loader2, Sparkles, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -39,30 +36,31 @@ import {
 import { createMonthlyCycle } from "@/actions/months";
 import { INDONESIAN_MONTH_NAMES } from "@/lib/month-generator";
 import { formatRupiah, parseRupiah } from "@/lib/financial-calculations";
+import { useMonthNavigation } from "./MonthNavigationContext";
 
-interface CreateMonthDialogProps {
-  /**
-   * Kustom trigger jika tombol dipanggil dari tempat lain (misal empty state).
-   */
+export interface CreateMonthDialogProps {
   trigger?: React.ReactNode;
-  /**
-   * Bulan terakhir yang tercatat di database untuk auto-suggest bulan berikutnya.
-   */
   latestMonth?: {
     year: number;
     monthIndex: number;
   } | null;
+  defaultBaseSalary?: number | null;
+  templateCount?: number;
+  initialTrigger?: boolean;
 }
 
 export function CreateMonthDialog({
   trigger,
   latestMonth,
+  defaultBaseSalary = null,
+  templateCount = 0,
+  initialTrigger = false,
 }: CreateMonthDialogProps) {
   const router = useRouter();
-  const [open, setOpen] = React.useState(false);
+  const { startMonthSwitch } = useMonthNavigation();
+  const [open, setOpen] = React.useState(initialTrigger);
   const [isPending, startTransition] = React.useTransition();
 
-  // Hitung rekomendasi bulan berikutnya
   const defaultYear = React.useMemo(() => {
     if (!latestMonth) return new Date().getFullYear();
     return latestMonth.monthIndex === 12
@@ -77,14 +75,21 @@ export function CreateMonthDialog({
 
   const [year, setYear] = React.useState<number>(defaultYear);
   const [monthIndex, setMonthIndex] = React.useState<number>(defaultMonthIndex);
-  const [baseSalary, setBaseSalary] = React.useState<number>(4000000);
+  const [baseSalary, setBaseSalary] = React.useState<number>(
+    defaultBaseSalary && defaultBaseSalary > 0 ? defaultBaseSalary : 0
+  );
   const [rolloverSavings, setRolloverSavings] = React.useState<boolean>(true);
 
-  // Sinkronisasi saat default berubah
   React.useEffect(() => {
     setYear(defaultYear);
     setMonthIndex(defaultMonthIndex);
   }, [defaultYear, defaultMonthIndex]);
+
+  React.useEffect(() => {
+    if (defaultBaseSalary && defaultBaseSalary > 0 && baseSalary === 0) {
+      setBaseSalary(defaultBaseSalary);
+    }
+  }, [defaultBaseSalary, baseSalary]);
 
   const handleSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
@@ -121,8 +126,10 @@ export function CreateMonthDialog({
         });
 
         setOpen(false);
-        router.push(`/dashboard?month=${result.data.monthId}`);
-        router.refresh();
+        startMonthSwitch(result.data.monthId, result.data.name, () => {
+          router.push(`/dashboard?month=${result.data.monthId}`);
+          router.refresh();
+        });
       } catch (err) {
         console.error("Error creating month:", err);
         toast.error("Terjadi kesalahan sistem saat membuat bulan baru.");
@@ -155,8 +162,11 @@ export function CreateMonthDialog({
               Buat Lembar Bulan Baru
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
-              Inisialisasi siklus kerja mandiri dengan 7 pos anggaran baseline
-              dan alokasi kuota dinamis langsung dari database.
+              {latestMonth
+                ? "Mewarisi konfigurasi pos anggaran bulan terakhir beserta penyesuaian otomatis cicilan dari database."
+                : templateCount > 0
+                ? `Inisialisasi Bulan 1 menggunakan ${templateCount} template pos anggaran pribadi Anda.`
+                : "Inisialisasi siklus bulan baru dengan alokasi kuota dinamis dari database."}
             </DialogDescription>
           </DialogHeader>
 
@@ -172,10 +182,16 @@ export function CreateMonthDialog({
                   onValueChange={(val) => setMonthIndex(Number(val))}
                   disabled={isPending}
                 >
-                  <SelectTrigger id="month-select" className="h-10! w-full rounded-xl">
+                  <SelectTrigger
+                    id="month-select"
+                    className="h-10! w-full rounded-xl"
+                  >
                     <SelectValue placeholder="Pilih Bulan" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl max-h-56" position="popper">
+                  <SelectContent
+                    className="rounded-xl max-h-56"
+                    position="popper"
+                  >
                     {INDONESIAN_MONTH_NAMES.map((name, idx) => (
                       <SelectItem key={idx + 1} value={String(idx + 1)}>
                         {name}
@@ -214,9 +230,13 @@ export function CreateMonthDialog({
                   type="text"
                   inputMode="numeric"
                   autoComplete="off"
-                  value={baseSalary > 0 ? formatRupiah(baseSalary, { prefix: false }) : ""}
+                  value={
+                    baseSalary > 0
+                      ? formatRupiah(baseSalary, { prefix: false })
+                      : ""
+                  }
                   onChange={handleSalaryChange}
-                  placeholder="0"
+                  placeholder="Contoh: 5.000.000"
                   disabled={isPending}
                   required
                   className="h-10! w-full rounded-xl tabular-nums pl-9"
@@ -226,7 +246,7 @@ export function CreateMonthDialog({
                 </span>
               </div>
               <p className="text-[11px] text-muted-foreground">
-                Menjadi dasar alokasi pos pengeluaran (default: Rp 4.000.000).
+                Menjadi dasar alokasi pos pengeluaran bulan ini.
               </p>
             </div>
 
@@ -257,8 +277,13 @@ export function CreateMonthDialog({
               <AlertCircle className="size-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
               <div className="text-[11px] leading-relaxed">
                 <strong>Otomasi Utang Lunas:</strong> Pos cicilan yang sudah
-                berstatus 🏆 Lunas di database tidak akan dimunculkan lagi, dan
-                kuotanya dialihkan untuk memperbesar pos Uang Bebas.
+                berstatus{" "}
+                <span className="inline-flex items-center gap-0.5 font-semibold">
+                  <CheckCircle2 className="size-3 inline shrink-0" />
+                  Lunas
+                </span>{" "}
+                di database tidak akan dimunculkan lagi, dan kuotanya dialihkan
+                untuk memperbesar pos Uang Bebas.
               </div>
             </div>
           </div>

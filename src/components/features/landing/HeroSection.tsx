@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight,
-  ShieldCheck,
   Wallet,
   CheckCircle2,
+  Home,
+  Laptop,
+  PiggyBank,
 } from "lucide-react";
 
 interface HeroSectionProps {
@@ -88,8 +90,9 @@ export function HeroSection({ isLoggedIn = false }: HeroSectionProps) {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold tracking-tight">Lembar Kerja Finansial</span>
-                  <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-semibold">
-                    🟢 Aktif Berjalan
+                  <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-semibold gap-1.5">
+                    <span className="size-1.5 rounded-full bg-emerald-500" />
+                    <span>Aktif Berjalan</span>
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">Siklus: Bulan Berjalan</p>
@@ -157,7 +160,9 @@ export function HeroSection({ isLoggedIn = false }: HeroSectionProps) {
             {/* Row 1: Kebutuhan Pokok */}
             <div className="flex items-center justify-between rounded-lg border bg-background/50 p-3 text-xs">
               <div className="flex items-center gap-2.5">
-                <span className="text-base">🏠</span>
+                <span className="flex size-8 items-center justify-center rounded-lg border border-border/60 bg-muted/40 text-foreground">
+                  <Home className="size-4" />
+                </span>
                 <div>
                   <span className="font-semibold text-foreground">Kebutuhan Pokok & Operasional</span>
                   <span className="block text-[11px] text-muted-foreground">Alokasi Wajib Pokok</span>
@@ -174,7 +179,9 @@ export function HeroSection({ isLoggedIn = false }: HeroSectionProps) {
             {/* Row 2: Cicilan Perangkat Kerja */}
             <div className="flex items-center justify-between rounded-lg border bg-background/50 p-3 text-xs">
               <div className="flex items-center gap-2.5">
-                <span className="text-base">💻</span>
+                <span className="flex size-8 items-center justify-center rounded-lg border border-border/60 bg-muted/40 text-foreground">
+                  <Laptop className="size-4" />
+                </span>
                 <div>
                   <span className="font-semibold text-foreground">Cicilan Perangkat Kerja (Pasti Lunas)</span>
                   <span className="block text-[11px] text-muted-foreground">Bulan 8 dari 12 • Selesai otomatis</span>
@@ -191,7 +198,9 @@ export function HeroSection({ isLoggedIn = false }: HeroSectionProps) {
             {/* Row 3: Uang Bebas / Tabungan */}
             <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 p-3 text-xs">
               <div className="flex items-center gap-2.5">
-                <span className="text-base">🍿</span>
+                <span className="flex size-8 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-primary">
+                  <PiggyBank className="size-4" />
+                </span>
                 <div>
                   <span className="font-semibold text-foreground">Uang Bebas & Tabungan</span>
                   <span className="block text-[11px] text-muted-foreground">

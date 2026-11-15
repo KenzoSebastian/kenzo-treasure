@@ -2,18 +2,19 @@
 
 /**
  * ==============================================================================
- * Kenzo Treasury — Server Actions: Sub-Second Transactions & Undo 5s (Fase B9)
+ * Kenzo Treasury — Server Actions: Sub-Second Transactions & Undo 5s (Fase B9 + R8)
  * ==============================================================================
  *
  * Mengelola seluruh mutasi pengeluaran harian (`transactions`) dengan integritas tinggi:
  * 1. `createTransaction`:
  *    - Validasi integer nominal > 0 dan format tanggal YYYY-MM-DD.
  *    - Validasi *Strict Month-Date Boundary* (`isDateWithinMonthCycle`).
- *    - Rekonsiliasi atomik: bila pos terikat `liabilityId`, otomatis menambah
- *      `liabilities.paidAmount` dan mengecek status pelunasan (`isSettled`).
+ *    - Rekonsiliasi atomik terpusat via `executeCategoryTransactionTx` dengan
+ *      row-level locking (`FOR UPDATE`) serta guard anti-overpayment bila pos
+ *      terikat `liabilityId`.
  * 2. `softDeleteTransaction`:
  *    - Mengubah flag `isDeleted = true` untuk mendukung fitur Undo 5 detik.
- *    - Rekonsiliasi balik `liabilities.paidAmount` jika pos terikat cicilan.
+ *    - Rekonsiliasi balik `liabilities.paidAmount` secara terkunci (`FOR UPDATE`).
  * 3. `restoreTransaction`:
  *    - Mengembalikan `isDeleted = false` saat pengguna menekan tombol Undo.
  *    - Rekonsiliasi ulang `liabilities.paidAmount` secara atomik.
@@ -21,7 +22,6 @@
  *    - Membersihkan transaksi yang sudah di-soft-delete dan melewati window undo.
  */
 
-import { revalidatePath } from "next/cache";
 import { eq, and, lt } from "drizzle-orm";
 import { db } from "@/db";
 import {
@@ -38,12 +38,14 @@ import {
   type SoftDeleteTransactionInput,
   type RestoreTransactionInput,
 } from "@/schemas/transaction.schema";
+import { executeCategoryTransactionTx } from "@/lib/category-transaction-tx";
 import { isDateWithinMonthCycle } from "@/lib/financial-calculations";
 import { resolveAuthenticatedUserId } from "@/lib/queries/months";
 import {
   getTransactionsByMonth,
   getTransactionsByCategory,
 } from "@/lib/queries/transactions";
+import { revalidateDashboardRoutes } from "@/lib/revalidate";
 import type { ActionResponse, Transaction } from "@/types";
 
 export { getTransactionsByMonth, getTransactionsByCategory };
@@ -130,58 +132,42 @@ export async function createTransaction(
       };
     }
 
-    // 3. Eksekusi mutasi atomik: simpan transaksi + rekonsiliasi cicilan bila pos terikat utang
-    const createdTx = await db.transaction(async (tx) => {
-      const [inserted] = await tx
-        .insert(transactions)
-        .values({
-          userId,
-          categoryId: parsed.data.categoryId,
-          amount: parsed.data.amount,
-          date: parsed.data.date,
-          description: parsed.data.description,
-          method: parsed.data.method,
-          isDeleted: false,
-        })
-        .returning();
+    // 3. Eksekusi mutasi atomik terpusat (insert transactions + update liabilities FOR UPDATE)
+    const { transaction: createdTx } = await db.transaction(async (tx) =>
+      executeCategoryTransactionTx({
+        tx,
+        userId,
+        categoryId: parsed.data.categoryId,
+        amount: parsed.data.amount,
+        date: parsed.data.date,
+        description: parsed.data.description,
+        method: parsed.data.method,
+      })
+    );
 
-      if (targetCategory.liabilityId) {
-        const [liabilityRow] = await tx
-          .select()
-          .from(liabilities)
-          .where(
-            and(
-              eq(liabilities.id, targetCategory.liabilityId),
-              eq(liabilities.userId, userId)
-            )
-          )
-          .limit(1);
-
-        if (liabilityRow) {
-          const nextPaid = liabilityRow.paidAmount + parsed.data.amount;
-          const nextSettled = nextPaid >= liabilityRow.totalAmount;
-
-          await tx
-            .update(liabilities)
-            .set({
-              paidAmount: nextPaid,
-              isSettled: nextSettled,
-              updatedAt: new Date(),
-            })
-            .where(eq(liabilities.id, liabilityRow.id));
-        }
-      }
-
-      return inserted;
-    });
-
-    revalidatePath("/dashboard");
+    revalidateDashboardRoutes();
 
     return {
       success: true,
       data: createdTx,
     };
   } catch (err) {
+    if (err instanceof Error) {
+      if (err.message === "LIABILITY_ALREADY_SETTLED") {
+        return {
+          success: false,
+          error:
+            "Cicilan pada pos ini sudah lunas. Tidak dapat mencatat pembayaran tambahan.",
+        };
+      }
+      if (err.message === "LIABILITY_OVERPAYMENT") {
+        return {
+          success: false,
+          error:
+            "Nominal pengeluaran melebihi sisa pokok utang yang belum dibayar.",
+        };
+      }
+    }
     console.error("Gagal mencatat transaksi pengeluaran:", err);
     return {
       success: false,
@@ -263,7 +249,6 @@ export async function softDeleteTransaction(
         .where(eq(transactions.id, parsed.data.transactionId))
         .returning();
 
-      // Rekonsiliasi balik akumulasi cicilan jika transaksi terikat ke liability
       if (existing.liabilityId) {
         const [liabilityRow] = await tx
           .select()
@@ -274,7 +259,7 @@ export async function softDeleteTransaction(
               eq(liabilities.userId, userId)
             )
           )
-          .limit(1);
+          .for("update");
 
         if (liabilityRow) {
           const nextPaid = Math.max(
@@ -297,7 +282,7 @@ export async function softDeleteTransaction(
       return softDeleted;
     });
 
-    revalidatePath("/dashboard");
+    revalidateDashboardRoutes();
 
     return {
       success: true,
@@ -398,7 +383,6 @@ export async function restoreTransaction(
         .where(eq(transactions.id, parsed.data.transactionId))
         .returning();
 
-      // Pulihkan kembali akumulasi cicilan jika transaksi terikat ke liability
       if (existing.liabilityId) {
         const [liabilityRow] = await tx
           .select()
@@ -409,7 +393,7 @@ export async function restoreTransaction(
               eq(liabilities.userId, userId)
             )
           )
-          .limit(1);
+          .for("update");
 
         if (liabilityRow) {
           const nextPaid = liabilityRow.paidAmount + existing.txRow.amount;
@@ -429,7 +413,7 @@ export async function restoreTransaction(
       return restored;
     });
 
-    revalidatePath("/dashboard");
+    revalidateDashboardRoutes();
 
     return {
       success: true,
@@ -461,10 +445,6 @@ export async function restoreTransaction(
    4. SERVER ACTION: hardDeleteExpiredTransactions
    ══════════════════════════════════════════════════════════════════════════════ */
 
-/**
- * Menghapus permanen transaksi yang telah berstatus `isDeleted = true` dan
- * melewati jendela waktu undo (`retentionSeconds`, default 30 detik).
- */
 export async function hardDeleteExpiredTransactions(
   retentionSeconds = 30,
   explicitUserId?: string

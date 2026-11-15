@@ -2,20 +2,21 @@
 
 /**
  * ==============================================================================
- * Kenzo Treasury — Recharts Analytics Dashboard (Fase F15)
+ * Kenzo Treasury — Recharts Analytics Dashboard (Fase F15, R1, R6)
  * ==============================================================================
  *
  * ── Kenapa komponen ini ada ───────────────────────────────────────────────────
  *
  * Menyajikan pusat visualisasi data grafis interaktif berbasis Recharts:
  * 1. Toggle Switch antara **Grafik Batang (Bar Chart)** dan **Grafik Garis
- *    (Line Chart)**.
+ *    (Line Chart)** menggunakan `SlidingSegmentedControl`.
  * 2. Grafik Pertumbuhan Saldo Tabungan dari bulan ke bulan.
  * 3. Grafik Perbandingan Cashflow Bulanan (Pemasukan vs Pengeluaran).
- * 4. Tab perbandingan tahunan (Tahun 2026 vs 2027) & distribusi pos pengeluaran.
+ * 4. Tab perbandingan tahunan dinamis (`data.availableYears`) & distribusi pos
+ *    pengeluaran dengan `AppCategoryIcon`.
  *
  * Seluruh angka menggunakan font sans-serif proporsional dengan `tabular-nums`
- * (bebas `font-mono`).
+ * (bebas font monospace).
  */
 
 import * as React from "react";
@@ -34,21 +35,59 @@ import {
 import { BarChart3, LineChart as LineChartIcon, Calendar } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { AppCategoryIcon } from "@/components/common/AppCategoryIcon";
+import { SlidingSegmentedControl } from "@/components/common/SlidingSegmentedControl";
 import { formatRupiah } from "@/lib/financial-calculations";
-import { cn } from "@/lib/utils";
 import type { AnalyticsDashboardData } from "@/types/analytics";
 
 interface AnalyticsDashboardProps {
   data: AnalyticsDashboardData;
 }
 
+const CHART_TYPE_OPTIONS: Array<{
+  value: "bar" | "line";
+  label: string;
+  icon: React.ReactNode;
+}> = [
+  {
+    value: "bar",
+    label: "Grafik Batang (Bar)",
+    icon: <BarChart3 className="size-3.5" />,
+  },
+  {
+    value: "line",
+    label: "Grafik Garis (Line)",
+    icon: <LineChartIcon className="size-3.5" />,
+  },
+];
+
 export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
   const [chartType, setChartType] = React.useState<"bar" | "line">("bar");
-  const [selectedYear, setSelectedYear] = React.useState<2026 | 2027>(2026);
+
+  const availableYears = React.useMemo(() => {
+    const years =
+      data.availableYears.length > 0
+        ? data.availableYears
+        : [data.selectedYear];
+    return Array.from(new Set(years)).sort((a, b) => a - b);
+  }, [data.availableYears, data.selectedYear]);
+
+  const [selectedYear, setSelectedYear] = React.useState<string>(
+    String(data.selectedYear || availableYears[0] || new Date().getFullYear())
+  );
+
+  const yearOptions = React.useMemo(
+    () =>
+      availableYears.map((yr) => ({
+        value: String(yr),
+        label: `Tahun ${yr}`,
+      })),
+    [availableYears]
+  );
 
   const activeYearData = React.useMemo(
     () =>
-      data.yearlyComparison.find((y) => y.year === selectedYear) ??
+      data.yearlyComparison.find((y) => String(y.year) === selectedYear) ??
       data.yearlyComparison[0],
     [data.yearlyComparison, selectedYear]
   );
@@ -67,38 +106,15 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
           </p>
         </div>
 
-        <div
-          className="inline-flex items-center rounded-xl border border-border/70 bg-muted/40 p-1 self-start sm:self-auto"
-          role="group"
-          aria-label="Pilih tipe grafik"
-        >
-          <button
-            type="button"
-            onClick={() => setChartType("bar")}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all",
-              chartType === "bar"
-                ? "bg-background text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <BarChart3 className="size-3.5" />
-            <span>Grafik Batang (Bar)</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setChartType("line")}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all",
-              chartType === "line"
-                ? "bg-background text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <LineChartIcon className="size-3.5" />
-            <span>Grafik Garis (Line)</span>
-          </button>
-        </div>
+        <SlidingSegmentedControl
+          options={CHART_TYPE_OPTIONS}
+          value={chartType}
+          onValueChange={setChartType}
+          role="tablist"
+          ariaLabel="Pilih tipe grafik"
+          size="sm"
+          className="self-start sm:self-auto"
+        />
       </div>
 
       {/* 1. Grafik Perbandingan Cashflow Bulanan (Pemasukan vs Pengeluaran) & Pertumbuhan Tabungan */}
@@ -289,34 +305,25 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
         </Card>
       </div>
 
-      {/* 2. Tab Perbandingan Tahunan (Tahun 2026 vs 2027) & Distribusi Pos */}
+      {/* 2. Tab Perbandingan Tahunan & Distribusi Pos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <Card className="rounded-2xl border border-border/80 bg-card p-5 space-y-4 shadow-xs">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <Calendar className="size-4 text-primary" />
               <h3 className="text-sm font-bold text-foreground">
-                Perbandingan Tahunan (2026 vs 2027)
+                Perbandingan Tahunan
               </h3>
             </div>
 
-            <div className="inline-flex rounded-xl border border-border/70 bg-muted/40 p-1">
-              {([2026, 2027] as const).map((yr) => (
-                <button
-                  key={yr}
-                  type="button"
-                  onClick={() => setSelectedYear(yr)}
-                  className={cn(
-                    "rounded-lg px-3 py-1 text-xs font-bold tabular-nums transition-all",
-                    selectedYear === yr
-                      ? "bg-background text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  Tahun {yr}
-                </button>
-              ))}
-            </div>
+            <SlidingSegmentedControl
+              options={yearOptions}
+              value={selectedYear}
+              onValueChange={setSelectedYear}
+              role="tablist"
+              ariaLabel="Pilih tahun perbandingan"
+              size="sm"
+            />
           </div>
 
           {activeYearData && (
@@ -370,26 +377,39 @@ export function AnalyticsDashboard({ data }: AnalyticsDashboardProps) {
           </div>
 
           <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
-            {data.categoryDistribution.map((cat) => (
-              <div key={cat.categoryName} className="space-y-1 text-xs">
-                <div className="flex items-center justify-between tabular-nums">
-                  <span className="font-semibold text-foreground">
-                    {cat.icon} {cat.categoryName}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {formatRupiah(cat.amount)} ({cat.percentageOfTotal}%)
-                  </span>
+            {data.categoryDistribution.length === 0 ? (
+              <p className="text-xs text-muted-foreground py-4 text-center">
+                Belum ada distribusi pengeluaran pada siklus aktif.
+              </p>
+            ) : (
+              data.categoryDistribution.map((cat) => (
+                <div key={cat.categoryName} className="space-y-1 text-xs">
+                  <div className="flex items-center justify-between gap-2 tabular-nums">
+                    <span className="inline-flex items-center gap-1.5 font-semibold text-foreground min-w-0 truncate">
+                      <AppCategoryIcon
+                        iconKey={cat.icon}
+                        group={cat.group}
+                        size="xs"
+                        variant="inline"
+                        className="text-muted-foreground"
+                      />
+                      <span className="truncate">{cat.categoryName}</span>
+                    </span>
+                    <span className="text-muted-foreground shrink-0">
+                      {formatRupiah(cat.amount)} ({cat.percentageOfTotal}%)
+                    </span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-primary/80"
+                      style={{
+                        width: `${Math.min(100, Math.max(4, cat.percentageOfTotal))}%`,
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-primary/80"
-                    style={{
-                      width: `${Math.min(100, Math.max(4, cat.percentageOfTotal))}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </Card>
       </div>

@@ -12,7 +12,7 @@
  * 3. Format `"json"`: Full JSON Backup seluruh 9 tabel milik pengguna.
  */
 
-import { eq, asc, desc } from "drizzle-orm";
+import { eq, asc, desc, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
   users,
@@ -24,6 +24,7 @@ import {
   transactions,
   wishlists,
   wishlistAllocations,
+  userBudgetTemplates,
 } from "@/db/schema";
 import { resolveAuthenticatedUserId } from "@/lib/queries/months";
 import type {
@@ -83,6 +84,7 @@ export async function exportFinancialData(
       userTransactions,
       userWishlists,
       userAllocations,
+      userTemplates,
     ] = await Promise.all([
       db.select().from(users).where(eq(users.id, userId)).limit(1),
       db
@@ -120,14 +122,21 @@ export async function exportFinancialData(
         .from(wishlistAllocations)
         .where(eq(wishlistAllocations.userId, userId))
         .orderBy(desc(wishlistAllocations.createdAt)),
+      db
+        .select()
+        .from(userBudgetTemplates)
+        .where(eq(userBudgetTemplates.userId, userId))
+        .orderBy(asc(userBudgetTemplates.sortOrder)),
     ]);
 
-    const monthIds = new Set(userMonths.map((m) => m.id));
+    const monthIds = userMonths.map((m) => m.id);
     const allCategories =
-      monthIds.size > 0
-        ? (await db.select().from(budgetCategories)).filter((c) =>
-            monthIds.has(c.monthId)
-          )
+      monthIds.length > 0
+        ? await db
+            .select()
+            .from(budgetCategories)
+            .where(inArray(budgetCategories.monthId, monthIds))
+            .orderBy(asc(budgetCategories.sortOrder))
         : [];
 
     const monthMap = new Map(userMonths.map((m) => [m.id, m.name]));
@@ -150,6 +159,7 @@ export async function exportFinancialData(
         },
         profile: userProfile ?? null,
         savingsAccount: savingsRow ?? null,
+        budgetTemplates: userTemplates,
         months: userMonths,
         incomes: userIncomes,
         liabilities: userLiabilities,
@@ -160,6 +170,7 @@ export async function exportFinancialData(
       };
 
       const totalRecords =
+        userTemplates.length +
         userMonths.length +
         userIncomes.length +
         userLiabilities.length +

@@ -34,8 +34,8 @@ export const createMonthSchema = z.object({
   baseSalary: z.coerce
     .number()
     .int({ message: "Gaji pokok harus berupa integer bulat" })
-    .positive({ message: "Gaji pokok harus bernilai positif" })
-    .default(4000000),
+    .min(0, { message: "Gaji pokok tidak boleh negatif" })
+    .optional(),
   rolloverSavings: z.boolean().default(true),
 });
 

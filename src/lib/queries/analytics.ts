@@ -389,7 +389,7 @@ export async function getCategoryExpenseDistribution(
       return {
         categoryId: cat.id,
         categoryName: cat.name,
-        icon: cat.icon ?? "💰",
+        icon: cat.icon ?? "wallet",
         group: cat.group,
         amount,
         target: cat.targetBudget,

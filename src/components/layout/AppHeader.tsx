@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { logout, type UserSessionData } from "@/actions/auth";
+import { useSlidingIndicator } from "@/hooks/use-sliding-indicator";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +38,6 @@ export function AppHeader({ user }: AppHeaderProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = React.useState(false);
 
-  // Navigasi desktop utama
   const navLinks = [
     {
       href: "/dashboard",
@@ -71,6 +71,20 @@ export function AppHeader({ user }: AppHeaderProps) {
     },
   ];
 
+  const activeHref =
+    navLinks.find((link) => link.isActive)?.href ?? "/dashboard";
+
+  const {
+    containerRef,
+    registerItem,
+    hasMeasured,
+    prefersReducedMotion,
+    indicatorStyle,
+  } = useSlidingIndicator({
+    activeValue: activeHref,
+    recalculateTrigger: pathname,
+  });
+
   async function handleLogout() {
     try {
       setIsLoggingOut(true);
@@ -89,7 +103,6 @@ export function AppHeader({ user }: AppHeaderProps) {
     }
   }
 
-  // Ambil inisial nama pengguna untuk avatar
   const displayName = user?.fullName || user?.email || "Pengguna";
   const initial = displayName.trim().charAt(0).toUpperCase() || "K";
 
@@ -130,22 +143,41 @@ export function AppHeader({ user }: AppHeaderProps) {
           </Link>
         </div>
 
-        {/* Sisi Tengah: Navigasi Desktop */}
+        {/* Sisi Tengah: Navigasi Desktop dengan Sliding Pill Indicator (R3) */}
         <nav
-          className="hidden md:flex items-center gap-1 rounded-full border border-border/60 bg-muted/40 p-1 text-xs"
+          ref={(node) => {
+            containerRef.current = node;
+          }}
+          className="relative hidden md:flex items-center gap-1 rounded-full border border-border/60 bg-muted/40 p-1 text-xs"
           aria-label="Navigasi Utama"
         >
+          {hasMeasured && (
+            <span
+              aria-hidden="true"
+              style={indicatorStyle}
+              className={cn(
+                "pointer-events-none absolute top-1 bottom-1 left-0 z-0 rounded-full bg-background shadow-xs",
+                !prefersReducedMotion &&
+                  "transition-[transform,width] duration-200 ease-out"
+              )}
+            />
+          )}
+
           {navLinks.map((link) => {
             const Icon = link.icon;
             return (
               <Link
                 key={link.href}
+                ref={registerItem(link.href)}
                 href={link.href}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 font-medium transition-colors",
+                  "relative z-10 flex items-center gap-1.5 rounded-full px-3 py-1.5 font-medium transition-colors duration-200",
                   link.isActive
-                    ? "bg-background text-foreground shadow-xs font-semibold"
-                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                    ? cn(
+                        "text-foreground font-semibold",
+                        !hasMeasured && "bg-background shadow-xs"
+                      )
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <Icon className="size-3.5" />
@@ -159,7 +191,6 @@ export function AppHeader({ user }: AppHeaderProps) {
         <div className="flex items-center gap-2">
           <ThemeToggle className="size-9 rounded-full border border-border/60" />
 
-          {/* User Profile Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger
               className="flex items-center gap-2 rounded-full border border-border/70 bg-card p-1 pr-2.5 text-xs font-medium text-foreground shadow-xs transition-colors hover:bg-muted/50 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -204,7 +235,7 @@ export function AppHeader({ user }: AppHeaderProps) {
                   className="cursor-pointer gap-2 text-xs"
                 >
                   <Wallet className="size-3.5 text-muted-foreground" />
-                  <span>7 Pos Anggaran</span>
+                  <span>Pos Anggaran Bulanan</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => router.push("/dashboard/vault")}
@@ -232,7 +263,7 @@ export function AppHeader({ user }: AppHeaderProps) {
                   className="cursor-pointer gap-2 text-xs"
                 >
                   <Settings className="size-3.5 text-muted-foreground" />
-                  <span>Ekspor Data & Backup</span>
+                  <span>Pengaturan & Backup</span>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
 
@@ -248,7 +279,9 @@ export function AppHeader({ user }: AppHeaderProps) {
                 ) : (
                   <LogOut className="size-3.5" />
                 )}
-                <span>{isLoggingOut ? "Sedang Keluar..." : "Keluar (Logout)"}</span>
+                <span>
+                  {isLoggingOut ? "Sedang Keluar..." : "Keluar (Logout)"}
+                </span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

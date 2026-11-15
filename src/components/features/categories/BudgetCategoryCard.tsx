@@ -2,17 +2,19 @@
 
 /**
  * ==============================================================================
- * Kenzo Treasury — Budget Category Card (Fase F7 & F9)
+ * Kenzo Treasury — Budget Category Card (Fase F7, F9, R1, R3, R4)
  * ==============================================================================
  *
  * ── Kenapa komponen ini ada ───────────────────────────────────────────────────
  *
  * Menampilkan kartu individual untuk satu pos pengeluaran anggaran bulanan:
- * - Ikon & nama pos (`✝️`, `⚡`, `💰`, `⛽`, `🍿`, `📱`, `👩‍👦`)
+ * - Ikon semantik Lucide (`AppCategoryIcon`) & nama pos
  * - Target Alokasi, Realisasi Terpakai, dan Sisa Budget (`tabular-nums`)
  * - Progress bar pemakaian dengan warna semantik & badge status (`Aman`,
  *   `Mendekati Limit >80%`, `Overbudget`)
  * - Edit cepat Target Alokasi (`updateCategoryTarget`) secara inline
+ * - Hapus Pos Anggaran (`deleteCategory`) dengan proteksi cashflow (Hentikan
+ *   Mulai Bulan Depan atau Hapus Permanen & Pindahkan Transaksi)
  * - Modal Box Rincian Riwayat Transaksi Harian (`TransactionSubList`) via Dialog
  */
 
@@ -24,12 +26,16 @@ import {
   X,
   ReceiptText,
   Lock,
+  Trash2,
+  Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
@@ -41,9 +47,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { AppCategoryIcon } from "@/components/common/AppCategoryIcon";
 import { cn } from "@/lib/utils";
 import { formatRupiah, parseRupiah } from "@/lib/financial-calculations";
-import { updateCategoryTarget } from "@/actions/categories";
+import { updateCategoryTarget, deleteCategory } from "@/actions/categories";
 import { TransactionSubList } from "@/components/features/transactions/TransactionSubList";
 import type { TransactionItem } from "@/types/transaction";
 
@@ -52,6 +59,8 @@ export interface BudgetCategoryItem {
   name: string;
   icon: string;
   group?: "pos_wajib" | "kebutuhan" | "uang_bebas_tabungan";
+  liabilityId?: string | null;
+  isTemporary?: boolean;
   target: number;
   spent: number;
   remaining: number;
@@ -61,17 +70,31 @@ export interface BudgetCategoryItem {
   transactions?: TransactionItem[];
 }
 
+export interface ReassignCategoryOption {
+  id: string;
+  name: string;
+  group?: "pos_wajib" | "kebutuhan" | "uang_bebas_tabungan";
+  liabilityId?: string | null;
+}
+
 interface BudgetCategoryCardProps {
   category: BudgetCategoryItem;
+  otherCategories?: ReassignCategoryOption[];
   isClosed?: boolean;
 }
 
 export function BudgetCategoryCard({
   category,
+  otherCategories = [],
   isClosed = false,
 }: BudgetCategoryCardProps) {
   const router = useRouter();
   const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = React.useState(false);
+  const [deleteMode, setDeleteMode] = React.useState<
+    "deactivate_next_month" | "permanent_delete"
+  >("deactivate_next_month");
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
   const [isEditingTarget, setIsEditingTarget] = React.useState(false);
   const [targetInput, setTargetInput] = React.useState(
     String(category.target)
@@ -79,11 +102,39 @@ export function BudgetCategoryCard({
   const [targetError, setTargetError] = React.useState<string | null>(null);
   const [isSaving, startTransition] = React.useTransition();
 
+  const reassignOptions = React.useMemo(
+    () =>
+      otherCategories.filter(
+        (c) => Boolean(c.id) && c.id !== category.id && !c.liabilityId
+      ),
+    [otherCategories, category.id]
+  );
+
+  const defaultReassignId = React.useMemo(() => {
+    const freeCat = reassignOptions.find(
+      (c) => c.group === "uang_bebas_tabungan"
+    );
+    return freeCat?.id ?? reassignOptions[0]?.id ?? "";
+  }, [reassignOptions]);
+
+  const [reassignTargetId, setReassignTargetId] =
+    React.useState(defaultReassignId);
+
+  React.useEffect(() => {
+    setReassignTargetId(defaultReassignId);
+  }, [defaultReassignId]);
+
   React.useEffect(() => {
     setTargetInput(String(category.target));
   }, [category.target]);
 
   const txList = category.transactions ?? [];
+  const canDelete =
+    Boolean(category.id) &&
+    !isClosed &&
+    !category.liabilityId &&
+    category.group !== "uang_bebas_tabungan";
+
   const usageRatio =
     category.target > 0
       ? Math.round((category.spent / category.target) * 100)
@@ -94,7 +145,10 @@ export function BudgetCategoryCard({
   // Klasifikasi status semantik pos anggaran (Fase F7)
   const isOverbudget =
     category.spent > category.target && category.target > 0;
-  const isWarning = !isOverbudget && usageRatio >= 80 && category.group !== "uang_bebas_tabungan";
+  const isWarning =
+    !isOverbudget &&
+    usageRatio >= 80 &&
+    category.group !== "uang_bebas_tabungan";
 
   let statusLabel = category.status;
   let badgeClassName =
@@ -146,6 +200,42 @@ export function BudgetCategoryCard({
     });
   };
 
+  const handleDeleteCategory = () => {
+    if (!category.id) return;
+    setDeleteError(null);
+
+    startTransition(async () => {
+      const effectiveMode =
+        txList.length === 0 ? "permanent_delete" : deleteMode;
+      const res = await deleteCategory({
+        categoryId: category.id!,
+        mode: effectiveMode,
+        reassignToCategoryId:
+          txList.length > 0 && effectiveMode === "permanent_delete"
+            ? reassignTargetId
+            : undefined,
+      });
+
+      if (!res.success) {
+        setDeleteError(res.error);
+        return;
+      }
+
+      toast.success(
+        res.data.modeUsed === "deactivate_next_month"
+          ? `Pos "${category.name}" dihentikan mulai bulan depan`
+          : `Pos "${category.name}" dihapus`,
+        {
+          description: res.data.reallocatedBudget
+            ? `Sisa alokasi dikembalikan ke Uang Bebas (${formatRupiah(res.data.reallocatedBudget)})`
+            : undefined,
+        }
+      );
+      setIsDeleteOpen(false);
+      router.refresh();
+    });
+  };
+
   return (
     <Card
       className={cn(
@@ -156,12 +246,12 @@ export function BudgetCategoryCard({
       {/* Baris Header: Ikon, Nama Pos, Target & Status Badge */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0">
-          <span
-            className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-muted/40 text-lg select-none"
-            aria-hidden="true"
-          >
-            {category.icon}
-          </span>
+          <AppCategoryIcon
+            iconKey={category.icon}
+            group={category.group}
+            liabilityId={category.liabilityId}
+            size="md"
+          />
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <h3 className="text-xs font-bold text-foreground leading-snug truncate">
@@ -190,6 +280,161 @@ export function BudgetCategoryCard({
                   >
                     <Pencil className="size-2.5" />
                   </button>
+                )}
+                {canDelete && (
+                  <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+                    <DialogTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteError(null)}
+                        className="inline-flex items-center justify-center size-5 rounded-md text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10 transition-colors"
+                        title="Hapus atau hentikan pos anggaran"
+                        aria-label={`Hapus pos anggaran ${category.name}`}
+                      >
+                        <Trash2 className="size-2.5" />
+                      </button>
+                    </DialogTrigger>
+
+                    <DialogContent className="sm:max-w-md rounded-2xl p-6">
+                      <DialogHeader>
+                        <DialogTitle className="text-base font-bold text-foreground">
+                          Kelola Penghapusan Pos &ldquo;{category.name}&rdquo;
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-muted-foreground">
+                          {txList.length === 0
+                            ? `Pos ini belum memiliki catatan pengeluaran di bulan berjalan. Target alokasi ${formatRupiah(category.target)} akan dikembalikan ke pos Uang Bebas / Tabungan.`
+                            : `Pos ini memiliki ${txList.length} transaksi senilai ${formatRupiah(category.spent)}. Pilih cara penanganan agar arus kas tetap akurat:`}
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      {txList.length > 0 && (
+                        <div className="space-y-3 py-1">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDeleteMode("deactivate_next_month")
+                            }
+                            className={cn(
+                              "w-full rounded-xl border p-3 text-left transition-colors cursor-pointer space-y-1",
+                              deleteMode === "deactivate_next_month"
+                                ? "border-primary bg-primary/5"
+                                : "border-border/70 bg-card hover:bg-muted/40"
+                            )}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs font-semibold text-foreground">
+                                Hentikan Mulai Bulan Depan (Direkomendasikan)
+                              </span>
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] px-1.5 py-0"
+                              >
+                                Aman
+                              </Badge>
+                            </div>
+                            <p className="text-[11px] text-muted-foreground leading-relaxed">
+                              Riwayat {txList.length} transaksi bulan ini tetap
+                              utuh di pos ini, namun pos tidak akan diwariskan
+                              lagi ke siklus bulan berikutnya.
+                            </p>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setDeleteMode("permanent_delete")}
+                            className={cn(
+                              "w-full rounded-xl border p-3 text-left transition-colors cursor-pointer space-y-1",
+                              deleteMode === "permanent_delete"
+                                ? "border-rose-500/60 bg-rose-500/5"
+                                : "border-border/70 bg-card hover:bg-muted/40"
+                            )}
+                          >
+                            <span className="text-xs font-semibold text-foreground block">
+                              Hapus Permanen & Pindahkan Transaksi
+                            </span>
+                            <p className="text-[11px] text-muted-foreground leading-relaxed">
+                              Pindahkan seluruh {txList.length} transaksi secara
+                              otomatis ke pos tujuan sebelum menghapus pos ini.
+                            </p>
+                          </button>
+
+                          {deleteMode === "permanent_delete" && (
+                            <div className="space-y-1.5 pt-1">
+                              <Label
+                                htmlFor={`reassign-${category.id}`}
+                                className="text-xs font-medium"
+                              >
+                                Pindahkan Transaksi Ke Pos Tujuan
+                              </Label>
+                              <select
+                                id={`reassign-${category.id}`}
+                                value={reassignTargetId}
+                                onChange={(e) =>
+                                  setReassignTargetId(e.target.value)
+                                }
+                                className="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              >
+                                {reassignOptions.map((opt) => (
+                                  <option key={opt.id} value={opt.id}>
+                                    {opt.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {deleteError && (
+                        <div className="flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-2.5 text-xs text-destructive">
+                          <AlertTriangle className="size-4 shrink-0 mt-0.5" />
+                          <span>{deleteError}</span>
+                        </div>
+                      )}
+
+                      <DialogFooter className="gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsDeleteOpen(false)}
+                          className="rounded-xl"
+                        >
+                          Batal
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={
+                            txList.length === 0 ||
+                            deleteMode === "permanent_delete"
+                              ? "destructive"
+                              : "default"
+                          }
+                          size="sm"
+                          disabled={
+                            isSaving ||
+                            (txList.length > 0 &&
+                              deleteMode === "permanent_delete" &&
+                              !reassignTargetId)
+                          }
+                          onClick={handleDeleteCategory}
+                          className="rounded-xl gap-1.5"
+                        >
+                          {isSaving ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="size-3.5" />
+                          )}
+                          <span>
+                            {txList.length > 0 &&
+                            deleteMode === "deactivate_next_month"
+                              ? "Hentikan Bulan Depan"
+                              : "Hapus Pos"}
+                          </span>
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 )}
               </div>
             ) : (
@@ -338,12 +583,12 @@ export function BudgetCategoryCard({
                 <DialogHeader>
                   <div className="flex items-center justify-between gap-3 pr-7">
                     <div className="flex min-w-0 items-center gap-2.5">
-                      <span
-                        className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-muted/40 text-lg select-none"
-                        aria-hidden="true"
-                      >
-                        {category.icon}
-                      </span>
+                      <AppCategoryIcon
+                        iconKey={category.icon}
+                        group={category.group}
+                        liabilityId={category.liabilityId}
+                        size="md"
+                      />
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                           <DialogTitle className="truncate text-base font-bold text-foreground">

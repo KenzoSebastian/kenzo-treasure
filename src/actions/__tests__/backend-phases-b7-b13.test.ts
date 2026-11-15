@@ -14,32 +14,34 @@ import {
   createLiabilitySchema,
   recordInstallmentSchema,
   updateCategoryTargetSchema,
+  deleteCategorySchema,
   createTransactionSchema,
   allocateWishlistSchema,
 } from "@/schemas";
 import type { MonthlyCycleDetail } from "@/types";
 
-describe("Backend Phases B7 - B13 Comprehensive Suite", () => {
-  describe("Fase B7: Finite Liabilities & Installment Tracker", () => {
+describe("Backend Phases B7 - B13 & R1 - R10 Comprehensive Suite", () => {
+  describe("Fase B7 & R8: Finite Liabilities & Installment Tracker", () => {
     it("harus menghitung progres cicilan aktif dan sisa bulan dengan presisi", () => {
       const now = new Date();
-      const iphoneDebt = enrichLiabilityWithProgress({
+      const vehicleDebt = enrichLiabilityWithProgress({
         id: "11111111-1111-4111-8111-111111111111",
         userId: "22222222-2222-4222-8222-222222222222",
-        name: "📱 Cicilan Pokok iPhone",
-        totalAmount: 17_640_000,
-        paidAmount: 5_000_000,
-        monthlyPayment: 735_000,
-        totalMonths: 24,
+        name: "Cicilan Kendaraan",
+        icon: "car",
+        totalAmount: 12_000_000,
+        paidAmount: 3_000_000,
+        monthlyPayment: 1_000_000,
+        totalMonths: 12,
         isSettled: false,
         createdAt: now,
         updatedAt: now,
       });
 
-      expect(iphoneDebt.remainingAmount).toBe(12_640_000);
-      expect(iphoneDebt.percentage).toBe(28);
-      expect(iphoneDebt.remainingMonths).toBe(18);
-      expect(iphoneDebt.isSettled).toBe(false);
+      expect(vehicleDebt.remainingAmount).toBe(9_000_000);
+      expect(vehicleDebt.percentage).toBe(25);
+      expect(vehicleDebt.remainingMonths).toBe(9);
+      expect(vehicleDebt.isSettled).toBe(false);
     });
 
     it("harus otomatis menandai isSettled = true ketika paidAmount >= totalAmount", () => {
@@ -47,7 +49,8 @@ describe("Backend Phases B7 - B13 Comprehensive Suite", () => {
       const settledDebt = enrichLiabilityWithProgress({
         id: "11111111-1111-4111-8111-111111111112",
         userId: "22222222-2222-4222-8222-222222222222",
-        name: "👩‍👦 Talangan Mama",
+        name: "Pinjaman Pendidikan",
+        icon: "graduation-cap",
         totalAmount: 2_500_000,
         paidAmount: 2_500_000,
         monthlyPayment: 500_000,
@@ -66,6 +69,7 @@ describe("Backend Phases B7 - B13 Comprehensive Suite", () => {
     it("harus memvalidasi skema createLiability dan recordInstallment", () => {
       const validCreate = createLiabilitySchema.safeParse({
         name: "Cicilan Laptop Kerja",
+        icon: "laptop",
         totalAmount: 12_000_000,
         monthlyPayment: 1_000_000,
         totalMonths: 12,
@@ -74,13 +78,14 @@ describe("Backend Phases B7 - B13 Comprehensive Suite", () => {
 
       const validInstallment = recordInstallmentSchema.safeParse({
         liabilityId: "11111111-1111-4111-8111-111111111111",
-        amount: 735_000,
+        amount: 1_000_000,
+        monthId: "44444444-4444-4444-8444-444444444444",
       });
       expect(validInstallment.success).toBe(true);
     });
   });
 
-  describe("Fase B8: Budget Categories Management", () => {
+  describe("Fase B8 & R4: Budget Categories Management & Deletion Protection", () => {
     it("harus memvalidasi pembaruan plafon target pos anggaran integer non-negatif", () => {
       const valid = updateCategoryTargetSchema.safeParse({
         categoryId: "11111111-1111-4111-8111-111111111111",
@@ -94,17 +99,29 @@ describe("Backend Phases B7 - B13 Comprehensive Suite", () => {
       });
       expect(invalidNegative.success).toBe(false);
     });
+
+    it("harus memvalidasi deleteCategorySchema untuk mode deactivate_next_month dan permanent_delete", () => {
+      const deactivateRes = deleteCategorySchema.safeParse({
+        categoryId: "11111111-1111-4111-8111-111111111111",
+        mode: "deactivate_next_month",
+      });
+      expect(deactivateRes.success).toBe(true);
+
+      const reassignRes = deleteCategorySchema.safeParse({
+        categoryId: "11111111-1111-4111-8111-111111111111",
+        mode: "permanent_delete",
+        targetCategoryId: "22222222-2222-4222-8222-222222222222",
+      });
+      expect(reassignRes.success).toBe(true);
+    });
   });
 
   describe("Fase B9: Sub-Second Transactions & Strict Month-Date Boundary", () => {
     it("harus memvalidasi tanggal transaksi tepat di dalam siklus bulan terkait (isDateWithinMonthCycle)", () => {
       expect(isDateWithinMonthCycle("2026-10-01", 2026, 10)).toBe(true);
       expect(isDateWithinMonthCycle("2026-10-31", 2026, 10)).toBe(true);
-      // Salah bulan
       expect(isDateWithinMonthCycle("2026-11-01", 2026, 10)).toBe(false);
-      // Salah tahun
       expect(isDateWithinMonthCycle("2025-10-15", 2026, 10)).toBe(false);
-      // Tanggal tidak valid (31 Februari)
       expect(isDateWithinMonthCycle("2026-02-31", 2026, 2)).toBe(false);
     });
 
@@ -129,17 +146,17 @@ describe("Backend Phases B7 - B13 Comprehensive Suite", () => {
     });
   });
 
-  describe("Fase B10: Gamified Wishlists & Sinking Fund", () => {
-    it("harus memetakan milestone wishlist (50%, 75%, 90%, 95%, 100%) secara akurat", () => {
+  describe("Fase B10 & R1: Gamified Wishlists & Sinking Fund", () => {
+    it("harus memetakan milestone wishlist (50%, 75%, 90%, 95%, 100%) dan icon key secara akurat", () => {
       const now = new Date();
       const item = enrichWishlist(
         {
           id: "33333333-3333-4333-8333-333333333333",
           userId: "22222222-2222-4222-8222-222222222222",
-          name: "📷 Sony A7 IV",
+          name: "Perangkat Kerja Baru",
           targetAmount: 10_000_000,
           savedAmount: 7_500_000,
-          icon: "📷",
+          icon: "laptop",
           imageUrl: null,
           isPurchased: false,
           createdAt: now,
@@ -150,6 +167,7 @@ describe("Backend Phases B7 - B13 Comprehensive Suite", () => {
 
       expect(item.progress.percentage).toBe(75);
       expect(item.progress.milestone).toBe("major_milestone");
+      expect(item.progress.milestoneIconKey).toBe("rocket");
       expect(item.progress.remainingAmount).toBe(2_500_000);
       expect(calculateWishlistProgress(9_500_000, 10_000_000).milestone).toBe(
         "one_step_away"
@@ -182,11 +200,11 @@ describe("Backend Phases B7 - B13 Comprehensive Suite", () => {
         transferEmergencyFundSchema.safeParse({ amount: 0 }).success
       ).toBe(false);
       expect(
-        updateEmergencyTargetSchema.safeParse({ targetAmount: 18_000_000 })
+        updateEmergencyTargetSchema.safeParse({ targetAmount: 15_000_000 })
           .success
       ).toBe(true);
 
-      const safety = calculateSafetyMonths(12_600_000, 3_000_000, 18_000_000);
+      const safety = calculateSafetyMonths(10_500_000, 2_500_000, 15_000_000);
       expect(safety.safetyMonths).toBe(4.2);
       expect(safety.percentageOfTarget).toBe(70);
       expect(safety.isTargetReached).toBe(false);
@@ -212,14 +230,14 @@ describe("Backend Phases B7 - B13 Comprehensive Suite", () => {
         incomes: [
           {
             id: "inc-1",
-            source: "💵 Gaji Pokok",
+            source: "Gaji Pokok",
             amount: 4_000_000,
             date: "2026-10-01",
             isBaseSalary: true,
           },
           {
             id: "inc-2",
-            source: "Freelance Edit Video",
+            source: "Proyek Freelance",
             amount: 1_000_000,
             date: "2026-10-12",
             isBaseSalary: false,
@@ -230,8 +248,8 @@ describe("Backend Phases B7 - B13 Comprehensive Suite", () => {
             id: "cat-1",
             monthId: "44444444-4444-4444-8444-444444444444",
             liabilityId: null,
-            name: "⛽ Bensin",
-            icon: "⛽",
+            name: "Transportasi & BBM",
+            icon: "fuel",
             group: "kebutuhan",
             targetBudget: 250_000,
             spentAmount: 100_000,
@@ -244,8 +262,8 @@ describe("Backend Phases B7 - B13 Comprehensive Suite", () => {
             id: "cat-2",
             monthId: "44444444-4444-4444-8444-444444444444",
             liabilityId: null,
-            name: "🍿 Uang Bebas / Tabungan",
-            icon: "🍿",
+            name: "Uang Bebas / Tabungan",
+            icon: "sparkles",
             group: "uang_bebas_tabungan",
             targetBudget: 1_915_000,
             spentAmount: 2_100_000,
@@ -265,8 +283,8 @@ describe("Backend Phases B7 - B13 Comprehensive Suite", () => {
           savingsRate: 36,
         })
       );
-      expect(review.mostFrugalCategory?.name).toBe("⛽ Bensin");
-      expect(review.mostOverspentCategory?.name).toBe("🍿 Uang Bebas / Tabungan");
+      expect(review.mostFrugalCategory?.name).toBe("Transportasi & BBM");
+      expect(review.mostOverspentCategory?.name).toBe("Uang Bebas / Tabungan");
       expect(review.tacticalRecommendations.length).toBeGreaterThan(0);
       expect(review.nextMonthAllocationAdvice.length).toBeGreaterThan(0);
     });

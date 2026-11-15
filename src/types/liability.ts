@@ -1,6 +1,6 @@
 /**
  * ==============================================================================
- * Kenzo Treasury — Shared Liability & Installment Types (Fase B7)
+ * Kenzo Treasury — Shared Liability & Installment Types (Fase B7 & R1)
  * ==============================================================================
  */
 
@@ -8,7 +8,8 @@ import type { Liability, NewLiability } from "@/db/schema";
 
 export type { Liability, NewLiability };
 
-export interface LiabilityWithProgress extends Liability {
+export interface LiabilityWithProgress extends Omit<Liability, "icon"> {
+  icon?: string;
   remainingAmount: number;
   percentage: number;
   remainingMonths: number;

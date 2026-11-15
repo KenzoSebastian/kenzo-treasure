@@ -1,24 +1,44 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DataExportPanel } from "@/components/features/settings";
+import { getCachedAuthenticatedSession } from "@/lib/queries/auth";
+import {
+  getUserBudgetTemplates,
+  getUserFinanceSetup,
+} from "@/lib/queries/settings";
+import {
+  DataExportPanel,
+  FinanceDefaultsPanel,
+  BudgetTemplateManager,
+} from "@/components/features/settings";
 
 export const metadata = {
-  title: "Ekspor Data & Backup Mandiri • Kenzo Treasury",
-  description: "Unduh laporan transaksi CSV, Excel (.xlsx), dan cadangan JSON penuh.",
+  title: "Pengaturan & Backup Mandiri • Kenzo Treasury",
+  description:
+    "Atur gaji pokok default, target dana darurat, template pos anggaran rutin, dan unduh backup data penuh.",
 };
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const sessionRes = await getCachedAuthenticatedSession();
+  const userId = sessionRes.success ? sessionRes.data.userId : undefined;
+
+  const [setup, templates] = userId
+    ? await Promise.all([
+        getUserFinanceSetup(userId).catch(() => null),
+        getUserBudgetTemplates(userId).catch(() => []),
+      ])
+    : [null, []];
+
   return (
     <div className="space-y-6 animate-in fade-in-50 duration-200">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/60 pb-5">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-            Ekspor Data & Backup Mandiri
+            Pengaturan Keuangan & Kedaulatan Data
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Kedaulatan data penuh: unduh transaksi bulanan dalam format CSV,
-            Excel, maupun full JSON backup.
+            Kelola gaji pokok default, target dana darurat, template pos
+            anggaran rutin, serta unduh backup transaksi CSV, Excel, atau JSON.
           </p>
         </div>
 
@@ -34,6 +54,16 @@ export default function SettingsPage() {
           </Link>
         </Button>
       </div>
+
+      <FinanceDefaultsPanel
+        defaultBaseSalary={setup?.defaultBaseSalary ?? 0}
+        emergencyFundTarget={setup?.emergencyFundTarget ?? 0}
+      />
+
+      <BudgetTemplateManager
+        templates={templates}
+        defaultBaseSalary={setup?.defaultBaseSalary ?? 0}
+      />
 
       <DataExportPanel />
     </div>

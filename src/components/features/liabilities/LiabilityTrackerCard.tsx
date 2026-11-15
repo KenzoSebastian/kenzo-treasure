@@ -2,26 +2,26 @@
 
 /**
  * ==============================================================================
- * Kenzo Treasury — Liability Tracker Card (Fase F11)
+ * Kenzo Treasury — Liability Tracker Card (Fase F11, R1, R3, R8)
  * ==============================================================================
  *
  * ── Kenapa komponen ini ada ───────────────────────────────────────────────────
  *
  * Melacak utang & cicilan berjangka waktu hingga lunas:
- * - Contoh data dinamis / baseline preview:
- *   1. Cicilan iPhone (Total Rp 17.640.000 — Rp 735.000/bln)
- *   2. Talangan Mama (Total Rp 2.500.000 — Rp 500.000/bln)
- * - Progress bar pelunasan & persentase lunas (`tabular-nums`)
- * - Sisa bulan menuju lunas (`remainingMonths`)
- * - Badge `🏆 100% LUNAS` dan otomatis nonaktif/pensiun di bulan berikutnya
- * - Aksi catat pembayaran cicilan (`recordInstallmentPayment`) & tambah utang
- *   baru (`createLiability`)
+ * - Ikon semantik Lucide (`AppCategoryIcon` & `IconPicker`) tanpa emoji literal.
+ * - Progress bar pelunasan & persentase lunas (`tabular-nums`).
+ * - Sisa bulan menuju lunas (`remainingMonths`).
+ * - Badge `100% LUNAS` dengan ikon `Trophy` dan otomatis nonaktif/pensiun di
+ *   bulan berikutnya.
+ * - Sinkronisasi pembayaran cicilan (`recordInstallmentPayment`) dengan bulan
+ *   berjalan (`monthId`) agar arus kas dan riwayat transaksi pos cicilan tercatat
+ *   secara atomik.
+ * - Opsi alokasi pos cicilan ke anggaran bulan berjalan saat menambah utang baru.
  */
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
-  CreditCard,
   Trophy,
   Plus,
   CheckCircle2,
@@ -43,6 +43,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { AppCategoryIcon } from "@/components/common/AppCategoryIcon";
+import { IconPicker } from "@/components/common/IconPicker";
 import { formatRupiah, parseRupiah } from "@/lib/financial-calculations";
 import {
   createLiability,
@@ -53,22 +55,34 @@ import type { LiabilityWithProgress } from "@/types/liability";
 
 interface LiabilityTrackerCardProps {
   liabilities: LiabilityWithProgress[];
+  monthId?: string;
+  freeBudgetRemaining?: number;
   isClosed?: boolean;
 }
 
 export function LiabilityTrackerCard({
   liabilities,
+  monthId,
+  freeBudgetRemaining,
   isClosed = false,
 }: LiabilityTrackerCardProps) {
   const router = useRouter();
   const [openAddModal, setOpenAddModal] = React.useState(false);
   const [name, setName] = React.useState("");
+  const [icon, setIcon] = React.useState("credit-card");
   const [totalRaw, setTotalRaw] = React.useState("");
   const [monthlyRaw, setMonthlyRaw] = React.useState("");
   const [tenorMonths, setTenorMonths] = React.useState("12");
+  const [allocateToCurrentMonth, setAllocateToCurrentMonth] = React.useState(
+    Boolean(monthId && !isClosed)
+  );
   const [formError, setFormError] = React.useState<string | null>(null);
   const [isPending, startTransition] = React.useTransition();
   const [payingId, setPayingId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    setAllocateToCurrentMonth(Boolean(monthId && !isClosed));
+  }, [monthId, isClosed]);
 
   const handlePayInstallment = (item: LiabilityWithProgress) => {
     if (item.isSettled || item.id.startsWith("preview-")) return;
@@ -78,6 +92,8 @@ export function LiabilityTrackerCard({
       const res = await recordInstallmentPayment({
         liabilityId: item.id,
         amount: Math.min(item.monthlyPayment, item.remainingAmount),
+        monthId: monthId && !isClosed ? monthId : undefined,
+        method: "transfer",
       });
       setPayingId(null);
 
@@ -87,7 +103,7 @@ export function LiabilityTrackerCard({
       }
 
       if (res.data.isSettled) {
-        toast.success(`🏆 Selamat! "${item.name}" 100% LUNAS!`, {
+        toast.success(`Selamat! "${item.name}" 100% LUNAS!`, {
           description:
             "Pos cicilan ini otomatis pensiun di siklus bulan berikutnya.",
         });
@@ -124,12 +140,17 @@ export function LiabilityTrackerCard({
 
     setFormError(null);
     startTransition(async () => {
+      const shouldAllocate =
+        Boolean(monthId && !isClosed) && allocateToCurrentMonth;
       const res = await createLiability({
         name: trimmedName,
+        icon: icon.trim() || "credit-card",
         totalAmount,
         paidAmount: 0,
         monthlyPayment,
         totalMonths: totalTenorMonths,
+        addToCurrentMonthBudget: shouldAllocate,
+        monthId: shouldAllocate ? monthId : undefined,
       });
 
       if (!res.success) {
@@ -139,6 +160,7 @@ export function LiabilityTrackerCard({
 
       toast.success(`Cicilan "${res.data.name}" ditambahkan`);
       setName("");
+      setIcon("credit-card");
       setTotalRaw("");
       setMonthlyRaw("");
       setOpenAddModal(false);
@@ -172,7 +194,7 @@ export function LiabilityTrackerCard({
               </Button>
             </DialogTrigger>
 
-            <DialogContent className="sm:max-w-md rounded-2xl p-6">
+            <DialogContent className="sm:max-w-md rounded-2xl p-6 max-h-[90dvh] overflow-y-auto">
               <form onSubmit={handleCreateLiability} className="space-y-4" noValidate>
                 <DialogHeader>
                   <DialogTitle className="text-base font-bold">
@@ -191,7 +213,7 @@ export function LiabilityTrackerCard({
                     </Label>
                     <Input
                       id="liab-name"
-                      placeholder="Contoh: Cicilan iPhone / Talangan Mama"
+                      placeholder="Contoh: Cicilan Kendaraan / Pinjaman Pendidikan"
                       value={name}
                       onChange={(e) => {
                         setName(e.target.value);
@@ -210,7 +232,7 @@ export function LiabilityTrackerCard({
                         id="liab-total"
                         type="text"
                         inputMode="numeric"
-                        placeholder="17.640.000"
+                        placeholder="12.000.000"
                         value={
                           parseRupiah(totalRaw) > 0
                             ? parseRupiah(totalRaw).toLocaleString("id-ID")
@@ -231,7 +253,7 @@ export function LiabilityTrackerCard({
                         id="liab-monthly"
                         type="text"
                         inputMode="numeric"
-                        placeholder="735.000"
+                        placeholder="1.000.000"
                         value={
                           parseRupiah(monthlyRaw) > 0
                             ? parseRupiah(monthlyRaw).toLocaleString("id-ID")
@@ -259,6 +281,34 @@ export function LiabilityTrackerCard({
                       className="h-10 rounded-xl text-xs tabular-nums"
                     />
                   </div>
+
+                  <IconPicker
+                    value={icon}
+                    onChange={setIcon}
+                    fallbackGroup="pos_wajib"
+                    label="Pilih Ikon Cicilan"
+                  />
+
+                  {monthId && !isClosed && (
+                    <label className="flex items-start gap-2.5 rounded-xl border border-border/70 bg-muted/20 p-3 text-xs cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={allocateToCurrentMonth}
+                        onChange={(e) =>
+                          setAllocateToCurrentMonth(e.target.checked)
+                        }
+                        className="size-4 rounded accent-primary mt-0.5 shrink-0"
+                      />
+                      <span className="leading-relaxed text-foreground">
+                        Alokasikan pos cicilan ke anggaran bulan berjalan
+                        (otomatis memotong kuota Uang Bebas
+                        {typeof freeBudgetRemaining === "number"
+                          ? `, sisa saat ini: ${formatRupiah(freeBudgetRemaining)}`
+                          : ""}
+                        )
+                      </span>
+                    </label>
+                  )}
 
                   {formError && (
                     <p className="text-xs font-medium text-destructive">
@@ -297,147 +347,158 @@ export function LiabilityTrackerCard({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {liabilities.map((item) => {
-          const isPreview = item.id.startsWith("preview-");
-          return (
-            <Card
-              key={item.id}
-              className={cn(
-                "rounded-2xl border border-border/80 bg-card p-5 space-y-4 shadow-xs transition-all",
-                item.isSettled &&
-                  "border-emerald-500/40 bg-emerald-500/5"
-              )}
-            >
-              {/* Header */}
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className={cn(
-                      "flex size-10 items-center justify-center rounded-xl",
-                      item.isSettled
-                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                        : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                    )}
-                  >
+      {liabilities.length === 0 ? (
+        <Card className="rounded-2xl border border-dashed border-border/70 bg-muted/15 p-6 text-center space-y-1.5">
+          <p className="text-xs font-semibold text-foreground">
+            Belum ada catatan cicilan atau utang aktif
+          </p>
+          <p className="text-[11px] text-muted-foreground">
+            Tambahkan kewajiban cicilan berjangka waktu jika Anda ingin melacak
+            progres pelunasannya setiap bulan.
+          </p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {liabilities.map((item) => {
+            const isPreview = item.id.startsWith("preview-");
+            return (
+              <Card
+                key={item.id}
+                className={cn(
+                  "rounded-2xl border border-border/80 bg-card p-5 space-y-4 shadow-xs transition-all",
+                  item.isSettled &&
+                    "border-emerald-500/40 bg-emerald-500/5"
+                )}
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
                     {item.isSettled ? (
-                      <Trophy className="size-5" />
+                      <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                        <Trophy className="size-5" />
+                      </div>
                     ) : (
-                      <CreditCard className="size-5" />
+                      <AppCategoryIcon
+                        iconKey={item.icon ?? "credit-card"}
+                        group="pos_wajib"
+                        liabilityId={item.id}
+                        size="md"
+                      />
                     )}
+                    <div>
+                      <h3 className="text-sm font-bold text-foreground">
+                        {item.name}
+                      </h3>
+                      <p className="text-xs text-muted-foreground tabular-nums">
+                        Tagihan: {formatRupiah(item.monthlyPayment)} / bln
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-foreground">
-                      {item.name}
-                    </h3>
-                    <p className="text-xs text-muted-foreground tabular-nums">
-                      Tagihan: {formatRupiah(item.monthlyPayment)} / bln
+
+                  {item.isSettled ? (
+                    <Badge className="rounded-full bg-emerald-600 text-white hover:bg-emerald-600 text-[10px] font-bold gap-1 px-2.5 py-0.5">
+                      <Trophy className="size-3 shrink-0" />
+                      <span>100% LUNAS</span>
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="rounded-full text-[10px] font-semibold gap-1 px-2.5 py-0.5 tabular-nums"
+                    >
+                      <CalendarClock className="size-3 text-amber-500" />
+                      <span>{`${item.remainingMonths} Bulan Tersisa`}</span>
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Progress Bar Pelunasan */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">
+                      Progres Pelunasan Pokok:
+                    </span>
+                    <span className="font-bold text-foreground tabular-nums">
+                      {item.percentage}%
+                    </span>
+                  </div>
+                  <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden">
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-all duration-500",
+                        item.isSettled ? "bg-emerald-500" : "bg-amber-500"
+                      )}
+                      style={{
+                        width: `${Math.min(100, item.percentage)}%`,
+                      }}
+                    />
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 pt-1 text-[11px] tabular-nums">
+                    <div>
+                      <span className="text-muted-foreground block">
+                        Total Utang
+                      </span>
+                      <span className="font-semibold text-foreground">
+                        {formatRupiah(item.totalAmount)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block">
+                        Sudah Dibayar
+                      </span>
+                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                        {formatRupiah(item.paidAmount)}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-muted-foreground block">
+                        Sisa Pokok
+                      </span>
+                      <span className="font-bold text-foreground">
+                        {formatRupiah(item.remainingAmount)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Action / Settled Banner */}
+                <div className="pt-2 border-t border-border/50 flex items-center justify-between gap-2">
+                  {item.isSettled ? (
+                    <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
+                      Kewajiban ini telah lunas penuh dan tidak lagi memotong gaji
+                      bulan berikutnya.
                     </p>
-                  </div>
+                  ) : (
+                    <>
+                      <span className="text-[11px] text-muted-foreground tabular-nums">
+                        Tenor: {item.totalMonths ?? Math.ceil(item.totalAmount / Math.max(1, item.monthlyPayment))} bln ({item.remainingMonths} bln tersisa)
+                      </span>
+                      {!isClosed && !isPreview && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={payingId === item.id || isPending}
+                          onClick={() => handlePayInstallment(item)}
+                          className="h-8 px-3 rounded-xl text-xs font-semibold gap-1.5"
+                        >
+                          {payingId === item.id ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                          )}
+                          <span>
+                            Bayar {formatRupiah(Math.min(item.monthlyPayment, item.remainingAmount))}
+                          </span>
+                        </Button>
+                      )}
+                    </>
+                  )}
                 </div>
-
-                {item.isSettled ? (
-                  <Badge className="rounded-full bg-emerald-600 text-white hover:bg-emerald-600 text-[10px] font-bold px-2.5 py-0.5">
-                    🏆 100% LUNAS
-                  </Badge>
-                ) : (
-                  <Badge
-                    variant="outline"
-                    className="rounded-full text-[10px] font-semibold gap-1 px-2.5 py-0.5 tabular-nums"
-                  >
-                    <CalendarClock className="size-3 text-amber-500" />
-                    <span>{`${item.remainingMonths} Bulan Tersisa`}</span>
-                  </Badge>
-                )}
-              </div>
-
-              {/* Progress Bar Pelunasan */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">
-                    Progres Pelunasan Pokok:
-                  </span>
-                  <span className="font-bold text-foreground tabular-nums">
-                    {item.percentage}%
-                  </span>
-                </div>
-                <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden">
-                  <div
-                    className={cn(
-                      "h-full rounded-full transition-all duration-500",
-                      item.isSettled ? "bg-emerald-500" : "bg-amber-500"
-                    )}
-                    style={{
-                      width: `${Math.min(100, item.percentage)}%`,
-                    }}
-                  />
-                </div>
-                <div className="grid grid-cols-3 gap-2 pt-1 text-[11px] tabular-nums">
-                  <div>
-                    <span className="text-muted-foreground block">
-                      Total Utang
-                    </span>
-                    <span className="font-semibold text-foreground">
-                      {formatRupiah(item.totalAmount)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground block">
-                      Sudah Dibayar
-                    </span>
-                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                      {formatRupiah(item.paidAmount)}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-muted-foreground block">
-                      Sisa Pokok
-                    </span>
-                    <span className="font-bold text-foreground">
-                      {formatRupiah(item.remainingAmount)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer Action / Settled Banner */}
-              <div className="pt-2 border-t border-border/50 flex items-center justify-between gap-2">
-                {item.isSettled ? (
-                  <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
-                    Kewajiban ini telah lunas penuh dan tidak lagi memotong gaji
-                    bulan berikutnya.
-                  </p>
-                ) : (
-                  <>
-                    <span className="text-[11px] text-muted-foreground tabular-nums">
-                      Tenor: {item.totalMonths ?? Math.ceil(item.totalAmount / Math.max(1, item.monthlyPayment))} bln ({item.remainingMonths} bln tersisa)
-                    </span>
-                    {!isClosed && !isPreview && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        disabled={payingId === item.id || isPending}
-                        onClick={() => handlePayInstallment(item)}
-                        className="h-8 px-3 rounded-xl text-xs font-semibold gap-1.5"
-                      >
-                        {payingId === item.id ? (
-                          <Loader2 className="size-3.5 animate-spin" />
-                        ) : (
-                          <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-                        )}
-                        <span>
-                          Bayar {formatRupiah(Math.min(item.monthlyPayment, item.remainingAmount))}
-                        </span>
-                      </Button>
-                    )}
-                  </>
-                )}
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }

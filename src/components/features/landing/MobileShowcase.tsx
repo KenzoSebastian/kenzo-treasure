@@ -8,6 +8,9 @@ import {
   Banknote,
   Wifi,
   Signal,
+  Fuel,
+  ShoppingBag,
+  PiggyBank,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -94,16 +97,16 @@ export function MobileShowcase() {
                 {/* Right: Power / Side Button */}
                 <div className="absolute right-[-3px] top-32 w-[3.5px] h-16 rounded-r-xs bg-neutral-600/90 shadow-xs pointer-events-none" />
 
-                {/* Outer iPhone Titanium Chassis (Tegak 2 Dimensi) */}
+                {/* Outer Smartphone Titanium Chassis (Tegak 2 Dimensi) */}
                 <div className="relative rounded-[50px] p-[9px] bg-neutral-900 border-[3px] border-neutral-700/80 ring-1 ring-white/10 shadow-2xl">
                   {/* Screen Bezel & Display Layer */}
                   <div className="relative rounded-[40px] bg-background border border-neutral-800/80 overflow-hidden flex flex-col justify-between p-3.5 pt-2 pb-2.5 text-xs font-sans shadow-inner min-h-[580px] sm:min-h-[595px]">
-                    {/* iOS Status Bar with Vector Dynamic Island */}
+                    {/* Status Bar with Vector Island */}
                     <div className="relative h-8 flex items-center justify-between text-xs font-semibold text-foreground shrink-0 select-none px-1">
                       {/* Left: Clock */}
                       <span className="text-[11px] font-bold tracking-tight pl-2">09:41</span>
 
-                      {/* Center: Authentic Vector Dynamic Island */}
+                      {/* Center: Authentic Vector Island */}
                       <div className="absolute left-1/2 -translate-x-1/2 top-1.5 h-6 w-24 rounded-full bg-black flex items-center justify-between px-2.5 shadow-md">
                         {/* Speaker / Ambient Light Sensor */}
                         <div className="size-2 rounded-full bg-neutral-900 border border-neutral-800/80" />
@@ -159,16 +162,20 @@ export function MobileShowcase() {
                         </span>
                         <div className="grid grid-cols-2 gap-1.5 text-[11px]">
                           <div className="rounded-lg border border-primary bg-primary/10 px-2 py-1.5 text-center font-semibold text-foreground flex items-center justify-center gap-1.5">
-                            <span>⛽</span> Bensin
+                            <Fuel className="size-3.5 text-primary" />
+                            <span>Bensin</span>
                           </div>
                           <div className="rounded-lg border bg-muted/30 px-2 py-1.5 text-center text-muted-foreground flex items-center justify-center gap-1.5">
-                            <span>🍿</span> Belanja
+                            <ShoppingBag className="size-3.5" />
+                            <span>Belanja</span>
                           </div>
                           <div className="rounded-lg border bg-muted/30 px-2 py-1.5 text-center text-muted-foreground flex items-center justify-center gap-1.5">
-                            <span>⚡</span> Listrik
+                            <Zap className="size-3.5" />
+                            <span>Listrik</span>
                           </div>
                           <div className="rounded-lg border bg-muted/30 px-2 py-1.5 text-center text-muted-foreground flex items-center justify-center gap-1.5">
-                            <span>💰</span> Tabungan
+                            <PiggyBank className="size-3.5" />
+                            <span>Tabungan</span>
                           </div>
                         </div>
                       </div>
@@ -209,7 +216,7 @@ export function MobileShowcase() {
                       </div>
                     </div>
 
-                    {/* iOS Home Indicator Bar */}
+                    {/* Home Indicator Bar */}
                     <div className="h-4 flex items-center justify-center shrink-0 mt-1">
                       <div className="h-1 w-28 rounded-full bg-foreground/25" />
                     </div>

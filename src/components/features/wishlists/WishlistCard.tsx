@@ -2,7 +2,7 @@
 
 /**
  * ==============================================================================
- * Kenzo Treasury — Gamified Dream Wishlist Card & Grid (Fase F12)
+ * Kenzo Treasury — Gamified Dream Wishlist Card & Grid (Fase F12, R1, R3)
  * ==============================================================================
  *
  * ── Kenapa komponen ini ada ───────────────────────────────────────────────────
@@ -10,11 +10,11 @@
  * Menampilkan katalog kartu barang impian (Sinking Fund):
  * - Foto barang dengan rasio proporsional & loading skeleton.
  * - Progress bar pengumpulan dana & milestone badges (`50%`, `75%`, `90%`,
- *   `95%`, `🎉 100% Tercapai!`).
+ *   `95%`, `100% Tercapai!`) dengan ikon Lucide semantik.
  * - Drawer alokasi dana (`AllocateWishlistDrawer`) & tombol `Tandai Terbeli`
  *   (`markWishlistAsPurchased`).
- * - Modal `Tambah Barang Impian Baru` dengan drag-and-drop image preview &
- *   kompresi WebP otomatis `<200KB` (`compressImageToWebP`).
+ * - Modal `Tambah Barang Impian Baru` dengan `IconPicker`, drag-and-drop image
+ *   preview & kompresi WebP otomatis `<200KB` (`compressImageToWebP`).
  */
 
 import * as React from "react";
@@ -43,6 +43,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { AppCategoryIcon } from "@/components/common/AppCategoryIcon";
+import { IconPicker } from "@/components/common/IconPicker";
+import { getWishlistMilestoneIconComponent } from "@/lib/category-icons";
 import { formatRupiah, parseRupiah } from "@/lib/financial-calculations";
 import { compressImageToWebP } from "@/lib/image-compressor";
 import { createWishlist, markWishlistAsPurchased } from "@/actions/wishlists";
@@ -64,6 +67,9 @@ export function WishlistCard({
 
   const progressPct = wishlist.progress.percentage;
   const remainingAmt = wishlist.progress.remainingAmount;
+  const MilestoneIcon = getWishlistMilestoneIconComponent(
+    wishlist.isPurchased ? "trophy" : wishlist.progress.milestoneIconKey
+  );
 
   const handleMarkPurchased = () => {
     if (wishlist.id.startsWith("preview-")) return;
@@ -73,7 +79,7 @@ export function WishlistCard({
         toast.error(res.error);
         return;
       }
-      toast.success(`🏆 Selamat! "${wishlist.name}" ditandai Terbeli!`);
+      toast.success(`Selamat! "${wishlist.name}" ditandai Terbeli!`);
       router.refresh();
     });
   };
@@ -83,26 +89,26 @@ export function WishlistCard({
   let milestoneStyle = "bg-muted text-muted-foreground border-border/60";
 
   if (wishlist.isPurchased) {
-    milestoneText = "🏆 Sudah Terbeli";
+    milestoneText = "Sudah Terbeli";
     milestoneStyle = "bg-emerald-600 text-white border-emerald-600";
   } else if (progressPct >= 100) {
-    milestoneText = "🎉 100% Tercapai!";
+    milestoneText = "100% Tercapai!";
     milestoneStyle =
       "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30";
   } else if (progressPct >= 95) {
-    milestoneText = "🔥 95% Hampir Lunas!";
+    milestoneText = "95% Hampir Lunas!";
     milestoneStyle =
       "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30";
   } else if (progressPct >= 90) {
-    milestoneText = "⚡ Milestone 90%";
+    milestoneText = "Milestone 90%";
     milestoneStyle =
       "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30";
   } else if (progressPct >= 75) {
-    milestoneText = "🚀 Milestone 75%";
+    milestoneText = "Milestone 75%";
     milestoneStyle =
       "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30";
   } else if (progressPct >= 50) {
-    milestoneText = "✨ Milestone 50%";
+    milestoneText = "Milestone 50%";
     milestoneStyle = "bg-primary/10 text-primary border-primary/30";
   }
 
@@ -119,10 +125,11 @@ export function WishlistCard({
               className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
             />
           ) : (
-            <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
-              <ImageIcon className="size-8 opacity-40" />
-              <span className="text-[11px] font-medium">
-                {wishlist.icon} Sinking Fund Impian
+            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+              <AppCategoryIcon iconKey={wishlist.icon} size="lg" />
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium">
+                <ImageIcon className="size-3.5 opacity-60" />
+                <span>Sinking Fund Impian</span>
               </span>
             </div>
           )}
@@ -131,24 +138,28 @@ export function WishlistCard({
             <Badge
               variant="outline"
               className={cn(
-                "rounded-full text-[10px] font-bold px-2.5 py-0.5 backdrop-blur-md shadow-xs tabular-nums",
+                "rounded-full text-[10px] font-bold gap-1 px-2.5 py-0.5 backdrop-blur-md shadow-xs tabular-nums",
                 milestoneStyle
               )}
             >
-              {milestoneText}
+              <MilestoneIcon className="size-3 shrink-0" />
+              <span>{milestoneText}</span>
             </Badge>
           </div>
         </div>
 
         {/* Konten Detail */}
         <div className="p-4 sm:p-5 space-y-3.5">
-          <div>
-            <h3 className="text-sm font-bold text-foreground leading-snug">
-              {wishlist.name}
-            </h3>
-            <span className="text-xs text-muted-foreground tabular-nums">
-              Target Harga: {formatRupiah(wishlist.targetAmount)}
-            </span>
+          <div className="flex items-start gap-2.5">
+            <AppCategoryIcon iconKey={wishlist.icon} size="sm" />
+            <div className="min-w-0">
+              <h3 className="text-sm font-bold text-foreground leading-snug truncate">
+                {wishlist.name}
+              </h3>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                Target Harga: {formatRupiah(wishlist.targetAmount)}
+              </span>
+            </div>
           </div>
 
           {/* Progress Bar */}
@@ -232,6 +243,7 @@ export function WishlistGrid({
   const router = useRouter();
   const [openAddModal, setOpenAddModal] = React.useState(false);
   const [itemName, setItemName] = React.useState("");
+  const [icon, setIcon] = React.useState("target");
   const [targetRaw, setTargetRaw] = React.useState("");
   const [previewDataUrl, setPreviewDataUrl] = React.useState<string>("");
   const [compressedInfo, setCompressedInfo] = React.useState<string | null>(
@@ -285,7 +297,7 @@ export function WishlistGrid({
       const res = await createWishlist({
         name: trimmedName,
         targetAmount,
-        icon: "🎯",
+        icon: icon.trim() || "target",
         imageUrl: previewDataUrl || null,
       });
 
@@ -296,6 +308,7 @@ export function WishlistGrid({
 
       toast.success(`Barang impian "${res.data.name}" ditambahkan!`);
       setItemName("");
+      setIcon("target");
       setTargetRaw("");
       setPreviewDataUrl("");
       setCompressedInfo(null);
@@ -384,7 +397,7 @@ export function WishlistGrid({
                   </label>
                   {compressedInfo && (
                     <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 tabular-nums">
-                      ✓ {compressedInfo}
+                      {compressedInfo}
                     </p>
                   )}
                 </div>
@@ -395,7 +408,7 @@ export function WishlistGrid({
                   </Label>
                   <Input
                     id="wishlist-name"
-                    placeholder="Contoh: Sony A6700 + Lensa Sigma 18-50mm"
+                    placeholder="Contoh: Laptop Kerja / Sepeda Lipat"
                     value={itemName}
                     onChange={(e) => {
                       setItemName(e.target.value);
@@ -413,7 +426,7 @@ export function WishlistGrid({
                     id="wishlist-price"
                     type="text"
                     inputMode="numeric"
-                    placeholder="12.000.000"
+                    placeholder="8.500.000"
                     value={
                       parseRupiah(targetRaw) > 0
                         ? parseRupiah(targetRaw).toLocaleString("id-ID")
@@ -426,6 +439,12 @@ export function WishlistGrid({
                     className="h-10 rounded-xl text-xs tabular-nums"
                   />
                 </div>
+
+                <IconPicker
+                  value={icon}
+                  onChange={setIcon}
+                  label="Pilih Ikon Wishlist"
+                />
 
                 {formError && (
                   <p className="text-xs font-medium text-destructive">
@@ -464,15 +483,27 @@ export function WishlistGrid({
       </div>
 
       {/* Grid Kartu Barang Impian */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {wishlists.map((w) => (
-          <WishlistCard
-            key={w.id}
-            wishlist={w}
-            freeSavingsBalance={freeSavingsBalance}
-          />
-        ))}
-      </div>
+      {wishlists.length === 0 ? (
+        <Card className="rounded-2xl border border-dashed border-border/70 bg-muted/15 p-8 text-center space-y-2">
+          <p className="text-sm font-bold text-foreground">
+            Belum ada barang impian di katalog Anda
+          </p>
+          <p className="text-xs text-muted-foreground max-w-md mx-auto">
+            Tambahkan target pembelian barang impian dan kumpulkan dananya secara
+            bertahap dari Saldo Tabungan Bebas tanpa mengganggu kas bulanan.
+          </p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {wishlists.map((w) => (
+            <WishlistCard
+              key={w.id}
+              wishlist={w}
+              freeSavingsBalance={freeSavingsBalance}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

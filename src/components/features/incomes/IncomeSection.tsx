@@ -2,15 +2,15 @@
 
 /**
  * ==============================================================================
- * Kenzo Treasury — Income Section: Gaji Pokok vs Freelance (Fase F10)
+ * Kenzo Treasury — Income Section: Gaji Pokok vs Freelance (Fase F10, R1, R3)
  * ==============================================================================
  *
  * ── Kenapa komponen ini ada ───────────────────────────────────────────────────
  *
  * Memisahkan tampilan pemasukan bulan berjalan menjadi 2 bagian jelas:
- * 1. `💵 Gaji Pokok: Rp 4.000.000` (Terikat ke 7 Pos Pengeluaran Wajib).
- * 2. Daftar `Pemasukan Tambahan / Freelance` (misal: "Freelance Edit Video",
- *    "Project Luar") yang secara dinamis memperbesar kuota Uang Bebas / Tabungan.
+ * 1. Pemasukan Gaji Pokok (terikat pada pos-pos wajib & kebutuhan rutin).
+ * 2. Daftar `Pemasukan Tambahan / Freelance` yang secara dinamis memperbesar
+ *    kuota Uang Bebas / Tabungan.
  * 3. Modal `Tambah Pemasukan Tambahan` dengan validasi inline dan notifikasi
  *    otomatis bahwa dana freelance dialokasikan ke kuota Uang Bebas.
  */
@@ -41,7 +41,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { formatRupiah, parseRupiah } from "@/lib/financial-calculations";
+import {
+  formatRupiah,
+  parseRupiah,
+  resolveDefaultCycleDate,
+} from "@/lib/financial-calculations";
 import { addIncome, deleteIncome } from "@/actions/incomes";
 import { cn } from "@/lib/utils";
 
@@ -81,15 +85,10 @@ export function IncomeSection({
   const [isPending, startTransition] = React.useTransition();
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
 
-  const defaultDate = React.useMemo(() => {
-    const now = new Date();
-    if (cycleYear && cycleMonthIndex) {
-      return `${cycleYear}-${String(cycleMonthIndex).padStart(2, "0")}-${String(
-        Math.min(now.getDate(), 28)
-      ).padStart(2, "0")}`;
-    }
-    return now.toISOString().slice(0, 10);
-  }, [cycleYear, cycleMonthIndex]);
+  const defaultDate = React.useMemo(
+    () => resolveDefaultCycleDate(cycleYear, cycleMonthIndex),
+    [cycleYear, cycleMonthIndex]
+  );
 
   const [date, setDate] = React.useState(defaultDate);
 
@@ -116,7 +115,7 @@ export function IncomeSection({
     const errors: { source?: string; amount?: string } = {};
 
     if (trimmedSource.length < 2) {
-      errors.source = "Sumber pemasukan minimal 2 karakter (misal: Freelance Edit Video)";
+      errors.source = "Sumber pemasukan minimal 2 karakter (misal: Proyek Lepas)";
     }
     if (numericAmount <= 0) {
       errors.amount = "Nominal pemasukan harus lebih besar dari Rp 0";
@@ -146,7 +145,7 @@ export function IncomeSection({
       }
 
       toast.success(`+${formatRupiah(numericAmount)} ditambahkan!`, {
-        description: `Otomatis memperbesar kuota 🍿 Uang Bebas / Tabungan dari "${trimmedSource}".`,
+        description: `Otomatis memperbesar kuota Uang Bebas / Tabungan dari "${trimmedSource}".`,
       });
       setSource("");
       setAmountRaw("");
@@ -177,7 +176,7 @@ export function IncomeSection({
             Sumber Pemasukan: Gaji Pokok vs Freelance
           </h2>
           <p className="text-xs text-muted-foreground">
-            Gaji pokok mengunci 7 pos wajib, sedangkan pendapatan freelance
+            Gaji pokok mendanai pos anggaran rutin, sedangkan pendapatan freelance
             otomatis memperbesar buffer Uang Bebas & Tabungan.
           </p>
         </div>
@@ -202,7 +201,7 @@ export function IncomeSection({
                     Tambah Pemasukan Tambahan / Freelance
                   </DialogTitle>
                   <DialogDescription className="text-xs text-muted-foreground">
-                    Catat pemasukan di luar gaji pokok seperti project freelance,
+                    Catat pemasukan di luar gaji pokok seperti proyek freelance,
                     bonus, atau komisi.
                   </DialogDescription>
                 </DialogHeader>
@@ -213,7 +212,8 @@ export function IncomeSection({
                   <p className="leading-relaxed">
                     Dana tambahan ini otomatis dialokasikan sebagai{" "}
                     <strong>Dynamic Freedom Buffer</strong> untuk memperbesar kuota{" "}
-                    <strong>🍿 Uang Bebas / Tabungan</strong> tanpa mengubah 7 pos wajib.
+                    <strong>Uang Bebas / Tabungan</strong> tanpa mengubah alokasi
+                    pos wajib Anda.
                   </p>
                 </div>
 
@@ -224,7 +224,7 @@ export function IncomeSection({
                     </Label>
                     <Input
                       id="income-source"
-                      placeholder="Contoh: Freelance Edit Video / Project Luar"
+                      placeholder="Contoh: Proyek Freelance / Komisi"
                       value={source}
                       onChange={(e) => {
                         setSource(e.target.value);
@@ -237,9 +237,9 @@ export function IncomeSection({
                     />
                     <div className="flex flex-wrap gap-1.5 pt-0.5">
                       {[
-                        "Freelance Edit Video",
-                        "Project Luar",
+                        "Proyek Freelance",
                         "Bonus Kinerja",
+                        "Komisi / Insentif",
                       ].map((preset) => (
                         <button
                           key={preset}
@@ -270,7 +270,7 @@ export function IncomeSection({
                         id="income-amount"
                         type="text"
                         inputMode="numeric"
-                        placeholder="500.000"
+                        placeholder="250.000"
                         value={
                           parseRupiah(amountRaw) > 0
                             ? parseRupiah(amountRaw).toLocaleString("id-ID")
@@ -338,7 +338,7 @@ export function IncomeSection({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* 1. Kartu Gaji Pokok (Terikat ke 7 Pos Wajib) */}
+        {/* 1. Kartu Gaji Pokok */}
         <Card className="rounded-2xl border border-border/80 bg-card p-4 sm:p-5 space-y-3 shadow-xs">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2.5">
@@ -349,8 +349,8 @@ export function IncomeSection({
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Pemasukan Utama Rutin
                 </span>
-                <h3 className="text-sm font-bold text-foreground">
-                  {`💵 Gaji Pokok: ${formatRupiah(baseSalary)}`}
+                <h3 className="text-sm font-bold text-foreground tabular-nums">
+                  {`Gaji Pokok: ${formatRupiah(baseSalary)}`}
                 </h3>
               </div>
             </div>
@@ -359,13 +359,12 @@ export function IncomeSection({
               className="rounded-full text-[10px] font-semibold gap-1 px-2.5 py-0.5"
             >
               <ShieldCheck className="size-3 text-emerald-600 dark:text-emerald-400" />
-              <span>Terikat 7 Pos Wajib</span>
+              <span>Terikat Pos Rutin</span>
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Pondasi anggaran bulanan yang menjamin seluruh pos kewajiban rutin
-            (Gereja, Listrik, Tabungan, Bensin, Uang Bebas, & Cicilan) terpenuhi
-            100% di awal bulan.
+            Pondasi anggaran bulanan yang menjamin seluruh pos kewajiban rutin,
+            kebutuhan harian, dan cicilan aktif terpenuhi secara terencana.
           </p>
         </Card>
 
@@ -381,7 +380,7 @@ export function IncomeSection({
                   Dynamic Freedom Buffer
                 </span>
                 <h3 className="text-sm font-bold text-foreground tabular-nums">
-                  🚀 Freelance & Bonus: +{formatRupiah(totalExtra)}
+                  {`Freelance & Bonus: +${formatRupiah(totalExtra)}`}
                 </h3>
               </div>
             </div>
@@ -396,7 +395,7 @@ export function IncomeSection({
           {extraIncomes.length === 0 ? (
             <p className="text-xs text-muted-foreground py-1 leading-relaxed">
               Belum ada pemasukan freelance pada siklus bulan ini. Setiap pemasukan
-              sampingan yang dicatat akan otomatis menambah kuota 🍿 Uang Bebas /
+              sampingan yang dicatat akan otomatis menambah kuota Uang Bebas /
               Tabungan.
             </p>
           ) : (

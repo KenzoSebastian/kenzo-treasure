@@ -2,7 +2,7 @@
 
 /**
  * ==============================================================================
- * Kenzo Treasury — Allocate Wishlist Sinking Fund Drawer (Fase F13)
+ * Kenzo Treasury — Allocate Wishlist Sinking Fund Drawer (Fase F13, R1, R6)
  * ==============================================================================
  *
  * ── Kenapa komponen ini ada ───────────────────────────────────────────────────
@@ -11,7 +11,8 @@
  * 1. Menampilkan sisa `Saldo Tabungan Bebas` yang tersedia (`tabular-nums`).
  * 2. Input nominal alokasi dengan quick pill shortcut (`10%`, `25%`, `50%`,
  *    `Semua Saldo`).
- * 3. Opsi tarik balik dana dari wishlist ke tabungan bebas (`withdrawFromWishlist`).
+ * 3. Opsi tarik balik dana dari wishlist ke tabungan bebas (`withdrawFromWishlist`)
+ *    menggunakan `SlidingSegmentedControl`.
  * 4. Efek selebrasi Confetti (`canvas-confetti`) saat alokasi mencapai milestone
  *    penting (`50%`, `75%`, `90%`, `95%`, dan `100% Lunas`).
  * 5. Tabel log riwayat mutasi alokasi di dalam detail wishlist.
@@ -42,6 +43,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { SlidingSegmentedControl } from "@/components/common/SlidingSegmentedControl";
 import { formatRupiah, parseRupiah } from "@/lib/financial-calculations";
 import { allocateSavings, withdrawFromWishlist } from "@/actions/wishlists";
 import { cn } from "@/lib/utils";
@@ -52,6 +54,23 @@ interface AllocateWishlistDrawerProps {
   freeSavingsBalance: number;
   trigger?: React.ReactNode;
 }
+
+const WISHLIST_MODE_OPTIONS: Array<{
+  value: "allocate" | "withdraw";
+  label: string;
+  icon: React.ReactNode;
+}> = [
+  {
+    value: "allocate",
+    label: "Setor ke Wishlist",
+    icon: <ArrowUpRight className="size-3.5 text-emerald-600" />,
+  },
+  {
+    value: "withdraw",
+    label: "Tarik ke Tabungan",
+    icon: <ArrowDownLeft className="size-3.5 text-amber-600" />,
+  },
+];
 
 export function AllocateWishlistDrawer({
   wishlist,
@@ -151,8 +170,8 @@ export function AllocateWishlistDrawer({
           fireCelebrationConfetti();
           toast.success(
             pct >= 100
-              ? `🎉 100% Tercapai! "${wishlist.name}" siap dibeli!`
-              : `✨ Milestone ${pct}% tercapai untuk "${wishlist.name}"!`,
+              ? `100% Tercapai! "${wishlist.name}" siap dibeli!`
+              : `Milestone ${pct}% tercapai untuk "${wishlist.name}"!`,
             {
               description: `Terkumpul: ${formatRupiah(
                 res.data.savedAmount
@@ -246,41 +265,20 @@ export function AllocateWishlistDrawer({
             </div>
           </div>
 
-          {/* Toggle Mode: Alokasi vs Tarik Balik */}
-          <div className="grid grid-cols-2 gap-2 rounded-xl bg-muted/50 p-1">
-            <button
-              type="button"
-              onClick={() => {
-                setMode("allocate");
-                setErrorMsg(null);
-              }}
-              className={cn(
-                "flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-semibold transition-all",
-                mode === "allocate"
-                  ? "bg-background text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <ArrowUpRight className="size-3.5 text-emerald-600" />
-              <span>Setor ke Wishlist</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode("withdraw");
-                setErrorMsg(null);
-              }}
-              className={cn(
-                "flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-semibold transition-all",
-                mode === "withdraw"
-                  ? "bg-background text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <ArrowDownLeft className="size-3.5 text-amber-600" />
-              <span>Tarik ke Tabungan</span>
-            </button>
-          </div>
+          {/* Toggle Mode: Alokasi vs Tarik Balik (SlidingSegmentedControl) */}
+          <SlidingSegmentedControl
+            options={WISHLIST_MODE_OPTIONS}
+            value={mode}
+            onValueChange={(next) => {
+              setMode(next);
+              setErrorMsg(null);
+            }}
+            role="tablist"
+            ariaLabel="Mode mutasi wishlist"
+            fullWidth
+            size="sm"
+            recalculateTrigger={open}
+          />
 
           {/* Input Nominal & Quick Pills (10%, 25%, 50%, Semua Saldo) */}
           <div className="space-y-2">

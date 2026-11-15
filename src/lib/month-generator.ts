@@ -3,19 +3,17 @@
  * Kenzo Treasury — Domain Service: Month & Budget Category Generator
  * ==============================================================================
  *
- * ── Kenapa berkas ini ada ──────────────────────────────────────────────────────
- *
- * Memisahkan logika domain pembuatan pos anggaran bulanan dari Server Actions.
- * Menjamin prinsip:
- * 1. 100% Database-Driven: Seluruh nominal cicilan (`monthlyPayment`), status lunas
- *    (`isSettled`), dan ID utang dibaca langsung dari tabel `liabilities` di database,
- *    tanpa hardcode angka 735.000 / 500.000 atau pencocokan keyword string yang kaku.
- * 2. Inheritance Bulan Sebelumnya: Jika pengguna sudah memiliki siklus bulan
- *    sebelumnya di DB, susunan pos anggaran dan penyesuaian target kuota diwarisi
- *    langsung dari bulan terakhir tersebut.
- * 3. Fallback Baseline Zero-Based Budgeting: Template 7 pos anggaran awal hanya
- *    digunakan jika pengguna baru pertama kali membuat bulan dan belum memiliki riwayat
- *    bulan di database.
+ * Memisahkan logika domain pembuatan pos anggaran bulanan dari Server Actions:
+ * 1. 100% Database-Driven & Zero Dummy Data: Seluruh nominal cicilan (`monthlyPayment`),
+ *    status lunas (`isSettled`), serta template pos anggaran (`user_budget_templates`)
+ *    dibaca langsung dari database tanpa hardcode angka atau data pribadi.
+ * 2. Kasus A (Inheritance Bulan Sebelumnya): Mewarisi susunan pos anggaran dari bulan
+ *    terakhir, meng-exclude pos sementara (`isTemporary = true` tanpa cicilan aktif)
+ *    maupun cicilan yang baru lunas (`isSettled = true`), serta merelokasi kuota cicilan
+ *    yang lunas dari bulan tersebut ke pos `uang_bebas_tabungan`.
+ * 3. Kasus B (Bulan Pertama Pengguna Baru): Menggunakan `user_budget_templates` milik
+ *    pengguna (atau fallback netral tunggal `Uang Bebas / Tabungan` sebesar `baseSalary`
+ *    dikurangi komitmen cicilan aktif).
  */
 
 import { eq, ne, and, desc, asc } from "drizzle-orm";
@@ -24,8 +22,10 @@ import {
   months,
   budgetCategories,
   liabilities,
+  userBudgetTemplates,
 } from "@/db/schema";
 import * as schema from "@/db/schema";
+import { resolveCategoryIconKey } from "@/lib/category-icons";
 
 export const INDONESIAN_MONTH_NAMES = [
   "Januari",
@@ -42,82 +42,429 @@ export const INDONESIAN_MONTH_NAMES = [
   "Desember",
 ] as const;
 
-export const DEFAULT_BASE_SALARY = 4000000;
+export const DEFAULT_BASE_SALARY = 0;
 
-export interface CategoryTemplateConfig {
+export interface NeutralPresetTemplateSpec {
   name: string;
   icon: string;
   group: "pos_wajib" | "kebutuhan" | "uang_bebas_tabungan";
-  baseTarget: number;
-  isTemporary: boolean;
+  percentage: number;
   sortOrder: number;
-  liabilityKeyword?: "iphone" | "mama";
 }
 
 /**
- * 7 Pos Anggaran Baseline (Fallback untuk inisialisasi awal pengguna baru).
- * Total baseline seimbang tepat Rp 4.000.000 (Zero-Based Budget).
+ * 6 template preset netral untuk tombol cepat di Onboarding & Pengaturan.
  */
-export const BASELINE_CATEGORIES_CONFIG: CategoryTemplateConfig[] = [
+export const NEUTRAL_PRESET_TEMPLATES: NeutralPresetTemplateSpec[] = [
   {
-    name: "Perpuluhan",
-    icon: "✝️",
-    group: "pos_wajib",
-    baseTarget: 400000,
-    isTemporary: false,
+    name: "Kebutuhan Pokok",
+    icon: "utensils",
+    group: "kebutuhan",
+    percentage: 30,
     sortOrder: 1,
   },
   {
-    name: "📱 Cicilan Pokok iPhone",
-    icon: "📱",
+    name: "Hunian & Utilitas",
+    icon: "home",
     group: "pos_wajib",
-    baseTarget: 735000,
-    isTemporary: true,
+    percentage: 20,
     sortOrder: 2,
-    liabilityKeyword: "iphone",
   },
   {
-    name: "👩‍👦 Talangan Mama",
-    icon: "👩‍👦",
-    group: "pos_wajib",
-    baseTarget: 500000,
-    isTemporary: true,
+    name: "Transportasi & BBM",
+    icon: "fuel",
+    group: "kebutuhan",
+    percentage: 10,
     sortOrder: 3,
-    liabilityKeyword: "mama",
   },
   {
-    name: "⚡ Listrik Rumah",
-    icon: "⚡",
+    name: "Komitmen & Tagihan",
+    icon: "receipt",
     group: "pos_wajib",
-    baseTarget: 1000000,
-    isTemporary: false,
+    percentage: 10,
     sortOrder: 4,
   },
   {
-    name: "⛽ Bensin",
-    icon: "⛽",
-    group: "kebutuhan",
-    baseTarget: 250000,
-    isTemporary: false,
+    name: "Sosial & Keluarga",
+    icon: "users",
+    group: "pos_wajib",
+    percentage: 10,
     sortOrder: 5,
   },
   {
-    name: "👵 Jajan Popo",
-    icon: "👵",
-    group: "kebutuhan",
-    baseTarget: 200000,
-    isTemporary: false,
+    name: "Uang Bebas / Tabungan",
+    icon: "wallet",
+    group: "uang_bebas_tabungan",
+    percentage: 20,
     sortOrder: 6,
   },
-  {
-    name: "🍿 Uang Bebas / Tabungan",
-    icon: "🍿",
-    group: "uang_bebas_tabungan",
-    baseTarget: 915000,
-    isTemporary: false,
-    sortOrder: 7,
-  },
 ];
+
+export interface GeneratedCategoryInsert {
+  monthId: string;
+  liabilityId: string | null;
+  name: string;
+  icon: string;
+  group: "pos_wajib" | "kebutuhan" | "uang_bebas_tabungan";
+  targetBudget: number;
+  isTemporary: boolean;
+  sortOrder: number;
+}
+
+export interface NeutralPresetTemplateRow {
+  userId: string;
+  name: string;
+  icon: string;
+  group: "pos_wajib" | "kebutuhan" | "uang_bebas_tabungan";
+  targetBudget: number;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+/**
+ * Membangun daftar template pos anggaran dari 6 preset netral.
+ * Mendukung argumen `userId` (string -> targetBudget 0) maupun `baseSalary` (number).
+ */
+export function buildNeutralPresetTemplates(
+  userIdOrBaseSalary: string | number = 0,
+  maybeBaseSalary?: number
+): NeutralPresetTemplateRow[] {
+  const userId =
+    typeof userIdOrBaseSalary === "string" ? userIdOrBaseSalary : "";
+  const rawSalary =
+    typeof userIdOrBaseSalary === "number"
+      ? userIdOrBaseSalary
+      : (maybeBaseSalary ?? 0);
+  const safeSalary = Math.max(0, Math.round(rawSalary));
+
+  let allocatedNonFree = 0;
+
+  return NEUTRAL_PRESET_TEMPLATES.map((spec) => {
+    if (spec.group === "uang_bebas_tabungan") {
+      const freeBudget =
+        safeSalary > 0 ? Math.max(0, safeSalary - allocatedNonFree) : 0;
+      return {
+        userId,
+        name: spec.name,
+        icon: spec.icon,
+        group: spec.group,
+        targetBudget: freeBudget,
+        sortOrder: spec.sortOrder,
+        isActive: true,
+      };
+    }
+
+    const target =
+      safeSalary > 0 ? Math.round((safeSalary * spec.percentage) / 100) : 0;
+    allocatedNonFree += target;
+
+    return {
+      userId,
+      name: spec.name,
+      icon: spec.icon,
+      group: spec.group,
+      targetBudget: target,
+      sortOrder: spec.sortOrder,
+      isActive: true,
+    };
+  });
+}
+
+export interface InheritedCategorySource {
+  id?: string;
+  liabilityId: string | null;
+  name: string;
+  icon: string | null;
+  group: "pos_wajib" | "kebutuhan" | "uang_bebas_tabungan";
+  targetBudget: number;
+  isTemporary: boolean;
+  sortOrder: number;
+}
+
+export interface InheritedLiabilitySource {
+  id: string;
+  name: string;
+  icon?: string | null;
+  monthlyPayment: number;
+  isSettled?: boolean;
+}
+
+/**
+ * KASUS A (Pure Function): Mewarisi susunan pos dari bulan sebelumnya
+ * dengan relokasi cicilan lunas yang hanya berasal dari bulan sebelumnya
+ * serta pemotongan `Uang Bebas` untuk cicilan aktif baru.
+ */
+export function buildInheritedMonthCategories(params: {
+  newMonthId: string;
+  baseSalary?: number;
+  previousCategories?: InheritedCategorySource[];
+  prevCategories?: InheritedCategorySource[];
+  liabilities?: InheritedLiabilitySource[];
+  activeLiabilities?: InheritedLiabilitySource[];
+}): GeneratedCategoryInsert[] {
+  const { newMonthId } = params;
+  const previousCategories =
+    params.previousCategories ?? params.prevCategories ?? [];
+  const userLiabilities =
+    params.liabilities ?? params.activeLiabilities ?? [];
+
+  const liabilityById = new Map(userLiabilities.map((l) => [l.id, l]));
+  const activeLiabilitiesMap = new Map(
+    userLiabilities.filter((l) => !l.isSettled).map((l) => [l.id, l])
+  );
+
+  const prevLiabilityIds = new Set<string>();
+  let reallocatedFromRetiredCategories = 0;
+
+  for (const prevCat of previousCategories) {
+    if (prevCat.liabilityId) {
+      prevLiabilityIds.add(prevCat.liabilityId);
+      const isStillActive = activeLiabilitiesMap.has(prevCat.liabilityId);
+      if (!isStillActive) {
+        const settledRow = liabilityById.get(prevCat.liabilityId);
+        reallocatedFromRetiredCategories +=
+          settledRow?.monthlyPayment ?? prevCat.targetBudget;
+      }
+    } else if (prevCat.isTemporary) {
+      // Pos reguler yang ditandai "Hentikan Mulai Bulan Depan"
+      reallocatedFromRetiredCategories += prevCat.targetBudget;
+    }
+  }
+
+  let newLiabilitiesMonthlySum = 0;
+  for (const [id, activeLiability] of activeLiabilitiesMap) {
+    if (!prevLiabilityIds.has(id)) {
+      newLiabilitiesMonthlySum += activeLiability.monthlyPayment;
+    }
+  }
+
+  const categoriesToInsert: GeneratedCategoryInsert[] = [];
+  let currentSortOrder = 1;
+  let hasInsertedFreeCategory = false;
+
+  for (const prevCat of previousCategories) {
+    // 1. Lewati pos cicilan yang sudah lunas / tidak lagi aktif
+    if (prevCat.liabilityId && !activeLiabilitiesMap.has(prevCat.liabilityId)) {
+      continue;
+    }
+
+    // 2. Lewati pos reguler yang dihentikan mulai bulan depan (`isTemporary = true` tanpa `liabilityId`)
+    if (!prevCat.liabilityId && prevCat.isTemporary) {
+      continue;
+    }
+
+    // 3. Pos Uang Bebas / Tabungan (maksimal 1 per bulan)
+    if (prevCat.group === "uang_bebas_tabungan") {
+      if (hasInsertedFreeCategory) {
+        continue;
+      }
+      hasInsertedFreeCategory = true;
+
+      const adjustedFreeTarget = Math.max(
+        0,
+        prevCat.targetBudget +
+          reallocatedFromRetiredCategories -
+          newLiabilitiesMonthlySum
+      );
+
+      categoriesToInsert.push({
+        monthId: newMonthId,
+        liabilityId: null,
+        name: prevCat.name,
+        icon: resolveCategoryIconKey(prevCat.icon, "uang_bebas_tabungan", null),
+        group: "uang_bebas_tabungan",
+        targetBudget: adjustedFreeTarget,
+        isTemporary: false,
+        sortOrder: currentSortOrder++,
+      });
+      continue;
+    }
+
+    // 4. Pos yang terikat pada cicilan aktif
+    if (prevCat.liabilityId && activeLiabilitiesMap.has(prevCat.liabilityId)) {
+      const activeLiability = activeLiabilitiesMap.get(prevCat.liabilityId)!;
+      categoriesToInsert.push({
+        monthId: newMonthId,
+        liabilityId: prevCat.liabilityId,
+        name: activeLiability.name,
+        icon: resolveCategoryIconKey(
+          activeLiability.icon ?? prevCat.icon,
+          "pos_wajib",
+          activeLiability.id
+        ),
+        group: "pos_wajib",
+        targetBudget: activeLiability.monthlyPayment,
+        isTemporary: true,
+        sortOrder: currentSortOrder++,
+      });
+      activeLiabilitiesMap.delete(prevCat.liabilityId);
+      continue;
+    }
+
+    // 5. Pos reguler lainnya
+    categoriesToInsert.push({
+      monthId: newMonthId,
+      liabilityId: null,
+      name: prevCat.name,
+      icon: resolveCategoryIconKey(prevCat.icon, prevCat.group, null),
+      group: prevCat.group,
+      targetBudget: prevCat.targetBudget,
+      isTemporary: false,
+      sortOrder: currentSortOrder++,
+    });
+  }
+
+  // Tambahkan cicilan aktif baru yang belum ada di bulan sebelumnya
+  for (const [, newActiveLiability] of activeLiabilitiesMap) {
+    categoriesToInsert.push({
+      monthId: newMonthId,
+      liabilityId: newActiveLiability.id,
+      name: newActiveLiability.name,
+      icon: resolveCategoryIconKey(
+        newActiveLiability.icon,
+        "pos_wajib",
+        newActiveLiability.id
+      ),
+      group: "pos_wajib",
+      targetBudget: newActiveLiability.monthlyPayment,
+      isTemporary: true,
+      sortOrder: currentSortOrder++,
+    });
+  }
+
+  if (!hasInsertedFreeCategory) {
+    categoriesToInsert.push({
+      monthId: newMonthId,
+      liabilityId: null,
+      name: "Uang Bebas / Tabungan",
+      icon: "wallet",
+      group: "uang_bebas_tabungan",
+      targetBudget: Math.max(
+        0,
+        reallocatedFromRetiredCategories - newLiabilitiesMonthlySum
+      ),
+      isTemporary: false,
+      sortOrder: currentSortOrder++,
+    });
+  }
+
+  return categoriesToInsert;
+}
+
+export interface InitialTemplateSource {
+  name: string;
+  icon: string | null;
+  group: "pos_wajib" | "kebutuhan" | "uang_bebas_tabungan";
+  targetBudget: number;
+  sortOrder: number;
+  isActive?: boolean;
+}
+
+/**
+ * KASUS B (Pure Function): Inisialisasi Bulan 1 dari `user_budget_templates`
+ * atau fallback tunggal `Uang Bebas / Tabungan` bila template kosong.
+ */
+export function buildInitialMonthCategories(params: {
+  newMonthId: string;
+  baseSalary: number;
+  templates?: InitialTemplateSource[];
+  userTemplates?: InitialTemplateSource[];
+  activeLiabilities: InheritedLiabilitySource[];
+}): GeneratedCategoryInsert[] {
+  const { newMonthId, baseSalary, activeLiabilities } = params;
+  const rawTemplates = params.templates ?? params.userTemplates ?? [];
+  const templates = rawTemplates.filter((t) => t.isActive !== false);
+
+  const unpaidLiabilities = activeLiabilities.filter((l) => !l.isSettled);
+  const activeLiabilitiesSum = unpaidLiabilities.reduce(
+    (sum, item) => sum + item.monthlyPayment,
+    0
+  );
+
+  const categoriesToInsert: GeneratedCategoryInsert[] = [];
+  let currentSortOrder = 1;
+
+  if (templates.length > 0) {
+    let hasInsertedFreeCategory = false;
+    let nonFreeTemplatesSum = 0;
+
+    for (const tpl of templates) {
+      if (tpl.group === "uang_bebas_tabungan") {
+        if (hasInsertedFreeCategory) {
+          continue;
+        }
+        hasInsertedFreeCategory = true;
+        categoriesToInsert.push({
+          monthId: newMonthId,
+          liabilityId: null,
+          name: tpl.name,
+          icon: resolveCategoryIconKey(tpl.icon, "uang_bebas_tabungan", null),
+          group: "uang_bebas_tabungan",
+          targetBudget: Math.max(0, tpl.targetBudget - activeLiabilitiesSum),
+          isTemporary: false,
+          sortOrder: currentSortOrder++,
+        });
+        continue;
+      }
+
+      nonFreeTemplatesSum += tpl.targetBudget;
+      categoriesToInsert.push({
+        monthId: newMonthId,
+        liabilityId: null,
+        name: tpl.name,
+        icon: resolveCategoryIconKey(tpl.icon, tpl.group, null),
+        group: tpl.group,
+        targetBudget: tpl.targetBudget,
+        isTemporary: false,
+        sortOrder: currentSortOrder++,
+      });
+    }
+
+    if (!hasInsertedFreeCategory) {
+      const residualFreeTarget = Math.max(
+        0,
+        Math.round(baseSalary) - nonFreeTemplatesSum - activeLiabilitiesSum
+      );
+      categoriesToInsert.push({
+        monthId: newMonthId,
+        liabilityId: null,
+        name: "Uang Bebas / Tabungan",
+        icon: "wallet",
+        group: "uang_bebas_tabungan",
+        targetBudget: residualFreeTarget,
+        isTemporary: false,
+        sortOrder: currentSortOrder++,
+      });
+    }
+  } else {
+    // Fallback netral tunggal saat pengguna belum merancang template pos
+    categoriesToInsert.push({
+      monthId: newMonthId,
+      liabilityId: null,
+      name: "Uang Bebas / Tabungan",
+      icon: "wallet",
+      group: "uang_bebas_tabungan",
+      targetBudget: Math.max(0, Math.round(baseSalary) - activeLiabilitiesSum),
+      isTemporary: false,
+      sortOrder: currentSortOrder++,
+    });
+  }
+
+  for (const liability of unpaidLiabilities) {
+    categoriesToInsert.push({
+      monthId: newMonthId,
+      liabilityId: liability.id,
+      name: liability.name,
+      icon: resolveCategoryIconKey(liability.icon, "pos_wajib", liability.id),
+      group: "pos_wajib",
+      targetBudget: liability.monthlyPayment,
+      isTemporary: true,
+      sortOrder: currentSortOrder++,
+    });
+  }
+
+  return categoriesToInsert;
+}
 
 interface GenerateMonthCategoriesParams {
   tx: PostgresJsDatabase<typeof schema>;
@@ -125,80 +472,36 @@ interface GenerateMonthCategoriesParams {
   newMonthId: string;
   year: number;
   monthIndex: number;
+  baseSalary?: number;
 }
 
 /**
- * Logika murni generator pos anggaran:
- * 1. Mengambil seluruh record `liabilities` milik pengguna dari DB.
- * 2. Menghitung akumulasi nominal cicilan yang sudah lunas (`isSettled = true`)
- *    berdasarkan kolom `liability.monthlyPayment` aktual dari DB.
- * 3. Memeriksa apakah ada siklus bulan sebelumnya di DB untuk mewarisi pos & target.
- * 4. Meng-exclude pos cicilan yang sudah lunas dan mengalihkan kuotanya ke pos Uang Bebas.
+ * Generator pos anggaran bulanan berbasis database:
+ * - KASUS A (`previousCategories.length > 0`): mewarisi pos bulan sebelumnya.
+ * - KASUS B (`previousCategories.length === 0`): membaca `user_budget_templates`
+ *   atau membuat 1 pos netral `Uang Bebas / Tabungan`.
  */
 export async function generateMonthCategories({
   tx,
   userId,
   newMonthId,
+  baseSalary = 0,
 }: GenerateMonthCategoriesParams): Promise<{ categoriesCreated: number }> {
-  // 1. Ambil seluruh data cicilan/utang dari database
-  let userLiabilities = await tx
+  // 1. Ambil seluruh data cicilan/utang aktual milik pengguna dari database (tanpa auto-seed dummy)
+  const userLiabilities = await tx
     .select()
     .from(liabilities)
-    .where(eq(liabilities.userId, userId));
+    .where(eq(liabilities.userId, userId))
+    .orderBy(asc(liabilities.createdAt));
 
-  // Jika user belum punya data liabilities di DB sama sekali, lakukan inisialisasi awal
-  if (userLiabilities.length === 0) {
-    const seededLiabilities = await tx
-      .insert(liabilities)
-      .values([
-        {
-          userId,
-          name: "📱 Cicilan Pokok iPhone",
-          totalAmount: 17640000,
-          paidAmount: 5000000,
-          monthlyPayment: 735000,
-          totalMonths: 24,
-          isSettled: false,
-        },
-        {
-          userId,
-          name: "👩‍👦 Talangan Mama",
-          totalAmount: 2500000,
-          paidAmount: 0,
-          monthlyPayment: 500000,
-          totalMonths: 5,
-          isSettled: false,
-        },
-      ])
-      .returning();
-
-    userLiabilities = seededLiabilities;
-  }
-
-  // 2. Hitung relokasi kuota dari seluruh cicilan yang berstatus lunas secara dinamis dari DB
-  let reallocatedFromSettledLiabilities = 0;
-  const activeLiabilitiesMap = new Map<string, typeof liabilities.$inferSelect>();
-  const settledLiabilityIds = new Set<string>();
-
-  for (const liability of userLiabilities) {
-    if (liability.isSettled) {
-      // Baca nominal langsung dari database, BUKAN hardcoded angka!
-      reallocatedFromSettledLiabilities += liability.monthlyPayment;
-      settledLiabilityIds.add(liability.id);
-    } else {
-      activeLiabilitiesMap.set(liability.id, liability);
-    }
-  }
-
-  // 3. Periksa apakah pengguna memiliki siklus bulan sebelumnya di database
+  // 2. Periksa apakah pengguna memiliki siklus bulan sebelumnya di database
   const [previousMonth] = await tx
     .select()
     .from(months)
-    .where(and(eq(months.userId, userId), ne(months.id, newMonthId))) // exclude newly inserted month
+    .where(and(eq(months.userId, userId), ne(months.id, newMonthId)))
     .orderBy(desc(months.year), desc(months.monthIndex))
     .limit(1);
 
-  // Ambil pos anggaran dari bulan sebelumnya jika ada
   let previousCategories: (typeof budgetCategories.$inferSelect)[] = [];
   if (previousMonth) {
     previousCategories = await tx
@@ -208,161 +511,30 @@ export async function generateMonthCategories({
       .orderBy(asc(budgetCategories.sortOrder));
   }
 
-  const categoriesToInsert: Array<{
-    monthId: string;
-    liabilityId: string | null;
-    name: string;
-    icon: string;
-    group: "pos_wajib" | "kebutuhan" | "uang_bebas_tabungan";
-    targetBudget: number;
-    isTemporary: boolean;
-    sortOrder: number;
-  }> = [];
-
-  let currentSortOrder = 1;
+  let categoriesToInsert: GeneratedCategoryInsert[];
 
   if (previousCategories.length > 0) {
-    // ── KASUS A: INHERIT DARI BULAN SEBELUMNYA DI DATABASE ────────────────────────
-    for (const prevCat of previousCategories) {
-      // Jika pos ini terikat cicilan dan cicilannya sudah lunas, jangan dibuatkan lagi
-      if (prevCat.liabilityId && settledLiabilityIds.has(prevCat.liabilityId)) {
-        continue;
-      }
-
-      // Jika pos Uang Bebas / Tabungan, tambahkan relokasi kuota cicilan yang lunas
-      if (prevCat.group === "uang_bebas_tabungan") {
-        categoriesToInsert.push({
-          monthId: newMonthId,
-          liabilityId: null,
-          name: prevCat.name,
-          icon: prevCat.icon ?? "🍿",
-          group: prevCat.group,
-          targetBudget: prevCat.targetBudget + reallocatedFromSettledLiabilities,
-          isTemporary: prevCat.isTemporary,
-          sortOrder: currentSortOrder++,
-        });
-        continue;
-      }
-
-      // Jika pos terikat cicilan yang masih aktif, sinkronkan nominal target dengan monthlyPayment terbaru dari DB
-      if (prevCat.liabilityId && activeLiabilitiesMap.has(prevCat.liabilityId)) {
-        const activeLiability = activeLiabilitiesMap.get(prevCat.liabilityId)!;
-        categoriesToInsert.push({
-          monthId: newMonthId,
-          liabilityId: prevCat.liabilityId,
-          name: activeLiability.name,
-          icon: prevCat.icon ?? "📱",
-          group: prevCat.group,
-          targetBudget: activeLiability.monthlyPayment, // Otoritatif dari DB
-          isTemporary: true,
-          sortOrder: currentSortOrder++,
-        });
-        // Hapus dari map agar tidak diduplikasi
-        activeLiabilitiesMap.delete(prevCat.liabilityId);
-        continue;
-      }
-
-      // Pos reguler lainnya
-      categoriesToInsert.push({
-        monthId: newMonthId,
-        liabilityId: null,
-        name: prevCat.name,
-        icon: prevCat.icon ?? "💰",
-        group: prevCat.group,
-        targetBudget: prevCat.targetBudget,
-        isTemporary: prevCat.isTemporary,
-        sortOrder: currentSortOrder++,
-      });
-    }
-
-    // Jika ada cicilan aktif baru di DB yang belum ada di bulan sebelumnya, tambahkan
-    for (const [, newActiveLiability] of activeLiabilitiesMap) {
-      categoriesToInsert.push({
-        monthId: newMonthId,
-        liabilityId: newActiveLiability.id,
-        name: newActiveLiability.name,
-        icon: "💳",
-        group: "pos_wajib",
-        targetBudget: newActiveLiability.monthlyPayment,
-        isTemporary: true,
-        sortOrder: currentSortOrder++,
-      });
-    }
+    categoriesToInsert = buildInheritedMonthCategories({
+      newMonthId,
+      previousCategories,
+      liabilities: userLiabilities,
+    });
   } else {
-    // ── KASUS B: USER BARU PERTAMA KALI (GUNAKAN MASTER BASELINE 7 POS) ────────────
-    const iphoneLiability = userLiabilities.find((l) =>
-      l.name.toLowerCase().includes("iphone")
-    );
-    const mamaLiability = userLiabilities.find(
-      (l) =>
-        l.name.toLowerCase().includes("mama") ||
-        l.name.toLowerCase().includes("talangan")
-    );
+    const templates = await tx
+      .select()
+      .from(userBudgetTemplates)
+      .where(eq(userBudgetTemplates.userId, userId))
+      .orderBy(
+        asc(userBudgetTemplates.sortOrder),
+        asc(userBudgetTemplates.createdAt)
+      );
 
-    for (const tpl of BASELINE_CATEGORIES_CONFIG) {
-      // Pos Cicilan iPhone
-      if (tpl.liabilityKeyword === "iphone") {
-        if (iphoneLiability?.isSettled) {
-          continue; // Lewati jika sudah lunas
-        }
-        categoriesToInsert.push({
-          monthId: newMonthId,
-          liabilityId: iphoneLiability ? iphoneLiability.id : null,
-          name: iphoneLiability ? iphoneLiability.name : tpl.name,
-          icon: tpl.icon,
-          group: tpl.group,
-          targetBudget: iphoneLiability ? iphoneLiability.monthlyPayment : tpl.baseTarget,
-          isTemporary: tpl.isTemporary,
-          sortOrder: currentSortOrder++,
-        });
-        continue;
-      }
-
-      // Pos Talangan Mama
-      if (tpl.liabilityKeyword === "mama") {
-        if (mamaLiability?.isSettled) {
-          continue; // Lewati jika sudah lunas
-        }
-        categoriesToInsert.push({
-          monthId: newMonthId,
-          liabilityId: mamaLiability ? mamaLiability.id : null,
-          name: mamaLiability ? mamaLiability.name : tpl.name,
-          icon: tpl.icon,
-          group: tpl.group,
-          targetBudget: mamaLiability ? mamaLiability.monthlyPayment : tpl.baseTarget,
-          isTemporary: tpl.isTemporary,
-          sortOrder: currentSortOrder++,
-        });
-        continue;
-      }
-
-      // Pos Uang Bebas / Tabungan
-      if (tpl.group === "uang_bebas_tabungan") {
-        categoriesToInsert.push({
-          monthId: newMonthId,
-          liabilityId: null,
-          name: tpl.name,
-          icon: tpl.icon,
-          group: tpl.group,
-          targetBudget: tpl.baseTarget + reallocatedFromSettledLiabilities,
-          isTemporary: tpl.isTemporary,
-          sortOrder: currentSortOrder++,
-        });
-        continue;
-      }
-
-      // Pos reguler
-      categoriesToInsert.push({
-        monthId: newMonthId,
-        liabilityId: null,
-        name: tpl.name,
-        icon: tpl.icon,
-        group: tpl.group,
-        targetBudget: tpl.baseTarget,
-        isTemporary: tpl.isTemporary,
-        sortOrder: currentSortOrder++,
-      });
-    }
+    categoriesToInsert = buildInitialMonthCategories({
+      newMonthId,
+      baseSalary,
+      templates,
+      activeLiabilities: userLiabilities.filter((l) => !l.isSettled),
+    });
   }
 
   await tx.insert(budgetCategories).values(categoriesToInsert);

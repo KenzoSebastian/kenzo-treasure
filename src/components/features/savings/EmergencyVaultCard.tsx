@@ -2,17 +2,17 @@
 
 /**
  * ==============================================================================
- * Kenzo Treasury — Emergency Fund Vault & Safety Months Meter (Fase F14)
+ * Kenzo Treasury — Emergency Fund Vault & Safety Months Meter (Fase F14, R1, R3, R6)
  * ==============================================================================
  *
  * ── Kenapa komponen ini ada ───────────────────────────────────────────────────
  *
  * Menampilkan kartu Brankas Dana Darurat yang terpisah dari Tabungan Bebas:
- * - Visual brankas dengan indikator kunci keamanan (`Lock`).
- * - Nominal Saldo Dana Darurat terkumpul vs Target Ideal (`Rp 18.000.000`).
- * - Meter *Safety Months* (`🛡️ Bertahan Aman selama X,X Bulan Biaya Hidup`).
- * - Modal `Setor / Tarik Dana Darurat` dengan **proteksi konfirmasi ganda**
- *   ketika pengguna menarik dana dari brankas darurat.
+ * - Visual brankas dengan indikator kunci keamanan (`Lock`) tanpa emoji literal.
+ * - Nominal Saldo Dana Darurat terkumpul vs Target Ideal pengguna.
+ * - Meter *Safety Months* (`Bertahan Aman selama X,X Bulan Biaya Hidup`).
+ * - Modal `Setor / Tarik Dana Darurat` dengan `SlidingSegmentedControl` dan
+ *   **proteksi konfirmasi ganda** ketika pengguna menarik dana dari brankas darurat.
  */
 
 import * as React from "react";
@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import {
   ShieldCheck,
   Lock,
+  Wallet,
   ArrowUpRight,
   ArrowDownLeft,
   AlertTriangle,
@@ -41,6 +42,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { SlidingSegmentedControl } from "@/components/common/SlidingSegmentedControl";
 import { formatRupiah, parseRupiah } from "@/lib/financial-calculations";
 import {
   transferToEmergencyFund,
@@ -54,12 +56,25 @@ interface EmergencyVaultCardProps {
   vault: SavingsVaultSummary;
 }
 
+type VaultMutationMode =
+  | "deposit_emergency"
+  | "withdraw_emergency"
+  | "topup_free";
+
+const VAULT_MODE_OPTIONS: Array<{
+  value: VaultMutationMode;
+  label: string;
+}> = [
+  { value: "deposit_emergency", label: "Setor Darurat" },
+  { value: "withdraw_emergency", label: "Tarik Darurat" },
+  { value: "topup_free", label: "Top-Up Bebas" },
+];
+
 export function EmergencyVaultCard({ vault }: EmergencyVaultCardProps) {
   const router = useRouter();
   const [openModal, setOpenModal] = React.useState(false);
-  const [mode, setMode] = React.useState<
-    "deposit_emergency" | "withdraw_emergency" | "topup_free"
-  >("deposit_emergency");
+  const [mode, setMode] =
+    React.useState<VaultMutationMode>("deposit_emergency");
   const [amountRaw, setAmountRaw] = React.useState("");
   const [doubleConfirmed, setDoubleConfirmed] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
@@ -186,53 +201,19 @@ export function EmergencyVaultCard({ vault }: EmergencyVaultCardProps) {
               </DialogHeader>
 
               {/* Mode Selector */}
-              <div className="grid grid-cols-3 gap-1.5 rounded-xl bg-muted/50 p-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode("deposit_emergency");
-                    setErrorMsg(null);
-                  }}
-                  className={cn(
-                    "h-9 rounded-lg text-[11px] font-semibold transition-all px-2",
-                    mode === "deposit_emergency"
-                      ? "bg-background text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  Setor Darurat
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode("withdraw_emergency");
-                    setErrorMsg(null);
-                  }}
-                  className={cn(
-                    "h-9 rounded-lg text-[11px] font-semibold transition-all px-2",
-                    mode === "withdraw_emergency"
-                      ? "bg-background text-rose-600 dark:text-rose-400 shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  Tarik Darurat
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode("topup_free");
-                    setErrorMsg(null);
-                  }}
-                  className={cn(
-                    "h-9 rounded-lg text-[11px] font-semibold transition-all px-2",
-                    mode === "topup_free"
-                      ? "bg-background text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  Top-Up Bebas
-                </button>
-              </div>
+              <SlidingSegmentedControl
+                options={VAULT_MODE_OPTIONS}
+                value={mode}
+                onValueChange={(next) => {
+                  setMode(next);
+                  setErrorMsg(null);
+                }}
+                role="tablist"
+                ariaLabel="Mode mutasi brankas"
+                fullWidth
+                size="sm"
+                recalculateTrigger={openModal}
+              />
 
               {/* Info Saldo */}
               <div className="grid grid-cols-2 gap-2.5 rounded-xl border border-border/70 bg-muted/20 p-3 text-xs tabular-nums">
@@ -262,7 +243,7 @@ export function EmergencyVaultCard({ vault }: EmergencyVaultCardProps) {
                   id="vault-amount"
                   type="text"
                   inputMode="numeric"
-                  placeholder="500.000"
+                  placeholder="250.000"
                   value={
                     parseRupiah(amountRaw) > 0
                       ? parseRupiah(amountRaw).toLocaleString("id-ID")
@@ -349,20 +330,24 @@ export function EmergencyVaultCard({ vault }: EmergencyVaultCardProps) {
       {/* 3 Pilar Angka Brankas */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-1">
-          <span className="text-xs text-muted-foreground font-medium block">
-            🔒 Saldo Dana Darurat
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+            <Lock className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span>Saldo Dana Darurat</span>
           </span>
           <div className="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums">
             {formatRupiah(vault.emergencyFundBalance)}
           </div>
           <span className="text-[11px] text-muted-foreground tabular-nums block">
-            Target Ideal: {formatRupiah(vault.emergencyFundTarget)}
+            {vault.emergencyFundTarget > 0
+              ? `Target Ideal: ${formatRupiah(vault.emergencyFundTarget)}`
+              : "Atur target Dana Darurat di menu Settings"}
           </span>
         </div>
 
         <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-1">
-          <span className="text-xs text-muted-foreground font-medium block">
-            💸 Saldo Tabungan Bebas
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+            <Wallet className="size-3.5 text-primary" />
+            <span>Saldo Tabungan Bebas</span>
           </span>
           <div className="text-xl sm:text-2xl font-extrabold text-foreground tabular-nums">
             {formatRupiah(vault.freeSavingsBalance)}
@@ -373,23 +358,24 @@ export function EmergencyVaultCard({ vault }: EmergencyVaultCardProps) {
         </div>
 
         <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4 space-y-1">
-          <span className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold block">
-            🛡️ Safety Months Meter
+          <span className="flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
+            <ShieldCheck className="size-3.5" />
+            <span>Safety Months Meter</span>
           </span>
           <div className="text-xl sm:text-2xl font-extrabold text-foreground tabular-nums">
             {`${safetyMonthsLabel} Bulan`}
           </div>
           <span className="text-[11px] text-muted-foreground tabular-nums block">
-            {`🛡️ Bertahan Aman selama ${safetyMonthsLabel} Bulan Biaya Hidup`}
+            {`Bertahan Aman selama ${safetyMonthsLabel} Bulan Biaya Hidup`}
           </span>
         </div>
       </div>
 
-      {/* Progress Bar Menuju Target Ideal Rp 18.000.000 */}
+      {/* Progress Bar Menuju Target Ideal */}
       <div className="space-y-2 pt-1">
         <div className="flex items-center justify-between text-xs tabular-nums">
           <span className="text-muted-foreground font-medium">
-            Progres Dana Darurat Ideal (6x Biaya Hidup Pokok):
+            Progres Dana Darurat Ideal:
           </span>
           <span className="font-bold text-foreground">
             {vault.percentageOfTarget}%

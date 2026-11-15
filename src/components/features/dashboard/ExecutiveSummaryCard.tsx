@@ -2,7 +2,7 @@
 
 /**
  * ==============================================================================
- * Kenzo Treasury — Executive Summary Card & Cashflow KPI (Fase F6)
+ * Kenzo Treasury — Executive Summary Card & Cashflow KPI (Fase F6 & R1)
  * ==============================================================================
  *
  * ── Kenapa komponen ini ada ───────────────────────────────────────────────────
@@ -14,12 +14,12 @@
  * 3. Saldo Tabungan Bersih (Net Savings) & Rasio Tabungan (Savings Rate)
  *
  * Dilengkapi visual bar progress kesehatan anggaran dengan 3 zona status:
- * - 🟢 Healthy (Terpakai <= 70%): Arus kas sehat dan aman.
- * - 🟡 Warning (Terpakai 71% - 90%): Mendekati batas plafon kas.
- * - 🔴 Overbudget / Defisit (> 90% atau Pengeluaran > Pemasukan).
+ * - Healthy (Terpakai <= 70%): Arus kas sehat dan aman.
+ * - Warning (Terpakai 71% - 90%): Mendekati batas plafon kas.
+ * - Overbudget / Defisit (> 90% atau Pengeluaran > Pemasukan).
  *
  * Sesuai aturan desain proyek:
- * - Bebas 100% dari font monospace (`font-mono`).
+ * - Bebas 100% dari font monospace proporsional.
  * - Angka diformat proporsional dengan `tabular-nums`.
  * - Desain responsif mobile-first (1 kolom di HP, 3 kolom di desktop).
  */

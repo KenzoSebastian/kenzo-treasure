@@ -14,7 +14,7 @@ import {
 import { resolveAuthenticatedUserId } from "./months";
 import type { ActionResponse, SavingsVaultSummary } from "@/types";
 
-export const DEFAULT_MONTHLY_FIXED_EXPENSE = 3_000_000;
+export const DEFAULT_MONTHLY_FIXED_EXPENSE = 0;
 
 /**
  * Mengambil (atau menginisialisasi) akun brankas tabungan & dana darurat pengguna

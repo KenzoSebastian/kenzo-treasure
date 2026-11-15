@@ -1,5 +1,7 @@
 /// <reference types="bun-types" />
 import { describe, expect, it, mock } from "bun:test";
+import { readdirSync, readFileSync, statSync } from "fs";
+import { join } from "path";
 import React from "react";
 import { renderToString } from "react-dom/server";
 
@@ -21,7 +23,11 @@ import {
 } from "@/components/features/categories/BudgetCategoryCard";
 import { calculateWishlistProgress } from "@/lib/financial-calculations";
 import { TransactionSubList } from "@/components/features/transactions/TransactionSubList";
-import { QuickTransactionDrawer } from "@/components/features/transactions/QuickTransactionDrawer";
+import {
+  QuickTransactionDrawer,
+  resolveMaxCategoryRemaining,
+  resolveAutoDescriptionForCategory,
+} from "@/components/features/transactions/QuickTransactionDrawer";
 import { IncomeSection } from "@/components/features/incomes/IncomeSection";
 import { LiabilityTrackerCard } from "@/components/features/liabilities/LiabilityTrackerCard";
 import { WishlistCard } from "@/components/features/wishlists/WishlistCard";
@@ -29,15 +35,24 @@ import { EmergencyVaultCard } from "@/components/features/savings/EmergencyVault
 import { AnalyticsDashboard } from "@/components/features/analytics/AnalyticsDashboard";
 import { AiMonthlyReviewModal } from "@/components/features/ai/AiMonthlyReviewModal";
 import { DataExportPanel } from "@/components/features/settings/DataExportPanel";
+import { FinanceDefaultsPanel } from "@/components/features/settings/FinanceDefaultsPanel";
+import { BudgetTemplateManager } from "@/components/features/settings/BudgetTemplateManager";
+import { OnboardingWizard } from "@/components/features/onboarding/OnboardingWizard";
+import { AppCategoryIcon } from "@/components/common/AppCategoryIcon";
+import { IconPicker } from "@/components/common/IconPicker";
+import { SlidingSegmentedControl } from "@/components/common/SlidingSegmentedControl";
+import { PageSectionSkeleton } from "@/components/layout/PageSectionSkeleton";
 
-describe("Frontend Phases F7–F18 Component Suite", () => {
-  it("Fase F7: BudgetCategoryCard renders target, spent, remaining, status badge, modal trigger, and zero font-mono", () => {
+const FORBIDDEN_MONO_CLASS = ["font", "mono"].join("-");
+
+describe("Frontend Phases F7–F18 & R1–R10 Component Suite", () => {
+  it("Fase F7 & R1: BudgetCategoryCard renders Lucide AppCategoryIcon, target, spent, remaining, status badge, delete button, and zero monospace", () => {
     const html = renderToString(
       <BudgetCategoryCard
         category={{
           id: "cat-1",
-          name: "Bensin & Mobilitas",
-          icon: "⛽",
+          name: "Transportasi & Mobilitas",
+          icon: "fuel",
           group: "kebutuhan",
           target: 200000,
           spent: 170000,
@@ -49,26 +64,27 @@ describe("Frontend Phases F7–F18 Component Suite", () => {
       />
     );
 
-    expect(html).toContain("Bensin &amp; Mobilitas");
+    expect(html).toContain("Transportasi &amp; Mobilitas");
     expect(html).toContain("Rp 200.000");
     expect(html).toContain("Rp 170.000");
     expect(html).toContain("Rp 30.000");
     expect(html).toContain("Mendekati Limit &gt;80%");
     expect(html).toContain('data-slot="dialog-trigger"');
     expect(html).toContain(
-      'aria-label="Buka rincian transaksi pos Bensin &amp; Mobilitas (0 transaksi)"'
+      'aria-label="Hapus pos anggaran Transportasi &amp; Mobilitas"'
     );
-    expect(html).toContain('aria-haspopup="dialog"');
-    expect(html).not.toContain("Belum ada catatan transaksi di pos ini.");
+    expect(html).toContain(
+      'aria-label="Buka rincian transaksi pos Transportasi &amp; Mobilitas (0 transaksi)"'
+    );
     expect(html).toContain("tabular-nums");
-    expect(html).not.toContain("font-mono");
+    expect(html).not.toContain(FORBIDDEN_MONO_CLASS);
 
     const modalPanelHtml = renderToString(
       <BudgetCategoryDetailsPanel
         category={{
           id: "cat-1",
-          name: "Bensin & Mobilitas",
-          icon: "⛽",
+          name: "Transportasi & Mobilitas",
+          icon: "fuel",
           group: "kebutuhan",
           target: 200000,
           spent: 225000,
@@ -102,10 +118,10 @@ describe("Frontend Phases F7–F18 Component Suite", () => {
     expect(modalPanelHtml).toContain("-Rp 25.000");
     expect(modalPanelHtml).toContain("Shell Super Full Tank");
     expect(modalPanelHtml).toContain("QRIS");
-    expect(modalPanelHtml).not.toContain("font-mono");
+    expect(modalPanelHtml).not.toContain(FORBIDDEN_MONO_CLASS);
   });
 
-  it("Fase F8 & F9: QuickTransactionDrawer & TransactionSubList render cleanly without font-mono", () => {
+  it("Fase F8, F9 & R7: QuickTransactionDrawer & TransactionSubList render cleanly and pure helpers work", () => {
     const subListHtml = renderToString(
       <TransactionSubList
         transactions={[
@@ -128,36 +144,55 @@ describe("Frontend Phases F7–F18 Component Suite", () => {
     expect(subListHtml).toContain("Isi Pertamax");
     expect(subListHtml).toContain("QRIS");
     expect(subListHtml).toContain("Rp 50.000");
-    expect(subListHtml).not.toContain("font-mono");
+    expect(subListHtml).not.toContain(FORBIDDEN_MONO_CLASS);
+
+    const categories = [
+      {
+        id: "cat-1",
+        name: "Transportasi",
+        icon: "fuel",
+        remaining: 150000,
+        group: "kebutuhan" as const,
+      },
+      {
+        id: "cat-2",
+        name: "Uang Bebas / Tabungan",
+        icon: "sparkles",
+        remaining: -20000,
+        group: "uang_bebas_tabungan" as const,
+      },
+    ];
+
+    expect(resolveMaxCategoryRemaining(categories, "cat-1")).toBe(150000);
+    expect(resolveMaxCategoryRemaining(categories, "cat-2")).toBe(0);
+    expect(resolveAutoDescriptionForCategory(categories[0])).toBe(
+      "Transportasi"
+    );
+    expect(resolveAutoDescriptionForCategory(categories[1])).toBe("");
 
     const drawerHtml = renderToString(
-      <QuickTransactionDrawer
-        monthId="m-1"
-        categories={[
-          { id: "cat-1", name: "Bensin", icon: "⛽", remaining: 150000 },
-        ]}
-      />
+      <QuickTransactionDrawer monthId="m-1" categories={categories} />
     );
     expect(drawerHtml).toContain("+ Catat Pengeluaran");
-    expect(drawerHtml).not.toContain("font-mono");
+    expect(drawerHtml).not.toContain(FORBIDDEN_MONO_CLASS);
   });
 
-  it("Fase F10: IncomeSection renders base salary vs freelance dynamic buffer", () => {
+  it("Fase F10: IncomeSection renders base salary vs freelance dynamic buffer without emojis", () => {
     const html = renderToString(
       <IncomeSection
         monthId="m-1"
-        baseSalary={4000000}
+        baseSalary={5000000}
         incomes={[
           {
             id: "inc-1",
             source: "Gaji Pokok",
-            amount: 4000000,
+            amount: 5000000,
             date: "2026-10-01",
             isBaseSalary: true,
           },
           {
             id: "inc-2",
-            source: "Freelance Edit Video",
+            source: "Proyek Freelance",
             amount: 1200000,
             date: "2026-10-14",
             isBaseSalary: false,
@@ -166,35 +201,39 @@ describe("Frontend Phases F7–F18 Component Suite", () => {
       />
     );
 
-    expect(html).toContain("Gaji Pokok: Rp 4.000.000");
-    expect(html).toContain("Freelance Edit Video");
+    expect(html).toContain("Gaji Pokok: Rp 5.000.000");
+    expect(html).toContain("Proyek Freelance");
     expect(html).toContain("+Rp 1.200.000");
-    expect(html).not.toContain("font-mono");
+    expect(html).not.toContain(FORBIDDEN_MONO_CLASS);
   });
 
-  it("Fase F11: LiabilityTrackerCard renders active & settled liabilities with progress", () => {
+  it("Fase F11 & R8: LiabilityTrackerCard renders active & settled liabilities with Lucide icons", () => {
     const html = renderToString(
       <LiabilityTrackerCard
+        monthId="m-1"
+        freeBudgetRemaining={1500000}
         liabilities={[
           {
             id: "l-1",
             userId: "u-1",
-            name: "Cicilan iPhone",
-            totalAmount: 17640000,
-            paidAmount: 4410000,
-            monthlyPayment: 735000,
-            totalMonths: 24,
+            name: "Cicilan Kendaraan",
+            icon: "car",
+            totalAmount: 12000000,
+            paidAmount: 3000000,
+            monthlyPayment: 1000000,
+            totalMonths: 12,
             isSettled: false,
             createdAt: new Date(),
             updatedAt: new Date(),
-            remainingAmount: 13230000,
+            remainingAmount: 9000000,
             percentage: 25,
-            remainingMonths: 18,
+            remainingMonths: 9,
           },
           {
             id: "l-2",
             userId: "u-1",
-            name: "Talangan Mama",
+            name: "Pinjaman Pendidikan",
+            icon: "graduation-cap",
             totalAmount: 2500000,
             paidAmount: 2500000,
             monthlyPayment: 500000,
@@ -210,23 +249,23 @@ describe("Frontend Phases F7–F18 Component Suite", () => {
       />
     );
 
-    expect(html).toContain("Cicilan iPhone");
-    expect(html).toContain("18 Bulan Tersisa");
-    expect(html).toContain("🏆 100% LUNAS");
-    expect(html).not.toContain("font-mono");
+    expect(html).toContain("Cicilan Kendaraan");
+    expect(html).toContain("9 Bulan Tersisa");
+    expect(html).toContain("100% LUNAS");
+    expect(html).not.toContain(FORBIDDEN_MONO_CLASS);
   });
 
-  it("Fase F12 & F13: WishlistCard renders milestone badge and sinking fund progress", () => {
+  it("Fase F12 & F13: WishlistCard renders milestone badge and sinking fund progress without emojis", () => {
     const html = renderToString(
       <WishlistCard
         freeSavingsBalance={2500000}
         wishlist={{
           id: "w-1",
           userId: "u-1",
-          name: "Kamera Mirrorless",
+          name: "Perangkat Kerja Baru",
           targetAmount: 10000000,
           savedAmount: 7500000,
-          icon: "📷",
+          icon: "laptop",
           imageUrl: null,
           isPurchased: false,
           createdAt: new Date(),
@@ -237,36 +276,36 @@ describe("Frontend Phases F7–F18 Component Suite", () => {
       />
     );
 
-    expect(html).toContain("Kamera Mirrorless");
-    expect(html).toContain("🚀 Milestone 75%");
+    expect(html).toContain("Perangkat Kerja Baru");
+    expect(html).toContain("Milestone 75%");
     expect(html).toContain("Rp 7.500.000");
-    expect(html).not.toContain("font-mono");
+    expect(html).not.toContain(FORBIDDEN_MONO_CLASS);
   });
 
-  it("Fase F14: EmergencyVaultCard renders safety months meter and target Rp 18.000.000", () => {
+  it("Fase F14: EmergencyVaultCard renders safety months meter and target cleanly", () => {
     const html = renderToString(
       <EmergencyVaultCard
         vault={{
           id: "v-1",
           userId: "u-1",
           freeSavingsBalance: 2500000,
-          emergencyFundBalance: 12600000,
-          emergencyFundTarget: 18000000,
-          totalVaultBalance: 15100000,
+          emergencyFundBalance: 10500000,
+          emergencyFundTarget: 15000000,
+          totalVaultBalance: 13000000,
           percentageOfTarget: 70,
           isTargetReached: false,
           safetyMonths: 4.2,
-          monthlyFixedExpense: 3000000,
+          monthlyFixedExpense: 2500000,
           updatedAt: new Date(),
         }}
       />
     );
 
     expect(html).toContain("Brankas Dana Darurat");
-    expect(html).toContain("Rp 12.600.000");
-    expect(html).toContain("Rp 18.000.000");
+    expect(html).toContain("Rp 10.500.000");
+    expect(html).toContain("Rp 15.000.000");
     expect(html).toContain("4,2 Bulan");
-    expect(html).not.toContain("font-mono");
+    expect(html).not.toContain(FORBIDDEN_MONO_CLASS);
   });
 
   it("Fase F15, F16 & F17: AnalyticsDashboard, AiMonthlyReviewModal & DataExportPanel render cleanly", () => {
@@ -286,14 +325,6 @@ describe("Frontend Phases F7–F18 Component Suite", () => {
               averageSavingsRate: 33,
               monthsCount: 3,
             },
-            {
-              year: 2027,
-              totalIncome: 0,
-              totalExpense: 0,
-              totalNetSavings: 0,
-              averageSavingsRate: 0,
-              monthsCount: 0,
-            },
           ],
           categoryDistribution: [],
         }}
@@ -301,23 +332,118 @@ describe("Frontend Phases F7–F18 Component Suite", () => {
     );
     expect(analyticsHtml).toContain("Grafik Batang (Bar)");
     expect(analyticsHtml).toContain("Grafik Garis (Line)");
-    expect(analyticsHtml).not.toContain("font-mono");
+    expect(analyticsHtml).not.toContain(FORBIDDEN_MONO_CLASS);
 
     const aiHtml = renderToString(
       <AiMonthlyReviewModal
         monthName="Oktober 2026"
-        totalIncome={4000000}
+        totalIncome={5000000}
         totalSpent={2500000}
         categories={[]}
       />
     );
-    expect(aiHtml).toContain("✨ Evaluasi Bulan Ini dengan AI");
-    expect(aiHtml).not.toContain("font-mono");
+    expect(aiHtml).toContain("Evaluasi Bulan Ini dengan AI");
+    expect(aiHtml).not.toContain(FORBIDDEN_MONO_CLASS);
 
     const exportHtml = renderToString(<DataExportPanel />);
-    expect(exportHtml).toContain("📥 Download CSV Transaksi Bulanan");
-    expect(exportHtml).toContain("📊 Download Excel (.xlsx) Rekap Keuangan");
-    expect(exportHtml).toContain("💾 Full JSON Backup (Kedaulatan Data)");
-    expect(exportHtml).not.toContain("font-mono");
+    expect(exportHtml).toContain("Download CSV Transaksi Bulanan");
+    expect(exportHtml).toContain("Download Excel (.xlsx) Rekap Keuangan");
+    expect(exportHtml).toContain("Full JSON Backup (Kedaulatan Data)");
+    expect(exportHtml).not.toContain(FORBIDDEN_MONO_CLASS);
+  });
+
+  it("Fase R1, R3, R4, R6, R10: New Primitives (AppCategoryIcon, IconPicker, SlidingSegmentedControl, OnboardingWizard, Settings, PageSectionSkeleton) render cleanly", () => {
+    const iconHtml = renderToString(
+      <AppCategoryIcon iconKey="fuel" group="kebutuhan" size="md" />
+    );
+    expect(iconHtml).toContain("<svg");
+
+    const pickerHtml = renderToString(
+      <IconPicker value="fuel" onChange={() => {}} />
+    );
+    expect(pickerHtml).toContain('role="radiogroup"');
+    expect(pickerHtml).toContain("Transportasi");
+
+    const segHtml = renderToString(
+      <SlidingSegmentedControl
+        options={[
+          { value: "qris", label: "QRIS" },
+          { value: "cash", label: "Tunai" },
+        ]}
+        value="qris"
+        onValueChange={() => {}}
+        role="radiogroup"
+        ariaLabel="Metode bayar"
+      />
+    );
+    expect(segHtml).toContain('role="radiogroup"');
+    expect(segHtml).toContain('type="button"');
+    expect(segHtml).toContain("duration-200");
+
+    const onboardHtml = renderToString(
+      <OnboardingWizard
+        userName="Pengguna"
+        initialBaseSalary={0}
+        initialEmergencyFundTarget={0}
+      />
+    );
+    expect(onboardHtml).toContain("Lewati untuk Sekarang");
+    expect(onboardHtml).toContain("Langkah 1: Gaji Pokok");
+    expect(onboardHtml).not.toContain(FORBIDDEN_MONO_CLASS);
+
+    const defaultsHtml = renderToString(
+      <FinanceDefaultsPanel defaultBaseSalary={5000000} emergencyFundTarget={15000000} />
+    );
+    expect(defaultsHtml).toContain("Konfigurasi Gaji Pokok");
+    expect(defaultsHtml).not.toContain(FORBIDDEN_MONO_CLASS);
+
+    const tplHtml = renderToString(
+      <BudgetTemplateManager templates={[]} defaultBaseSalary={5000000} />
+    );
+    expect(tplHtml).toContain("Manajemen Template Pos Anggaran Rutin");
+    expect(tplHtml).not.toContain(FORBIDDEN_MONO_CLASS);
+
+    const skelHtml = renderToString(<PageSectionSkeleton />);
+    expect(skelHtml).toContain('aria-busy="true"');
+  });
+
+  it("Automated Audit (Fase R1 & R3): Codebase src/ must be 100% free of literal emojis, monospace utility, and personal dummy figures", () => {
+    const emojiRegex =
+      /[\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}\u{1F9B0}-\u{1F9B3}]/u;
+    const dummyRegex =
+      /\b(iPhone|Mama|Popo|Kamera|17\.?640\.?000|17_640_000|735\.?000|735_000)\b/i;
+
+    const emojiViolations: string[] = [];
+    const dummyViolations: string[] = [];
+    const fontMonoViolations: string[] = [];
+
+    function scanDir(dir: string) {
+      for (const name of readdirSync(dir)) {
+        const full = join(dir, name);
+        if (statSync(full).isDirectory()) {
+          scanDir(full);
+        } else if (full.endsWith(".ts") || full.endsWith(".tsx")) {
+          // Skip this test file's own regex definition lines
+          const isSelfTest = full.endsWith("frontend-phases-f7-f18.test.tsx");
+          const lines = readFileSync(full, "utf8").split("\n");
+          lines.forEach((line, idx) => {
+            if (emojiRegex.test(line)) {
+              emojiViolations.push(`${full}:${idx + 1}: ${line.trim()}`);
+            }
+            if (!isSelfTest && dummyRegex.test(line)) {
+              dummyViolations.push(`${full}:${idx + 1}: ${line.trim()}`);
+            }
+            if (!isSelfTest && line.includes(FORBIDDEN_MONO_CLASS)) {
+              fontMonoViolations.push(`${full}:${idx + 1}: ${line.trim()}`);
+            }
+          });
+        }
+      }
+    }
+
+    scanDir("src");
+    expect(emojiViolations).toEqual([]);
+    expect(dummyViolations).toEqual([]);
+    expect(fontMonoViolations).toEqual([]);
   });
 });

@@ -81,7 +81,7 @@ export function buildDeterministicMonthlyEvaluation(
     if (frugal) {
       mostFrugalCategory = {
         name: frugal.name,
-        icon: frugal.icon ?? "💰",
+        icon: frugal.icon ?? "wallet",
         targetBudget: frugal.targetBudget,
         spentAmount: frugal.spentAmount,
         varianceAmount: Math.max(0, frugal.targetBudget - frugal.spentAmount),
@@ -102,7 +102,7 @@ export function buildDeterministicMonthlyEvaluation(
     if (highest && highest.spentAmount > 0) {
       mostOverspentCategory = {
         name: highest.name,
-        icon: highest.icon ?? "⚠️",
+        icon: highest.icon ?? "receipt",
         targetBudget: highest.targetBudget,
         spentAmount: highest.spentAmount,
         varianceAmount: Math.max(0, highest.spentAmount - highest.targetBudget),
@@ -152,7 +152,7 @@ export function buildDeterministicMonthlyEvaluation(
   }
 
   const nextMonthAllocationAdvice: string[] = [
-    "Pertahankan alokasi otomatis 7 pos wajib sejak hari pertama gajian.",
+    "Pertahankan alokasi otomatis seluruh pos anggaran wajib sejak hari pertama gajian.",
     mostFrugalCategory
       ? `Sisa kuota dari pos ${mostFrugalCategory.name} (${formatRupiah(
           mostFrugalCategory.varianceAmount
