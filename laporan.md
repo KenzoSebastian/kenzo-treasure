@@ -44,7 +44,8 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   2. **Perampingan `<AiMonthlyReviewModal>`:** Menghapus pembungkus luar `div` dan menambahkan dukungan prop `trigger?: React.ReactNode` dengan teks ringkas `Evaluasi AI` (`w-full justify-center`). Ketika belum ada siklus bulan (`!currentMonthDetail`), tombol tetap tampil rapi dalam status disabled ber-tooltip agar tidak terjadi kekosongan sel grid.
   3. **Penjaminan Sel Ke-4 Selalu Terisi Simetris:** Merender fallback disabled konsisten untuk `<QuickTransactionDrawer>` saat `!currentMonthDetail` atau `isClosed`, memastikan grid 2x2 (`grid grid-cols-2 gap-2 w-full sm:w-[420px] shrink-0`) selalu terisi tepat 4 tombol sejajar sempurna baik di mobile maupun desktop.
   4. **Verifikasi Otomatis:** `bun test` (87/87 PASS, +1 test `MonthSelector`), `bun run typecheck` (0 errors), `font-mono = 0`, dan `bun run build` (PASS).
-- **File Changelog:** [`2026-11-15_fix_dashboard_header_action_buttons_grid.md`](.changelog/2026-11-15_fix_dashboard_header_action_buttons_grid.md).
+  5. **Pembersihan Artefak Review:** Menghapus folder sementara `docs/review/` (7 berkas laporan review EGM) sesuai aturan operasional EGM §2 pasca-persetujuan revisi.
+- **File Changelog:** [`2026-11-15_fix_dashboard_header_action_buttons_grid.md`](.changelog/2026-11-15_fix_dashboard_header_action_buttons_grid.md), [`2026-11-15_cleanup_ephemeral_egm_review_files.md`](.changelog/2026-11-15_cleanup_ephemeral_egm_review_files.md).
 
 ### Checkpoint 2: Implementasi Penuh Fase R1–R10 — Pilihan A Batch Terkendali (2026-11-15 17:32 WIB • Approved 2026-11-15 18:33 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo`
