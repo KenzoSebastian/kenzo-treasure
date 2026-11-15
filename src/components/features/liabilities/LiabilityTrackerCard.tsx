@@ -194,19 +194,23 @@ export function LiabilityTrackerCard({
               </Button>
             </DialogTrigger>
 
-            <DialogContent className="sm:max-w-md rounded-2xl p-6 max-h-[90dvh] overflow-y-auto">
-              <form onSubmit={handleCreateLiability} className="space-y-4" noValidate>
-                <DialogHeader>
-                  <DialogTitle className="text-base font-bold">
-                    Tambah Tracking Cicilan / Utang Baru
-                  </DialogTitle>
-                  <DialogDescription className="text-xs text-muted-foreground">
-                    Catat kewajiban cicilan berjangka waktu beserta target tenor
-                    pelunasannya.
-                  </DialogDescription>
-                </DialogHeader>
+            <DialogContent className="sm:max-w-md max-h-[90dvh]">
+              <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+                <DialogTitle className="text-base font-bold text-foreground">
+                  Tambah Tracking Cicilan / Utang Baru
+                </DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+                  Catat kewajiban cicilan berjangka waktu beserta target tenor
+                  pelunasannya.
+                </DialogDescription>
+              </DialogHeader>
 
-                <div className="space-y-3">
+              <form
+                onSubmit={handleCreateLiability}
+                className="flex flex-col flex-1 min-h-0 w-full m-0 p-0"
+                noValidate
+              >
+                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
                   <div className="space-y-1">
                     <Label htmlFor="liab-name" className="text-xs">
                       Nama Kewajiban / Cicilan
@@ -317,13 +321,13 @@ export function LiabilityTrackerCard({
                   )}
                 </div>
 
-                <DialogFooter className="gap-2">
+                <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => setOpenAddModal(false)}
-                    className="rounded-xl"
+                    className="rounded-xl cursor-pointer"
                   >
                     Batal
                   </Button>
@@ -331,7 +335,7 @@ export function LiabilityTrackerCard({
                     type="submit"
                     size="sm"
                     disabled={isPending}
-                    className="rounded-xl gap-1.5"
+                    className="rounded-xl gap-1.5 cursor-pointer font-semibold shadow-xs"
                   >
                     {isPending ? (
                       <Loader2 className="size-3.5 animate-spin" />

@@ -222,28 +222,34 @@ export function AllocateWishlistDrawer({
         )}
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-lg rounded-2xl p-6 max-h-[calc(100dvh-2rem)] overflow-y-auto">
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <DialogHeader>
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-              <Sparkles className="size-3.5" />
-              <span>Sinking Fund Barang Impian</span>
-            </div>
-            <DialogTitle className="text-lg font-bold text-foreground">
-              {wishlist.name}
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Terkumpul{" "}
-              <strong className="text-foreground tabular-nums">
-                {formatRupiah(wishlist.savedAmount)}
-              </strong>{" "}
-              dari target{" "}
-              <strong className="text-foreground tabular-nums">
-                {formatRupiah(wishlist.targetAmount)}
-              </strong>{" "}
-              ({wishlist.progress.percentage}%).
-            </DialogDescription>
-          </DialogHeader>
+      <DialogContent className="sm:max-w-lg max-h-[90dvh]">
+        <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+            <Sparkles className="size-3.5" />
+            <span>Sinking Fund Barang Impian</span>
+          </div>
+          <DialogTitle className="text-lg font-bold text-foreground">
+            {wishlist.name}
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+            Terkumpul{" "}
+            <strong className="text-foreground tabular-nums">
+              {formatRupiah(wishlist.savedAmount)}
+            </strong>{" "}
+            dari target{" "}
+            <strong className="text-foreground tabular-nums">
+              {formatRupiah(wishlist.targetAmount)}
+            </strong>{" "}
+            ({wishlist.progress.percentage}%).
+          </DialogDescription>
+        </DialogHeader>
+
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col flex-1 min-h-0 w-full m-0 p-0"
+          noValidate
+        >
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
 
           {/* Info Saldo Tabungan Bebas */}
           <div className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/30 p-3.5 text-xs">
@@ -413,14 +419,15 @@ export function AllocateWishlistDrawer({
               </div>
             )}
           </div>
+          </div>
 
-          <DialogFooter className="gap-2 pt-2">
+          <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setOpen(false)}
-              className="rounded-xl"
+              className="rounded-xl cursor-pointer"
             >
               Tutup
             </Button>
@@ -428,7 +435,7 @@ export function AllocateWishlistDrawer({
               type="submit"
               size="sm"
               disabled={isPending}
-              className="rounded-xl gap-1.5 font-semibold"
+              className="rounded-xl gap-1.5 font-semibold cursor-pointer shadow-xs"
             >
               {isPending && <Loader2 className="size-3.5 animate-spin" />}
               <span>

@@ -188,17 +188,23 @@ export function EmergencyVaultCard({ vault }: EmergencyVaultCardProps) {
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="sm:max-w-md rounded-2xl p-6">
-            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-              <DialogHeader>
-                <DialogTitle className="text-base font-bold">
-                  Kelola Brankas Dana Darurat & Tabungan
-                </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground">
-                  Pindahkan dana antara Saldo Tabungan Bebas dan Brankas Dana
-                  Darurat.
-                </DialogDescription>
-              </DialogHeader>
+          <DialogContent className="sm:max-w-md max-h-[90dvh]">
+            <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+              <DialogTitle className="text-base font-bold text-foreground">
+                Kelola Brankas Dana Darurat & Tabungan
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+                Pindahkan dana antara Saldo Tabungan Bebas dan Brankas Dana
+                Darurat.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col flex-1 min-h-0 w-full m-0 p-0"
+              noValidate
+            >
+              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
 
               {/* Mode Selector */}
               <SlidingSegmentedControl
@@ -294,13 +300,15 @@ export function EmergencyVaultCard({ vault }: EmergencyVaultCardProps) {
                 </p>
               )}
 
-              <DialogFooter className="gap-2">
+              </div>
+
+              <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setOpenModal(false)}
-                  className="rounded-xl"
+                  className="rounded-xl cursor-pointer"
                 >
                   Batal
                 </Button>
@@ -308,7 +316,7 @@ export function EmergencyVaultCard({ vault }: EmergencyVaultCardProps) {
                   type="submit"
                   size="sm"
                   disabled={isPending}
-                  className="rounded-xl gap-1.5 font-semibold"
+                  className="rounded-xl gap-1.5 font-semibold cursor-pointer shadow-xs"
                 >
                   {isPending ? (
                     <Loader2 className="size-3.5 animate-spin" />

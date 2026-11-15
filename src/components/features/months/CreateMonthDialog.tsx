@@ -151,26 +151,26 @@ export function CreateMonthDialog({
         )}
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-115 max-h-[calc(100dvh-4rem)] overflow-y-auto p-6 rounded-2xl border-border/80 my-auto">
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <DialogHeader className="space-y-1.5 text-left">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              <Sparkles className="size-3.5 text-foreground/80" />
-              <span>Zero-Based Budgeting</span>
-            </div>
-            <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
-              Buat Lembar Bulan Baru
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
-              {latestMonth
-                ? "Mewarisi konfigurasi pos anggaran bulan terakhir beserta penyesuaian otomatis cicilan dari database."
-                : templateCount > 0
-                ? `Inisialisasi Bulan 1 menggunakan ${templateCount} template pos anggaran pribadi Anda.`
-                : "Inisialisasi siklus bulan baru dengan alokasi kuota dinamis dari database."}
-            </DialogDescription>
-          </DialogHeader>
+      <DialogContent className="sm:max-w-md max-h-[90dvh]">
+        <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14 space-y-1">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <Sparkles className="size-3.5 text-foreground/80" />
+            <span>Zero-Based Budgeting</span>
+          </div>
+          <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
+            Buat Lembar Bulan Baru
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+            {latestMonth
+              ? "Mewarisi konfigurasi pos anggaran bulan terakhir beserta penyesuaian otomatis cicilan dari database."
+              : templateCount > 0
+              ? `Inisialisasi Bulan 1 menggunakan ${templateCount} template pos anggaran pribadi Anda.`
+              : "Inisialisasi siklus bulan baru dengan alokasi kuota dinamis dari database."}
+          </DialogDescription>
+        </DialogHeader>
 
-          <div className="space-y-4 py-1">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 w-full m-0 p-0">
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
             {/* 1. Baris Pemilih Bulan & Tahun */}
             <div className="grid grid-cols-2 gap-3 items-start">
               <div className="flex flex-col gap-1.5">
@@ -288,14 +288,14 @@ export function CreateMonthDialog({
             </div>
           </div>
 
-          <DialogFooter className="flex flex-row items-center justify-end gap-2 pt-2 border-t border-border/50">
+          <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setOpen(false)}
               disabled={isPending}
-              className="h-9 px-4 rounded-xl"
+              className="h-9 px-4 rounded-xl cursor-pointer"
             >
               Batal
             </Button>
@@ -303,7 +303,7 @@ export function CreateMonthDialog({
               type="submit"
               size="sm"
               disabled={isPending}
-              className="h-9 px-4 rounded-xl gap-1.5 font-medium"
+              className="h-9 px-4 rounded-xl gap-1.5 font-medium cursor-pointer shadow-xs"
             >
               {isPending ? (
                 <>

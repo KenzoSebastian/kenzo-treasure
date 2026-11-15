@@ -295,95 +295,96 @@ export function BudgetCategoryCard({
                       </button>
                     </DialogTrigger>
 
-                    <DialogContent className="sm:max-w-md rounded-2xl p-6">
-                      <DialogHeader>
+                    <DialogContent className="sm:max-w-md max-h-[90dvh]">
+                      <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
                         <DialogTitle className="text-base font-bold text-foreground">
                           Kelola Penghapusan Pos &ldquo;{category.name}&rdquo;
                         </DialogTitle>
-                        <DialogDescription className="text-xs text-muted-foreground">
+                        <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
                           {txList.length === 0
                             ? `Pos ini belum memiliki catatan pengeluaran di bulan berjalan. Target alokasi ${formatRupiah(category.target)} akan dikembalikan ke pos Uang Bebas / Tabungan.`
                             : `Pos ini memiliki ${txList.length} transaksi senilai ${formatRupiah(category.spent)}. Pilih cara penanganan agar arus kas tetap akurat:`}
                         </DialogDescription>
                       </DialogHeader>
 
-                      {txList.length > 0 && (
-                        <div className="space-y-3 py-1">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setDeleteMode("deactivate_next_month")
-                            }
-                            className={cn(
-                              "w-full rounded-xl border p-3 text-left transition-colors cursor-pointer space-y-1",
-                              deleteMode === "deactivate_next_month"
-                                ? "border-primary bg-primary/5"
-                                : "border-border/70 bg-card hover:bg-muted/40"
-                            )}
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="text-xs font-semibold text-foreground">
-                                Hentikan Mulai Bulan Depan (Direkomendasikan)
+                      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3.5 min-h-0">
+                        {txList.length > 0 && (
+                          <div className="space-y-3">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setDeleteMode("deactivate_next_month")
+                              }
+                              className={cn(
+                                "w-full rounded-xl border p-3 text-left transition-colors cursor-pointer space-y-1",
+                                deleteMode === "deactivate_next_month"
+                                  ? "border-primary bg-primary/5"
+                                  : "border-border/70 bg-card hover:bg-muted/40"
+                              )}
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-xs font-semibold text-foreground">
+                                  Hentikan Mulai Bulan Depan (Direkomendasikan)
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] px-1.5 py-0"
+                                >
+                                  Aman
+                                </Badge>
+                              </div>
+                              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                                Riwayat {txList.length} transaksi bulan ini tetap
+                                utuh di pos ini, namun pos tidak akan diwariskan
+                                lagi ke siklus bulan berikutnya.
+                              </p>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setDeleteMode("permanent_delete")}
+                              className={cn(
+                                "w-full rounded-xl border p-3 text-left transition-colors cursor-pointer space-y-1",
+                                deleteMode === "permanent_delete"
+                                  ? "border-rose-500/60 bg-rose-500/5"
+                                  : "border-border/70 bg-card hover:bg-muted/40"
+                              )}
+                            >
+                              <span className="text-xs font-semibold text-foreground block">
+                                Hapus Permanen & Pindahkan Transaksi
                               </span>
-                              <Badge
-                                variant="outline"
-                                className="text-[10px] px-1.5 py-0"
-                              >
-                                Aman
-                              </Badge>
-                            </div>
-                            <p className="text-[11px] text-muted-foreground leading-relaxed">
-                              Riwayat {txList.length} transaksi bulan ini tetap
-                              utuh di pos ini, namun pos tidak akan diwariskan
-                              lagi ke siklus bulan berikutnya.
-                            </p>
-                          </button>
+                              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                                Pindahkan seluruh {txList.length} transaksi secara
+                                otomatis ke pos tujuan sebelum menghapus pos ini.
+                              </p>
+                            </button>
 
-                          <button
-                            type="button"
-                            onClick={() => setDeleteMode("permanent_delete")}
-                            className={cn(
-                              "w-full rounded-xl border p-3 text-left transition-colors cursor-pointer space-y-1",
-                              deleteMode === "permanent_delete"
-                                ? "border-rose-500/60 bg-rose-500/5"
-                                : "border-border/70 bg-card hover:bg-muted/40"
+                            {deleteMode === "permanent_delete" && (
+                              <div className="space-y-1.5 pt-1">
+                                <Label
+                                  htmlFor={`reassign-${category.id}`}
+                                  className="text-xs font-medium"
+                                >
+                                  Pindahkan Transaksi Ke Pos Tujuan
+                                </Label>
+                                <select
+                                  id={`reassign-${category.id}`}
+                                  value={reassignTargetId}
+                                  onChange={(e) =>
+                                    setReassignTargetId(e.target.value)
+                                  }
+                                  className="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                >
+                                  {reassignOptions.map((opt) => (
+                                    <option key={opt.id} value={opt.id}>
+                                      {opt.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
                             )}
-                          >
-                            <span className="text-xs font-semibold text-foreground block">
-                              Hapus Permanen & Pindahkan Transaksi
-                            </span>
-                            <p className="text-[11px] text-muted-foreground leading-relaxed">
-                              Pindahkan seluruh {txList.length} transaksi secara
-                              otomatis ke pos tujuan sebelum menghapus pos ini.
-                            </p>
-                          </button>
-
-                          {deleteMode === "permanent_delete" && (
-                            <div className="space-y-1.5 pt-1">
-                              <Label
-                                htmlFor={`reassign-${category.id}`}
-                                className="text-xs font-medium"
-                              >
-                                Pindahkan Transaksi Ke Pos Tujuan
-                              </Label>
-                              <select
-                                id={`reassign-${category.id}`}
-                                value={reassignTargetId}
-                                onChange={(e) =>
-                                  setReassignTargetId(e.target.value)
-                                }
-                                className="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                              >
-                                {reassignOptions.map((opt) => (
-                                  <option key={opt.id} value={opt.id}>
-                                    {opt.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                          </div>
+                        )}
 
                       {deleteError && (
                         <div className="flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-2.5 text-xs text-destructive">
@@ -392,13 +393,15 @@ export function BudgetCategoryCard({
                         </div>
                       )}
 
-                      <DialogFooter className="gap-2">
+                      </div>
+
+                      <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
                           onClick={() => setIsDeleteOpen(false)}
-                          className="rounded-xl"
+                          className="rounded-xl cursor-pointer"
                         >
                           Batal
                         </Button>
@@ -418,7 +421,7 @@ export function BudgetCategoryCard({
                               !reassignTargetId)
                           }
                           onClick={handleDeleteCategory}
-                          className="rounded-xl gap-1.5"
+                          className="rounded-xl gap-1.5 cursor-pointer font-semibold shadow-xs"
                         >
                           {isSaving ? (
                             <Loader2 className="size-3.5 animate-spin" />
@@ -566,7 +569,7 @@ export function BudgetCategoryCard({
               </DialogTrigger>
 
               <DialogContent
-                className="flex max-h-[calc(100dvh-2rem)] flex-col gap-4 rounded-2xl p-6 sm:max-w-lg"
+                className="sm:max-w-lg max-h-[90dvh]"
                 onPointerDownOutside={(event) => {
                   const target = event.target as HTMLElement | null;
                   if (target?.closest("[data-sonner-toaster]")) {
@@ -580,8 +583,8 @@ export function BudgetCategoryCard({
                   }
                 }}
               >
-                <DialogHeader>
-                  <div className="flex items-center justify-between gap-3 pr-7">
+                <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+                  <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-2.5">
                       <AppCategoryIcon
                         iconKey={category.icon}
@@ -621,19 +624,21 @@ export function BudgetCategoryCard({
                   </div>
                 </DialogHeader>
 
-                <BudgetCategoryDetailsPanel
-                  category={category}
-                  isOverbudget={isOverbudget}
-                  isClosed={isClosed}
-                />
+                <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
+                  <BudgetCategoryDetailsPanel
+                    category={category}
+                    isOverbudget={isOverbudget}
+                    isClosed={isClosed}
+                  />
+                </div>
 
-                <DialogFooter className="-mx-6 -mb-6 rounded-b-2xl px-6 py-4">
+                <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
                   <DialogClose asChild>
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="rounded-xl"
+                      className="rounded-xl cursor-pointer"
                     >
                       Tutup
                     </Button>

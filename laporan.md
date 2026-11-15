@@ -36,7 +36,20 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
 
 ## 📝 Log Checkpoint Terbaru (Maksimal 5 Checkpoint Aktif)
 
-### Checkpoint 1: Layout Card Pos Ketat 2 Baris, Animasi Geser Tab Rp/%, Header Action Buttons Dashboard & 36 Ikon Finansial (2026-11-15 20:49 WIB • Approved 2026-11-15 20:52 WIB)
+### Checkpoint 1: Standarisasi Semua Modal Box & Sheet — Eliminasi Padding Dialog, Footer Solid Hitam Nempel Tepi, dan Tombol Close Lega (2026-11-15 22:15 WIB • Approved 2026-11-15 22:17 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-15 22:17 WIB)`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. **Eliminasi Padding Bawaan Dialog (`p-0 gap-0 overflow-hidden` di Akar):** Mengganti base class `DialogPrimitive.Content` pada `src/components/ui/dialog.tsx` dari `grid gap-4 p-4 rounded-xl` menjadi `flex flex-col rounded-2xl bg-popover p-0 gap-0 overflow-hidden`, serta beralih menggunakan utility resmi `@/lib/utils`. Menghilangkan akar masalah padding 16px yang sebelumnya membuat footer tampak melayang di dalam dialog.
+  2. **Footer Tombol Aksi Solid Hitam Menempel Tepi-ke-Tepi (`w-full border-t border-border/60 bg-background px-6 py-4 shrink-0 mt-auto`):** Footer kontainer tombol aksi di seluruh 11 modal dialog dan drawer kini menempel 100% rapat ke tepi kiri, kanan, dan bawah tanpa jeda padding samping maupun bawah. Garis `border-t border-border/60` membentang utuh dan sudut bawah dibulatkan rapi mengikuti kontainer modal.
+  3. **Formulir 100% Lebar (`w-full m-0 p-0 flex flex-col flex-1 min-h-0`):** Seluruh elemen `<form>` di dalam modal distandarisasi agar mengambil 100% lebar modal tanpa margin samping yang menggeser footer.
+  4. **Body Formulir Scrollable Mandiri (`flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0`):** Header dan footer terkunci di tempat (*fixed position*), sementara area tengah konten formulir menjadi satu-satunya area yang dapat di-scroll secara mulus.
+  5. **Tombol Close Nyaman & Tidak Dempet (`top-4 right-4 size-8 rounded-xl` + `pr-14`):** Tombol `X` diposisikan simetris 16px dari atas dan kanan, dengan safe right-padding `pr-12` default pada header sehingga tidak pernah bertabrakan dengan judul atau badge.
+  6. **Cakupan Lengkap 11 Dialog + 1 Drawer:** `CreateMonthDialog`, `QuickTransactionDrawer`, `BudgetTemplateManager`, `LiabilityTrackerCard`, `WishlistCard`, `AllocateWishlistDrawer`, `AiMonthlyReviewModal`, `BudgetCategoryList`, `BudgetCategoryCard` (Modal Hapus & Modal Rincian), `EmergencyVaultCard`, dan `IncomeSection`.
+  7. **Verifikasi Otomatis:** `bun test` (87/87 PASS), `bun run typecheck` (0 errors), `font-mono = 0`, dan `bun run build` (Turbopack compile PASS).
+- **File Changelog:** [`2026-11-15_standardize_all_modal_boxes_fixed_header_footer_and_scrollable_body.md`](.changelog/2026-11-15_standardize_all_modal_boxes_fixed_header_footer_and_scrollable_body.md).
+
+### Checkpoint 2: Layout Card Pos Ketat 2 Baris, Animasi Geser Tab Rp/%, Header Action Buttons Dashboard & 36 Ikon Finansial (2026-11-15 20:49 WIB • Approved 2026-11-15 20:52 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-15 20:52 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -56,7 +69,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   10. **Verifikasi Otomatis:** `bun test` (87/87 PASS), `bun run typecheck` (0 errors), `font-mono = 0`, dan `bun run build` (PASS).
 - **File Changelog:** [`2026-11-15_refine_onboarding_template_cards_and_full_width_button.md`](.changelog/2026-11-15_refine_onboarding_template_cards_and_full_width_button.md), [`2026-11-15_expand_curated_financial_icons_to_36.md`](.changelog/2026-11-15_expand_curated_financial_icons_to_36.md), [`2026-11-15_unselected_question_mark_icon_and_remove_label.md`](.changelog/2026-11-15_unselected_question_mark_icon_and_remove_label.md), [`2026-11-15_settings_emergency_fund_salary_recommendations.md`](.changelog/2026-11-15_settings_emergency_fund_salary_recommendations.md), [`2026-11-15_refine_onboarding_target_input_prefix_and_compact_width.md`](.changelog/2026-11-15_refine_onboarding_target_input_prefix_and_compact_width.md), [`2026-11-15_onboarding_target_budget_percentage_of_salary.md`](.changelog/2026-11-15_onboarding_target_budget_percentage_of_salary.md), [`2026-11-15_dashboard_header_actions_layout_and_single_plus.md`](.changelog/2026-11-15_dashboard_header_actions_layout_and_single_plus.md).
 
-### Checkpoint 2: Penyelarasan Notifikasi Error Login ke Toast Global (2026-11-15 18:50 WIB • Approved 2026-11-15 18:54 WIB)
+### Checkpoint 3: Penyelarasan Notifikasi Error Login ke Toast Global (2026-11-15 18:50 WIB • Approved 2026-11-15 18:54 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -65,7 +78,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   3. **Verifikasi Otomatis:** `bun test` (87/87 PASS), `bun run typecheck` (0 errors), dan `bun run build` (PASS).
 - **File Changelog:** [`2026-11-15_auth_error_toast_feedback.md`](.changelog/2026-11-15_auth_error_toast_feedback.md).
 
-### Checkpoint 3: Perbaikan Visual Layout Simetris 2x2 Header Action Buttons Dashboard (2026-11-15 18:05 WIB • Approved 2026-11-15 18:33 WIB)
+### Checkpoint 4: Perbaikan Visual Layout Simetris 2x2 Header Action Buttons Dashboard (2026-11-15 18:05 WIB • Approved 2026-11-15 18:33 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -76,7 +89,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Pembersihan Artefak Review:** Menghapus folder sementara `docs/review/` (7 berkas laporan review EGM) sesuai aturan operasional EGM §2 pasca-persetujuan revisi.
 - **File Changelog:** [`2026-11-15_fix_dashboard_header_action_buttons_grid.md`](.changelog/2026-11-15_fix_dashboard_header_action_buttons_grid.md), [`2026-11-15_cleanup_ephemeral_egm_review_files.md`](.changelog/2026-11-15_cleanup_ephemeral_egm_review_files.md).
 
-### Checkpoint 4: Implementasi Penuh Fase R1–R10 — Pilihan A Batch Terkendali (2026-11-15 17:32 WIB • Approved 2026-11-15 18:33 WIB)
+### Checkpoint 5: Implementasi Penuh Fase R1–R10 — Pilihan A Batch Terkendali (2026-11-15 17:32 WIB • Approved 2026-11-15 18:33 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -86,15 +99,6 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   4. **UX, Sliding Indicator & Performance (R5, R6, R7, R9, R10):** Menata header kanan desktop menjadi grid 2x2 simetris, mengintegrasikan `<SlidingSegmentedControl />` (`useSlidingIndicator`), pencarian/filter `TransactionSubList`, `getCachedAuthenticatedSession` (`React.cache`), `revalidateDashboardRoutes()`, `DashboardMonthShell`, `PageSectionSkeleton` + 4 `loading.tsx`, dan memverifikasi `87/87 bun test PASS`, `typecheck PASS`, `Tailwind v4 Canonical = 0`, `font-mono = 0`, serta `bun run build PASS`.
 - **File Changelog:** [`2026-11-15_implement_phases_r1_to_r10_batch.md`](.changelog/2026-11-15_implement_phases_r1_to_r10_batch.md).
 
-### Checkpoint 5: Master Plan Revisi `PLANREVISI.md` (R1–R10) & Resolusi Review EGM (2026-11-15 16:22 WIB)
-- **Status:** `COMPLETED ✅ — Approved by Kenzo (Pilihan A Batch Terkendali)`
-- **Agent:** Antigravity
-- **Capaian Utama:**
-  1. Membuat & mengunci [`docs/plans/PLANREVISI.md`](docs/plans/PLANREVISI.md) mencakup **Fase R1–R10** lewat `/grill-me`.
-  2. Menjalankan audit multi-perspektif (`/egm-review` Stages 5–9) dan menerapkan **17 `PROPOSE FIX`** melalui `/egm-resolve`.
-  3. Menandai review EGM selesai (`Status: resolved`) dan membersihkan folder sementara `docs/review/` pasca-implementasi.
-- **File Changelog:** [`2026-11-15_create_planrevisi_workflow.md`](.changelog/2026-11-15_create_planrevisi_workflow.md).
-
 ---
 
 ## 🗄️ Arsip Rekapitulasi Milestone Disetujui (Fase Lampau)
@@ -103,6 +107,7 @@ Seluruh rincian teknis, log kode, dan verifikasi fase terdahulu telah terdokumen
 
 | Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
 | :--- | :--- | :--- | :--- |
+| **Master Plan Revisi PLANREVISI.md (R1–R10)** | 2026-11-15 | Penyusunan backlog revisi 10 fase via /grill-me dan resolusi 17 temuan audit EGM. | [`2026-11-15_create_planrevisi_workflow.md`](.changelog/2026-11-15_create_planrevisi_workflow.md) |
 | **Backend B7–B13 & Frontend F7–F18** | 2026-11-15 | Penuntasan penuh seluruh roadmap backend dan frontend (100% tuntas & disetujui). | [`2026-11-14_complete_phases_b7_b13_and_f7_f18.md`](.changelog/2026-11-14_complete_phases_b7_b13_and_f7_f18.md) |
 | **Relokasi Plan ke `docs/plans/`** | 2026-11-14 | Memindahkan roadmap ke `docs/plans/` dan memperbarui seluruh referensi path. | [`2026-11-14_move_plans_to_docs_plans.md`](.changelog/2026-11-14_move_plans_to_docs_plans.md) |
 | **Relokasi Plan ke `docs/plans/`** | 2026-11-14 | Memindahkan roadmap ke `docs/plans/` dan memperbarui seluruh referensi path. | [`2026-11-14_move_plans_to_docs_plans.md`](.changelog/2026-11-14_move_plans_to_docs_plans.md) |

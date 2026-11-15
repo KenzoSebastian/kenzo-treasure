@@ -316,21 +316,25 @@ export function BudgetTemplateManager({
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl p-6 max-h-[90dvh] overflow-y-auto">
-          <form onSubmit={handleSaveTemplate} className="space-y-4" noValidate>
-            <DialogHeader>
-              <DialogTitle className="text-base font-bold">
-                {editingId
-                  ? "Ubah Template Pos Anggaran"
-                  : "Tambah Template Pos Anggaran"}
-              </DialogTitle>
-              <DialogDescription className="text-xs text-muted-foreground">
-                Atur nama, kelompok, target alokasi default, dan ikon untuk pos
-                anggaran rutin ini.
-              </DialogDescription>
-            </DialogHeader>
+        <DialogContent className="sm:max-w-md max-h-[90dvh]">
+          <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+            <DialogTitle className="text-base font-bold text-foreground">
+              {editingId
+                ? "Ubah Template Pos Anggaran"
+                : "Tambah Template Pos Anggaran"}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              Atur nama, kelompok, target alokasi default, dan ikon untuk pos
+              anggaran rutin ini.
+            </DialogDescription>
+          </DialogHeader>
 
-            <div className="space-y-3.5">
+          <form
+            onSubmit={handleSaveTemplate}
+            className="flex flex-col flex-1 min-h-0 w-full m-0 p-0"
+            noValidate
+          >
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3.5">
               <div className="space-y-1">
                 <Label htmlFor="tpl-name" className="text-xs font-medium">
                   Nama Pos Anggaran
@@ -552,13 +556,13 @@ export function BudgetTemplateManager({
               )}
             </div>
 
-            <DialogFooter className="gap-2">
+            <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setDialogOpen(false)}
-                className="rounded-xl"
+                className="rounded-xl cursor-pointer"
               >
                 Batal
               </Button>
@@ -566,7 +570,7 @@ export function BudgetTemplateManager({
                 type="submit"
                 size="sm"
                 disabled={isPending}
-                className="rounded-xl gap-1.5"
+                className="rounded-xl gap-1.5 cursor-pointer font-semibold shadow-xs"
               >
                 {isPending ? (
                   <Loader2 className="size-3.5 animate-spin" />

@@ -191,9 +191,9 @@ export function AiMonthlyReviewModal({
         )}
       </DialogTrigger>
 
-        <DialogContent className="sm:max-w-xl rounded-2xl p-6 max-h-[calc(100dvh-2rem)] overflow-y-auto">
-          <DialogHeader>
-            <div className="flex items-center justify-between gap-2">
+        <DialogContent className="sm:max-w-xl max-h-[90dvh]">
+          <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+            <div className="flex items-center justify-between gap-3 pr-6">
               <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
                 <Sparkles className="size-3.5" />
                 <span>AI Financial Advisor • Gemini</span>
@@ -209,27 +209,28 @@ export function AiMonthlyReviewModal({
             <DialogTitle className="text-lg font-bold text-foreground">
               Evaluasi Finansial Siklus {monthName}
             </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
               Analisis otomatis kepatuhan pos anggaran, rasio tabungan, dan
               rekomendasi taktis bulan berikutnya.
             </DialogDescription>
           </DialogHeader>
 
-          {isLoadingAi ? (
-            /* Animasi Loading Shimmering saat AI Menganalisis */
-            <div className="space-y-4 py-4" aria-live="polite">
-              <div className="h-20 w-full rounded-2xl bg-muted animate-pulse" />
-              <div className="grid grid-cols-2 gap-3">
-                <div className="h-24 rounded-xl bg-muted animate-pulse" />
-                <div className="h-24 rounded-xl bg-muted animate-pulse" />
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0">
+            {isLoadingAi ? (
+              /* Animasi Loading Shimmering saat AI Menganalisis */
+              <div className="space-y-4 py-2" aria-live="polite">
+                <div className="h-20 w-full rounded-2xl bg-muted animate-pulse" />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="h-24 rounded-xl bg-muted animate-pulse" />
+                  <div className="h-24 rounded-xl bg-muted animate-pulse" />
+                </div>
+                <div className="h-28 w-full rounded-xl bg-muted animate-pulse" />
+                <p className="text-center text-xs text-muted-foreground">
+                  Menganalisis realisasi anggaran dan rasio kas {monthName}...
+                </p>
               </div>
-              <div className="h-28 w-full rounded-xl bg-muted animate-pulse" />
-              <p className="text-center text-xs text-muted-foreground">
-                Menganalisis realisasi anggaran dan rasio kas {monthName}...
-              </p>
-            </div>
-          ) : reviewData ? (
-            <div className="space-y-4 py-1">
+            ) : reviewData ? (
+              <div className="space-y-4 py-1">
               {/* 1. Kartu Skor Disiplin Finansial */}
               <div className="flex items-center justify-between gap-4 rounded-2xl border border-border/80 bg-muted/20 p-4">
                 <div className="space-y-1">
@@ -333,8 +334,9 @@ export function AiMonthlyReviewModal({
               </div>
             </div>
           ) : null}
+          </div>
 
-          <DialogFooter className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2 border-t border-border/50">
+          <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 shrink-0 mt-auto">
             {monthId && (
               <Button
                 type="button"
@@ -342,7 +344,7 @@ export function AiMonthlyReviewModal({
                 size="sm"
                 disabled={isClosing}
                 onClick={handleToggleMonthClose}
-                className="rounded-xl gap-1.5 text-xs"
+                className="rounded-xl gap-1.5 text-xs cursor-pointer"
               >
                 {isClosing ? (
                   <Loader2 className="size-3.5 animate-spin" />
@@ -366,7 +368,7 @@ export function AiMonthlyReviewModal({
                 size="sm"
                 disabled={isLoadingAi}
                 onClick={() => void runEvaluation()}
-                className="rounded-xl text-xs"
+                className="rounded-xl text-xs cursor-pointer"
               >
                 Analisis Ulang
               </Button>
@@ -374,7 +376,7 @@ export function AiMonthlyReviewModal({
                 type="button"
                 size="sm"
                 onClick={() => setOpen(false)}
-                className="rounded-xl text-xs"
+                className="rounded-xl text-xs cursor-pointer"
               >
                 Selesai
               </Button>
