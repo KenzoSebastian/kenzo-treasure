@@ -50,13 +50,14 @@ import {
 import type { MonthlyAiReview } from "@/types/ai-review";
 import type { BudgetCategoryItem } from "@/components/features/categories/BudgetCategoryCard";
 
-interface AiMonthlyReviewModalProps {
+export interface AiMonthlyReviewModalProps {
   monthId?: string;
   monthName: string;
   isClosed?: boolean;
   totalIncome: number;
   totalSpent: number;
   categories: BudgetCategoryItem[];
+  trigger?: React.ReactNode;
 }
 
 export function AiMonthlyReviewModal({
@@ -66,6 +67,7 @@ export function AiMonthlyReviewModal({
   totalIncome,
   totalSpent,
   categories,
+  trigger,
 }: AiMonthlyReviewModalProps) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
@@ -174,19 +176,20 @@ export function AiMonthlyReviewModal({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogTrigger asChild>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        {trigger || (
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="h-9 px-3.5 rounded-xl gap-1.5 text-xs font-semibold border-primary/30 bg-primary/5 hover:bg-primary/10 text-foreground shadow-2xs"
+            className="h-9 px-3 rounded-xl gap-1.5 text-xs font-semibold border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 text-foreground shadow-2xs w-full justify-center"
           >
-            <Sparkles className="size-3.5 text-amber-500" />
-            <span>Evaluasi Bulan Ini dengan AI</span>
+            <Sparkles className="size-3.5 text-amber-500 shrink-0" />
+            <span className="truncate">Evaluasi AI</span>
           </Button>
-        </DialogTrigger>
+        )}
+      </DialogTrigger>
 
         <DialogContent className="sm:max-w-xl rounded-2xl p-6 max-h-[calc(100dvh-2rem)] overflow-y-auto">
           <DialogHeader>
@@ -379,6 +382,5 @@ export function AiMonthlyReviewModal({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
+    );
+  }

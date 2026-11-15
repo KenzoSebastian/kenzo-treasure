@@ -38,6 +38,7 @@ import { DataExportPanel } from "@/components/features/settings/DataExportPanel"
 import { FinanceDefaultsPanel } from "@/components/features/settings/FinanceDefaultsPanel";
 import { BudgetTemplateManager } from "@/components/features/settings/BudgetTemplateManager";
 import { OnboardingWizard } from "@/components/features/onboarding/OnboardingWizard";
+import { MonthSelector } from "@/components/features/months/MonthSelector";
 import { AppCategoryIcon } from "@/components/common/AppCategoryIcon";
 import { IconPicker } from "@/components/common/IconPicker";
 import { SlidingSegmentedControl } from "@/components/common/SlidingSegmentedControl";
@@ -342,7 +343,7 @@ describe("Frontend Phases F7–F18 & R1–R10 Component Suite", () => {
         categories={[]}
       />
     );
-    expect(aiHtml).toContain("Evaluasi Bulan Ini dengan AI");
+    expect(aiHtml).toContain("Evaluasi AI");
     expect(aiHtml).not.toContain(FORBIDDEN_MONO_CLASS);
 
     const exportHtml = renderToString(<DataExportPanel />);
@@ -405,6 +406,36 @@ describe("Frontend Phases F7–F18 & R1–R10 Component Suite", () => {
 
     const skelHtml = renderToString(<PageSectionSkeleton />);
     expect(skelHtml).toContain('aria-busy="true"');
+
+    // Fase R7: MonthSelector showCreateButton={false} vs true
+    const monthSelectorCleanHtml = renderToString(
+      <MonthSelector
+        months={[
+          {
+            id: "m-1",
+            userId: "u-1",
+            name: "Oktober 2026",
+            year: 2026,
+            monthIndex: 10,
+            isClosed: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ]}
+        showCreateButton={false}
+      />
+    );
+    expect(monthSelectorCleanHtml).toContain("Oktober 2026");
+    expect(monthSelectorCleanHtml).not.toContain("+ Buat Bulan Baru");
+
+    const monthSelectorFullHtml = renderToString(
+      <MonthSelector
+        months={[]}
+        showCreateButton={true}
+      />
+    );
+    expect(monthSelectorFullHtml).toContain("Pilih Bulan");
+    expect(monthSelectorFullHtml).toContain("Buat Bulan Baru");
   });
 
   it("Automated Audit (Fase R1 & R3): Codebase src/ must be 100% free of literal emojis, monospace utility, and personal dummy figures", () => {

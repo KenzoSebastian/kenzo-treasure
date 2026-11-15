@@ -89,27 +89,27 @@ export function MonthSelector({
           variant="outline"
           size="sm"
           disabled={isSwitching}
-          className="h-9 px-3 gap-2 rounded-xl border-border/80 bg-background hover:bg-muted/50 font-medium text-xs shadow-2xs"
+          className="h-9 px-3 gap-2 rounded-xl border-border/80 bg-background hover:bg-muted/50 font-medium text-xs shadow-2xs w-full justify-between"
         >
           {isSwitching ? (
-            <>
-              <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
-              <span className="font-semibold text-foreground">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Loader2 className="size-3.5 animate-spin text-muted-foreground shrink-0" />
+              <span className="font-semibold text-foreground truncate">
                 {pendingMonthName
                   ? `Memuat ${pendingMonthName}...`
                   : "Memuat..."}
               </span>
-            </>
+            </div>
           ) : (
-            <>
-              <Calendar className="size-3.5 text-muted-foreground" />
-              <span className="font-semibold text-foreground">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Calendar className="size-3.5 text-muted-foreground shrink-0" />
+              <span className="font-semibold text-foreground truncate">
                 {selectedMonth ? selectedMonth.name : "Pilih Bulan"}
               </span>
 
               {selectedMonth && (
                 <span
-                  className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-md ${
+                  className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-md shrink-0 ${
                     selectedMonth.isClosed
                       ? "bg-muted text-muted-foreground"
                       : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
@@ -128,10 +128,10 @@ export function MonthSelector({
                   )}
                 </span>
               )}
-
-              <ChevronDown className="size-3.5 text-muted-foreground ml-0.5 opacity-60" />
-            </>
+            </div>
           )}
+
+          <ChevronDown className="size-3.5 text-muted-foreground ml-0.5 opacity-60 shrink-0" />
         </Button>
       </DropdownMenuTrigger>
 

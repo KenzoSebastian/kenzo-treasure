@@ -1,6 +1,6 @@
 # PLANREVISI — Rencana Kerja & Backlog Revisi Terkumpul Kenzo Treasury
 
-> **Status:** `COLLECTING → REVIEW RESOLVED (Siap Konfirmasi Mode Eksekusi R1–R10)`
+> **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-15 18:33 WIB)`
 > **Goal:** Memetakan, merinci, dan mengunci desain teknis seluruh batch revisi pasca-peluncuran (`Fase R1–R10`) di [`docs/plans/PLANREVISI.md`](PLANREVISI.md) sebelum implementasi kode dimulai atas instruksi Kenzo.
 > **Aturan Kerja & Eskalasi Tata Kelola (`Issue 9A` — Menunggu Pilihan Kenzo):**
 > 1. **Tahap Pengumpulan (`COLLECTING`):** Setiap permintaan revisi dirinci lengkap ke dokumen ini (*scope*, file terdampak, kontrak tipe/skema, *edge cases*, checklist `- [ ]`) tanpa mengubah `src/` sebelum desain terkunci.
@@ -130,7 +130,7 @@ Agar tidak terjadi konflik edit antar-fase, modifikasi pada file *hotspot* digab
 
 ## 3. Daftar Fase Revisi & Checklist Eksekusi
 
-### [ ] Fase R1 — Migrasi Seluruh Stiker Emoji ke `lucide-react`, Konfigurasi Skema Ikon & 1 Migrasi SQL Pembersih
+### [x] Fase R1 — Migrasi Seluruh Stiker Emoji ke `lucide-react`, Konfigurasi Skema Ikon & 1 Migrasi SQL Pembersih
 
 - **Sumber Permintaan:** *"untuk icon tolong jangan pke stiker, tapi pke library icon, apa yang pling bagus yaa?"* + *"pastikan itu di semua komponennya, jadi, aku gmau lagi ada stiker lagi, semua pke icon"* (Keputusan `/grill-me` `2026-11-15 15:22 WIB`).
 - **Keputusan Desain:**
@@ -166,15 +166,15 @@ Agar tidak terjadi konflik edit antar-fase, modifikasi pada file *hotspot* digab
   - `[Modify]` [`docs/DESIGN-SYSTEM.md`](../DESIGN-SYSTEM.md) — Selaraskan dokumentasi ikon Lucide & pengecualian badge semantik.
   - `[Modify]` [`financial-calculations.test.ts`](../../src/lib/__tests__/financial-calculations.test.ts), [`schemas.test.ts`](../../src/schemas/__tests__/schemas.test.ts), [`months.test.ts`](../../src/actions/__tests__/months.test.ts), [`backend-phases-b7-b13.test.ts`](../../src/actions/__tests__/backend-phases-b7-b13.test.ts), [`frontend-phases-f7-f18.test.tsx`](../../src/components/features/__tests__/frontend-phases-f7-f18.test.tsx).
 - **Checklist Eksekusi:**
-  - [ ] Implementasikan `src/lib/category-icons.ts` (24 ikon kurasi, fallback peta emoji DB, `stripEmojiPrefix`, dan `milestoneIconKey`).
-  - [ ] Buat `src/components/common/AppCategoryIcon.tsx` (`variant="badge" | "inline"`, warna lembut per kelompok & `liabilityId`) dan export lewat `src/components/common/index.ts`.
-  - [ ] Naikkan validasi Zod `icon` `.max(50)` pada ke-4 schema create/update (`category.schema.ts`, `wishlist.schema.ts`), ubah fallback `wishlists.ts` (`"target"`) & `months.ts` (`"Gaji Pokok"`).
-  - [ ] Bersihkan seluruh emoji di komponen Dashboard/Landing/Pages/Queries/AI, perbarui `docs/DESIGN-SYSTEM.md`, & terapkan 1 migrasi `--custom` SQL cleanup historis.
-  - [ ] Tambah test fallback emoji $\rightarrow$ Lucide, test validasi slug `>10` char create & update, serta Zero-Emoji Regex Audit lintas `src/{components,app,actions,lib}`.
+  - [x] Implementasikan `src/lib/category-icons.ts` (24 ikon kurasi, fallback peta emoji DB, `stripEmojiPrefix`, dan `milestoneIconKey`).
+  - [x] Buat `src/components/common/AppCategoryIcon.tsx` (`variant="badge" | "inline"`, warna lembut per kelompok & `liabilityId`) dan export lewat `src/components/common/index.ts`.
+  - [x] Naikkan validasi Zod `icon` `.max(50)` pada ke-4 schema create/update (`category.schema.ts`, `wishlist.schema.ts`), ubah fallback `wishlists.ts` (`"target"`) & `months.ts` (`"Gaji Pokok"`).
+  - [x] Bersihkan seluruh emoji di komponen Dashboard/Landing/Pages/Queries/AI, perbarui `docs/DESIGN-SYSTEM.md`, & terapkan 1 migrasi `--custom` SQL cleanup historis.
+  - [x] Tambah test fallback emoji $\rightarrow$ Lucide, test validasi slug `>10` char create & update, serta Zero-Emoji Regex Audit lintas `src/{components,app,actions,lib}`.
 
 ---
 
-### [ ] Fase R2 — Icon Picker Interaktif (`IconPicker`) pada Pos, Wishlist, Cicilan & Onboarding
+### [x] Fase R2 — Icon Picker Interaktif (`IconPicker`) pada Pos, Wishlist, Cicilan & Onboarding
 
 - **Sumber Permintaan:** *"pas Tambah Pos Anggaran anggaran juga, nnti user bisa pilih, mau ikon apaa"* (Cakupan & UX grid dikunci via `/grill-me` `2026-11-15 15:22 WIB`).
 - **Desain Teknis:**
@@ -193,14 +193,14 @@ Agar tidak terjadi konflik edit antar-fase, modifikasi pada file *hotspot* digab
   - `[Modify]` [`src/components/features/wishlists/WishlistCard.tsx`](../../src/components/features/wishlists/WishlistCard.tsx) — Pasang `<IconPicker />` di `WishlistGrid` dialog tambah wishlist.
   - `[Modify]` [`src/components/features/__tests__/frontend-phases-f7-f18.test.tsx`](../../src/components/features/__tests__/frontend-phases-f7-f18.test.tsx) — Uji interaksi & atribut `type="button"`, `role="radiogroup"`, fallback unknown key, dan reset state.
 - **Checklist Eksekusi:**
-  - [ ] Buat `IconPicker.tsx` (`grid-cols-4 min-[380px]:grid-cols-6`, `min-h-11`, `type="button"`, `role="radiogroup"`/`"radio"`).
-  - [ ] Integrasikan `IconPicker` ke `BudgetCategoryList.tsx` lengkap dengan reset `icon` (`"wallet"`) & `group` (`"kebutuhan"`).
-  - [ ] Integrasikan `IconPicker` ke dialog tambah wishlist (`WishlistGrid` di `WishlistCard.tsx`).
-  - [ ] Tambah unit test render & aksesibilitas `IconPicker`.
+  - [x] Buat `IconPicker.tsx` (`grid-cols-4 min-[380px]:grid-cols-6`, `min-h-11`, `type="button"`, `role="radiogroup"`/`"radio"`).
+  - [x] Integrasikan `IconPicker` ke `BudgetCategoryList.tsx` lengkap dengan reset `icon` (`"wallet"`) & `group` (`"kebutuhan"`).
+  - [x] Integrasikan `IconPicker` ke dialog tambah wishlist (`WishlistGrid` di `WishlistCard.tsx`).
+  - [x] Tambah unit test render & aksesibilitas `IconPicker`.
 
 ---
 
-### [ ] Fase R3 — Animasi Transisi Sliding Kiri–Kanan Active Overlay pada Tab, Segmented Control & Navigasi
+### [x] Fase R3 — Animasi Transisi Sliding Kiri–Kanan Active Overlay pada Tab, Segmented Control & Navigasi
 
 - **Sumber Permintaan:** *"ini ketika pindah2 tab, kasi animasi transisi nya kiri kanan nnti overlaynya yaa, mungkin ada komponen lain yg pke ini, bisa kmu tambahin lagi"* (Gaya & cakupan dikunci `/grill-me` `2026-11-15 15:22 WIB`).
 - **Catatan Arsitektural (`Issue 11A` Contest & `Issue 11B` Fix):**
@@ -234,15 +234,15 @@ Agar tidak terjadi konflik edit antar-fase, modifikasi pada file *hotspot* digab
   - `[Modify]` [`src/components/features/wishlists/AllocateWishlistDrawer.tsx`](../../src/components/features/wishlists/AllocateWishlistDrawer.tsx), [`src/components/features/savings/EmergencyVaultCard.tsx`](../../src/components/features/savings/EmergencyVaultCard.tsx), [`src/components/features/categories/BudgetCategoryList.tsx`](../../src/components/features/categories/BudgetCategoryList.tsx), [`src/components/features/transactions/QuickTransactionDrawer.tsx`](../../src/components/features/transactions/QuickTransactionDrawer.tsx).
   - `[Modify]` [`src/components/features/__tests__/frontend-phases-f7-f18.test.tsx`](../../src/components/features/__tests__/frontend-phases-f7-f18.test.tsx) — Test `SlidingSegmentedControl`, `type="button"`, `role="radiogroup"` vs `"tablist"`, CSS SSR fallback, & `AnalyticsDashboard` dinamis.
 - **Checklist Eksekusi:**
-  - [ ] Buat `use-sliding-indicator.ts` (`duration-200`, `prefers-reduced-motion`, `fonts.ready`, `recalculateTrigger`) dan export via `src/hooks/index.ts`.
-  - [ ] Buat `SlidingSegmentedControl.tsx` (`role="tablist" | "radiogroup"`, `type="button"`, SSR fallback `!hasMeasured`, support `activeClassName`).
-  - [ ] Terapkan `useSlidingIndicator` di `AppHeader.tsx` dan top indicator `h-0.5` + pill halus di `MobileBottomNav.tsx` menggunakan `usePathname()`.
-  - [ ] Migrasikan 6 kontrol di `AnalyticsDashboard.tsx` (termasuk `data.availableYears`), `AllocateWishlistDrawer.tsx`, `EmergencyVaultCard.tsx`, `BudgetCategoryList.tsx`, & `QuickTransactionDrawer.tsx`.
-  - [ ] Tambah unit test untuk komponen primitive & migrasi `AnalyticsDashboard` `data.availableYears`.
+  - [x] Buat `use-sliding-indicator.ts` (`duration-200`, `prefers-reduced-motion`, `fonts.ready`, `recalculateTrigger`) dan export via `src/hooks/index.ts`.
+  - [x] Buat `SlidingSegmentedControl.tsx` (`role="tablist" | "radiogroup"`, `type="button"`, SSR fallback `!hasMeasured`, support `activeClassName`).
+  - [x] Terapkan `useSlidingIndicator` di `AppHeader.tsx` dan top indicator `h-0.5` + pill halus di `MobileBottomNav.tsx` menggunakan `usePathname()`.
+  - [x] Migrasikan 6 kontrol di `AnalyticsDashboard.tsx` (termasuk `data.availableYears`), `AllocateWishlistDrawer.tsx`, `EmergencyVaultCard.tsx`, `BudgetCategoryList.tsx`, & `QuickTransactionDrawer.tsx`.
+  - [x] Tambah unit test untuk komponen primitive & migrasi `AnalyticsDashboard` `data.availableYears`.
 
 ---
 
-### [ ] Fase R4 — Instant Skeleton saat Pindah Siklus Bulan (Zero Stale Data saat Fetching)
+### [x] Fase R4 — Instant Skeleton saat Pindah Siklus Bulan (Zero Stale Data saat Fetching)
 
 - **Sumber Permintaan:** *"ketika pindah2 bulan, itu kan featch data ya?? jangan masih tampilin data bulan sebelumnya, tapi, langsung tampilin skeleton, bru nnti, klo udah slesai loadingnya bru tampilin data bulan yang dipilih"* (Keputusan `/grill-me` `2026-11-15 15:27 WIB`).
 - **Arsitektur Batas `<Suspense>` Bersih (`Issue 4` Fix):**
@@ -268,15 +268,15 @@ Agar tidak terjadi konflik edit antar-fase, modifikasi pada file *hotspot* digab
   - `[Modify]` [`src/app/(dashboard)/dashboard/page.tsx`](../../src/app/(dashboard)/dashboard/page.tsx) — Pisahkan strip siklus & konten ke async `DashboardMonthContent` dalam `DashboardMonthShell` + `<Suspense key={selectedMonthId ?? "active"}>`.
   - `[Modify]` [`src/components/features/__tests__/frontend-phases-f7-f18.test.tsx`](../../src/components/features/__tests__/frontend-phases-f7-f18.test.tsx) — Uji `MonthNavigationContext`, `DashboardMonthShell`, guard klik bulan aktif, dan reset pasca-navigasi.
 - **Checklist Eksekusi:**
-  - [ ] Buat `MonthNavigationContext.tsx` (termasuk `useTransition` & `startMonthSwitch`) dan `DashboardMonthShell.tsx`.
-  - [ ] Tambah `hideHeader?: boolean` ke `DashboardSkeleton.tsx` untuk `DashboardMonthShell` & `<Suspense fallback>`.
-  - [ ] Perbarui `MonthSelector.tsx` & `CreateMonthDialog.tsx` menggunakan `startMonthSwitch` (tanpa berkedip jika bulan sama).
-  - [ ] Refactor `dashboard/page.tsx` memindahkan `getMonthDetailById`, strip siklus, `AiMonthlyReviewModal`, `QuickTransactionDrawer`, dan seluruh kartu ke `DashboardMonthContent` di dalam `<Suspense key={selectedMonthId ?? "active"}>`.
-  - [ ] Tambah unit test untuk swap skeleton 0 ms, guard klik berulang, dan auto-reset.
+  - [x] Buat `MonthNavigationContext.tsx` (termasuk `useTransition` & `startMonthSwitch`) dan `DashboardMonthShell.tsx`.
+  - [x] Tambah `hideHeader?: boolean` ke `DashboardSkeleton.tsx` untuk `DashboardMonthShell` & `<Suspense fallback>`.
+  - [x] Perbarui `MonthSelector.tsx` & `CreateMonthDialog.tsx` menggunakan `startMonthSwitch` (tanpa berkedip jika bulan sama).
+  - [x] Refactor `dashboard/page.tsx` memindahkan `getMonthDetailById`, strip siklus, `AiMonthlyReviewModal`, `QuickTransactionDrawer`, dan seluruh kartu ke `DashboardMonthContent` di dalam `<Suspense key={selectedMonthId ?? "active"}>`.
+  - [x] Tambah unit test untuk swap skeleton 0 ms, guard klik berulang, dan auto-reset.
 
 ---
 
-### [ ] Fase R5 — Quick Action `Semua Sisa` Isi Maksimal Pos di `QuickTransactionDrawer`
+### [x] Fase R5 — Quick Action `Semua Sisa` Isi Maksimal Pos di `QuickTransactionDrawer`
 
 - **Sumber Permintaan:** *"di sheet catat pengeluaran harian, itu kan ada quick action buat isi nominal pengeluarannya, aku mau tambahin lagi 'semua'... biar otomatis isi maksimal dari pos anggaran yang kita pilih"* (Label dikunci `2026-11-15 14:20 WIB`).
 - **Desain Teknis & Edge Cases:**
@@ -287,13 +287,13 @@ Agar tidak terjadi konflik edit antar-fase, modifikasi pada file *hotspot* digab
   - `[Modify]` [`src/components/features/transactions/QuickTransactionDrawer.tsx`](../../src/components/features/transactions/QuickTransactionDrawer.tsx) — Tambah `resolveMaxCategoryRemaining`, pill `Semua Sisa (<nominal>)`, highlight aktif, & guard `disabled`.
   - `[Modify]` [`src/components/features/__tests__/frontend-phases-f7-f18.test.tsx`](../../src/components/features/__tests__/frontend-phases-f7-f18.test.tsx) — Uji sisa positif, nol, overspent negatif, kategori tidak ditemukan, dan nol `font-mono`.
 - **Checklist Eksekusi:**
-  - [ ] Ekstrak helper murni `resolveMaxCategoryRemaining(categories, categoryId)`.
-  - [ ] Render pill `Semua Sisa (<nominal>)` dengan `tabular-nums` dan status disabled `Sisa Pos Habis` saat `<= 0`.
-  - [ ] Tambah unit test `resolveMaxCategoryRemaining` & render markup di `frontend-phases-f7-f18.test.tsx`.
+  - [x] Ekstrak helper murni `resolveMaxCategoryRemaining(categories, categoryId)`.
+  - [x] Render pill `Semua Sisa (<nominal>)` dengan `tabular-nums` dan status disabled `Sisa Pos Habis` saat `<= 0`.
+  - [x] Tambah unit test `resolveMaxCategoryRemaining` & render markup di `frontend-phases-f7-f18.test.tsx`.
 
 ---
 
-### [ ] Fase R6 — Single-Scroll Sheet, Sticky Solid Footer, Reopen Guard & Auto-Fill Keterangan Pos
+### [x] Fase R6 — Single-Scroll Sheet, Sticky Solid Footer, Reopen Guard & Auto-Fill Keterangan Pos
 
 - **Sumber Permintaan:** *"container pilih pos anggaran hilangin scroll nya, jadi scroll nya hanya di sheet luar nya... trus juga ketika kita pilih pos anggaran (kecuali uang bebas), otomatis keisi 'ketengangan singkat' nya pakai nama pos nya aja, tapi tetep itu bisa di edit yaa"* (`/grill-me` `2026-11-15 15:27 WIB`).
 - **Desain Teknis (`Issue 10` Fix):**
@@ -313,14 +313,14 @@ Agar tidak terjadi konflik edit antar-fase, modifikasi pada file *hotspot* digab
   - `[Modify]` [`src/app/(dashboard)/dashboard/page.tsx`](../../src/app/(dashboard)/dashboard/page.tsx) — Teruskan `group: c.group` ke `QuickTransactionDrawer`.
   - `[Modify]` [`src/components/features/__tests__/frontend-phases-f7-f18.test.tsx`](../../src/components/features/__tests__/frontend-phases-f7-f18.test.tsx) — Uji `resolveAutoDescriptionForCategory`, anti-overwrite, absennya `max-h-40 overflow-y-auto`, dan render `defaultOpen`.
 - **Checklist Eksekusi:**
-  - [ ] Hapus `max-h-40 overflow-y-auto pr-0.5` dari grid pos dan tata `<DrawerHeader>` + single outer scroll + solid `<DrawerFooter>` (`shrink-0`, `bg-background`).
-  - [ ] Tambah `group?: CategoryGroup` di `QuickCategoryOption` dan teruskan dari `dashboard/page.tsx`.
-  - [ ] Tambah `resolveAutoDescriptionForCategory`, `shouldSkipNextOpenResetRef` + transisi `closed -> open`, serta `{ shouldValidate: false, shouldDirty: true }`.
-  - [ ] Tambah unit test untuk auto-fill, reopen preservation, & zero nested scroll.
+  - [x] Hapus `max-h-40 overflow-y-auto pr-0.5` dari grid pos dan tata `<DrawerHeader>` + single outer scroll + solid `<DrawerFooter>` (`shrink-0`, `bg-background`).
+  - [x] Tambah `group?: CategoryGroup` di `QuickCategoryOption` dan teruskan dari `dashboard/page.tsx`.
+  - [x] Tambah `resolveAutoDescriptionForCategory`, `shouldSkipNextOpenResetRef` + transisi `closed -> open`, serta `{ shouldValidate: false, shouldDirty: true }`.
+  - [x] Tambah unit test untuk auto-fill, reopen preservation, & zero nested scroll.
 
 ---
 
-### [ ] Fase R7 — Penataan Header Desktop 2x2 Rata Kanan & Sapu Bersih Label `"7 Pos"`
+### [x] Fase R7 — Penataan Header Desktop 2x2 Rata Kanan & Sapu Bersih Label `"7 Pos"`
 
 - **Sumber Permintaan:** *"untul tampiilan desktop tolong rapihin action button nya kan ada 4 itu rata kanan, 2 baris, 1 baris 2 button"* (Gaya & label dinamis dikunci via `/grill-me` `2026-11-15 15:39 WIB`).
 - **Desain Teknis (`Issue 12` Fix):**
@@ -342,14 +342,14 @@ Agar tidak terjadi konflik edit antar-fase, modifikasi pada file *hotspot* digab
   - `[Modify]` [`AppHeader.tsx`](../../src/components/layout/AppHeader.tsx), [`CreateMonthDialog.tsx`](../../src/components/features/months/CreateMonthDialog.tsx), [`BudgetCategoryList.tsx`](../../src/components/features/categories/BudgetCategoryList.tsx), [`IncomeSection.tsx`](../../src/components/features/incomes/IncomeSection.tsx), [`src/lib/ai/gemini.ts`](../../src/lib/ai/gemini.ts), [`DashboardSkeleton.tsx`](../../src/components/layout/DashboardSkeleton.tsx) — Hapus seluruh string `"7 pos"`.
   - `[Modify]` [`src/components/features/__tests__/frontend-phases-f7-f18.test.tsx`](../../src/components/features/__tests__/frontend-phases-f7-f18.test.tsx) — Uji `MonthSelector` `showCreateButton={false}` vs `true` + ketiadaan label `"7 pos"`.
 - **Checklist Eksekusi:**
-  - [ ] Tambah `showCreateButton?: boolean` tanpa wrapper `div` di `MonthSelector.tsx` dan rapikan wrapper `AiMonthlyReviewModal.tsx` + `lg:h-9 lg:min-h-9` di `QuickTransactionDrawer.tsx`.
-  - [ ] Susun header `dashboard/page.tsx` menjadi 2 baris x 2 tombol rata kanan dan teruskan `latestMonth={monthsList[0] ?? null}` ke `CreateMonthDialog`.
-  - [ ] Perbarui subtitle header menggunakan `activeCategories.length` (dengan fallback `0` bulan) dan bersihkan seluruh kemunculan `"7 pos"` di UI (`AppHeader`, `CreateMonthDialog`, `BudgetCategoryList`, `IncomeSection`, `AiMonthlyReviewModal`, `gemini.ts`, `DashboardSkeleton`).
-  - [ ] Tambah/sesuaikan unit test `MonthSelector` & guard string `"7 pos"`.
+  - [x] Tambah `showCreateButton?: boolean` tanpa wrapper `div` di `MonthSelector.tsx` dan rapikan wrapper `AiMonthlyReviewModal.tsx` + `lg:h-9 lg:min-h-9` di `QuickTransactionDrawer.tsx`.
+  - [x] Susun header `dashboard/page.tsx` menjadi 2 baris x 2 tombol rata kanan dan teruskan `latestMonth={monthsList[0] ?? null}` ke `CreateMonthDialog`.
+  - [x] Perbarui subtitle header menggunakan `activeCategories.length` (dengan fallback `0` bulan) dan bersihkan seluruh kemunculan `"7 pos"` di UI (`AppHeader`, `CreateMonthDialog`, `BudgetCategoryList`, `IncomeSection`, `AiMonthlyReviewModal`, `gemini.ts`, `DashboardSkeleton`).
+  - [x] Tambah/sesuaikan unit test `MonthSelector` & guard string `"7 pos"`.
 
 ---
 
-### [ ] Fase R8 — Sinkronisasi 2 Arah Tracking Cicilan ↔ Pos Anggaran & Executive Cashflow KPI
+### [x] Fase R8 — Sinkronisasi 2 Arah Tracking Cicilan ↔ Pos Anggaran & Executive Cashflow KPI
 
 - **Sumber & Desain Terkunci (`Opsi A`, `/grill-me` `2026-11-15 15:39 WIB` + `Issue 5` Fix):**
   1. **Timezone-Safe `resolveDefaultCycleDate(year?, monthIndex?)` (`Asia/Jakarta`):**
@@ -392,16 +392,16 @@ Agar tidak terjadi konflik edit antar-fase, modifikasi pada file *hotspot* digab
   - `[Modify]` [`src/app/(dashboard)/dashboard/page.tsx`](../../src/app/(dashboard)/dashboard/page.tsx) — Hitung `freeBudgetRemaining` & teruskan props bulan aktif + peta `linkedCategoryIdsByLiabilityId` ke `LiabilityTrackerCard`.
   - `[Modify]` [`financial-calculations.test.ts`](../../src/lib/__tests__/financial-calculations.test.ts), [`schemas.test.ts`](../../src/schemas/__tests__/schemas.test.ts), [`months.test.ts`](../../src/actions/__tests__/months.test.ts), [`backend-phases-b7-b13.test.ts`](../../src/actions/__tests__/backend-phases-b7-b13.test.ts).
 - **Checklist Eksekusi:**
-  - [ ] Ekstrak `resolveDefaultCycleDate` (`Asia/Jakarta`) di `financial-calculations.ts` & pakai di 4 tempat (`QuickTransactionDrawer`, `LiabilityTrackerCard`, `IncomeSection`, `liabilities.ts`).
-  - [ ] Tambah kolom `liabilities.icon` di `src/db/schema.ts` + perbarui `liability.schema.ts`.
-  - [ ] Ekstrak `executeCategoryTransactionTx` dengan `.for("update")` row lock + guard `isSettled` & `amount <= remainingAmount`, lalu sambungkan `createTransaction` & `recordInstallmentPayment`.
-  - [ ] Terapkan validasi dua lapis `Uang Bebas` (`targetBudget >= required` & `effectiveRemaining >= required`), perbaiki `Kasus A` `month-generator.ts`, dan tambah sinkronisasi pada `updateLiability`.
-  - [ ] Perbarui `LiabilityTrackerCard.tsx`, `QuickTransactionDrawer.tsx` (prefill mode), & `dashboard/page.tsx` (`freeBudgetRemaining`).
-  - [ ] Tambah unit test konkurensi/anti-overpay/`isSettled`, `Asia/Jakarta` date, validasi dua lapis `Uang Bebas`, dan `Kasus A` `month-generator.ts`.
+  - [x] Ekstrak `resolveDefaultCycleDate` (`Asia/Jakarta`) di `financial-calculations.ts` & pakai di 4 tempat (`QuickTransactionDrawer`, `LiabilityTrackerCard`, `IncomeSection`, `liabilities.ts`).
+  - [x] Tambah kolom `liabilities.icon` di `src/db/schema.ts` + perbarui `liability.schema.ts`.
+  - [x] Ekstrak `executeCategoryTransactionTx` dengan `.for("update")` row lock + guard `isSettled` & `amount <= remainingAmount`, lalu sambungkan `createTransaction` & `recordInstallmentPayment`.
+  - [x] Terapkan validasi dua lapis `Uang Bebas` (`targetBudget >= required` & `effectiveRemaining >= required`), perbaiki `Kasus A` `month-generator.ts`, dan tambah sinkronisasi pada `updateLiability`.
+  - [x] Perbarui `LiabilityTrackerCard.tsx`, `QuickTransactionDrawer.tsx` (prefill mode), & `dashboard/page.tsx` (`freeBudgetRemaining`).
+  - [x] Tambah unit test konkurensi/anti-overpay/`isSettled`, `Asia/Jakarta` date, validasi dua lapis `Uang Bebas`, dan `Kasus A` `month-generator.ts`.
 
 ---
 
-### [ ] Fase R9 — Dedup Sesi Auth (`React.cache`), Perbaikan Kebocoran Query Ekspor & Revalidasi Terpusat
+### [x] Fase R9 — Dedup Sesi Auth (`React.cache`), Perbaikan Kebocoran Query Ekspor & Revalidasi Terpusat
 
 - **Sumber Permintaan:** *"kalo pindah2 tab misal kita dari dashboard, ke brangkas, trus kedashboard lagi, itu fetch data dari db lagi??"*
 - **Desain Teknis (`Issue 7` Fix):**
@@ -429,15 +429,15 @@ Agar tidak terjadi konflik edit antar-fase, modifikasi pada file *hotspot* digab
   - `[Modify]` [`src/actions/auth.ts`](../../src/actions/auth.ts), [`categories.ts`](../../src/actions/categories.ts), [`incomes.ts`](../../src/actions/incomes.ts), [`liabilities.ts`](../../src/actions/liabilities.ts), [`months.ts`](../../src/actions/months.ts), [`savings.ts`](../../src/actions/savings.ts), [`transactions.ts`](../../src/actions/transactions.ts), [`wishlists.ts`](../../src/actions/wishlists.ts) — Gunakan `revalidateDashboardRoutes()`.
   - `[Modify]` [`src/actions/__tests__/backend-phases-b7-b13.test.ts`](../../src/actions/__tests__/backend-phases-b7-b13.test.ts) & [`src/components/features/__tests__/frontend-phases-f7-f18.test.tsx`](../../src/components/features/__tests__/frontend-phases-f7-f18.test.tsx) — Mock SSR harness dedup `React.cache` (memastikan client auth dipanggil 1x), test `export.ts` terisolasi user, `revalidateDashboardRoutes()`, & `PageSectionSkeleton`.
 - **Checklist Eksekusi:**
-  - [ ] Buat `src/lib/queries/auth.ts` (`React.cache`) dan pasang guard `explicitUserId` lebih dulu di `resolveAuthenticatedUserId()`.
-  - [ ] Perbaiki full-table scan `src/actions/export.ts#L128` menjadi `inArray(budgetCategories.monthId, monthIds)`.
-  - [ ] Buat `src/lib/revalidate.ts` (`revalidateDashboardRoutes()`) dan pasangkan di semua 8 file action (`categories`, `incomes`, `liabilities`, `months`, `savings`, `transactions`, `wishlists`, `auth`, plus `onboarding` di R10).
-  - [ ] Hubungkan `getCachedAuthenticatedSession` ke `DashboardLayout`, `page.tsx`, & ke-5 halaman dashboard (`dashboard`, `vault`, `wishlists`, `analytics`, `settings`).
-  - [ ] Buat `PageSectionSkeleton.tsx` & pasang `loading.tsx` di ke-4 sub-route, lalu tambahkan test mock SSR dedup + test isolasi `export.ts`.
+  - [x] Buat `src/lib/queries/auth.ts` (`React.cache`) dan pasang guard `explicitUserId` lebih dulu di `resolveAuthenticatedUserId()`.
+  - [x] Perbaiki full-table scan `src/actions/export.ts#L128` menjadi `inArray(budgetCategories.monthId, monthIds)`.
+  - [x] Buat `src/lib/revalidate.ts` (`revalidateDashboardRoutes()`) dan pasangkan di semua 8 file action (`categories`, `incomes`, `liabilities`, `months`, `savings`, `transactions`, `wishlists`, `auth`, plus `onboarding` di R10).
+  - [x] Hubungkan `getCachedAuthenticatedSession` ke `DashboardLayout`, `page.tsx`, & ke-5 halaman dashboard (`dashboard`, `vault`, `wishlists`, `analytics`, `settings`).
+  - [x] Buat `PageSectionSkeleton.tsx` & pasang `loading.tsx` di ke-4 sub-route, lalu tambahkan test mock SSR dedup + test isolasi `export.ts`.
 
 ---
 
-### [ ] Fase R10 — Flow Register → Login, Onboarding Multi-Step, Zero-Dummy Lintas 4 Rute, Template Pos Settings & `deleteCategory` Aman Anti-Cascade
+### [x] Fase R10 — Flow Register → Login, Onboarding Multi-Step, Zero-Dummy Lintas 4 Rute, Template Pos Settings & `deleteCategory` Aman Anti-Cascade
 
 > **Status:** `Desain Terkunci & Hasil Audit Diterapkan` (`2026-11-15 15:39 & 15:43 WIB` + `Issue 1, 2, 3, 13`) — **⚠️ Menyentuh `src/db/schema.ts` & Migrasi DB**
 
@@ -515,12 +515,12 @@ Agar tidak terjadi konflik edit antar-fase, modifikasi pada file *hotspot* digab
   - `[Modify]` [`BudgetCategoryCard.tsx`](../../src/components/features/categories/BudgetCategoryCard.tsx), [`CreateMonthDialog.tsx`](../../src/components/features/months/CreateMonthDialog.tsx), [`LiabilityTrackerCard.tsx`](../../src/components/features/liabilities/LiabilityTrackerCard.tsx), [`src/components/features/settings/index.ts`](../../src/components/features/settings/index.ts).
   - `[Modify]` [`financial-calculations.test.ts`](../../src/lib/__tests__/financial-calculations.test.ts), [`schemas.test.ts`](../../src/schemas/__tests__/schemas.test.ts), [`months.test.ts`](../../src/actions/__tests__/months.test.ts), [`backend-phases-b7-b13.test.ts`](../../src/actions/__tests__/backend-phases-b7-b13.test.ts), [`frontend-phases-f7-f18.test.tsx`](../../src/components/features/__tests__/frontend-phases-f7-f18.test.tsx).
 - **Checklist Eksekusi:**
-  - [ ] Perbarui `src/db/schema.ts` (`users.onboardingCompletedAt`, `defaultBaseSalary`, `user_budget_templates`, `months` unique, `transactions.categoryId` `restrict`, `emergencyFundTarget: 0`), generate migrasi, sisipkan backfill atomik `UPDATE users` + RLS `user_budget_templates`, audit SQL, lalu terapkan aman.
-  - [ ] Perbarui `src/proxy.ts` (`/onboarding` protected), `UserSessionData`, `register()` & `RegisterPage` (redirect `/login` + toast), `LoginPage`, & guard `DashboardLayout`.
-  - [ ] Implementasikan `src/actions/onboarding.ts`, `/onboarding`, & `OnboardingWizard` 5 langkah (`Mulai Setup`, `Sebelumnya`, `Lewati` di Step 2–4, contoh netral `"50/30/20"`, Step 4 brankas + cicilan awal, max 1 `uang_bebas_tabungan`).
-  - [ ] Sapu bersih data dummy pribadi Kenzo & `18.000.000` / `3.000.000` di ke-4 rute dashboard + `queries/savings.ts` + `actions/*` + `schema.ts`, tambahkan Card Peringatan Data Belum Lengkap berbasis domain nyata, dan hubungkan Month 1 generator ke `user_budget_templates` + fallback netral `"Uang Bebas / Tabungan"`.
-  - [ ] Bangun `Data & Backup` (`/dashboard/settings`) editor template & gaji default (`settings.ts`, `queries/settings.ts`, `userBudgetTemplates` di JSON export) serta implementasikan `deleteCategory` di `/dashboard` (`Hentikan Mulai Bulan Depan` & `1-Click Bulk Reassign` + TTL Undo guard) dan guard `deleteIncome` (`isBaseSalary: true`).
-  - [ ] Sesuaikan & jalankan seluruh unit test R10 (`months.test.ts`, `schemas.test.ts`, `backend-phases-b7-b13.test.ts`, `frontend-phases-f7-f18.test.tsx`).
+  - [x] Perbarui `src/db/schema.ts` (`users.onboardingCompletedAt`, `defaultBaseSalary`, `user_budget_templates`, `months` unique, `transactions.categoryId` `restrict`, `emergencyFundTarget: 0`), generate migrasi, sisipkan backfill atomik `UPDATE users` + RLS `user_budget_templates`, audit SQL, lalu terapkan aman.
+  - [x] Perbarui `src/proxy.ts` (`/onboarding` protected), `UserSessionData`, `register()` & `RegisterPage` (redirect `/login` + toast), `LoginPage`, & guard `DashboardLayout`.
+  - [x] Implementasikan `src/actions/onboarding.ts`, `/onboarding`, & `OnboardingWizard` 5 langkah (`Mulai Setup`, `Sebelumnya`, `Lewati` di Step 2–4, contoh netral `"50/30/20"`, Step 4 brankas + cicilan awal, max 1 `uang_bebas_tabungan`).
+  - [x] Sapu bersih data dummy pribadi Kenzo & `18.000.000` / `3.000.000` di ke-4 rute dashboard + `queries/savings.ts` + `actions/*` + `schema.ts`, tambahkan Card Peringatan Data Belum Lengkap berbasis domain nyata, dan hubungkan Month 1 generator ke `user_budget_templates` + fallback netral `"Uang Bebas / Tabungan"`.
+  - [x] Bangun `Data & Backup` (`/dashboard/settings`) editor template & gaji default (`settings.ts`, `queries/settings.ts`, `userBudgetTemplates` di JSON export) serta implementasikan `deleteCategory` di `/dashboard` (`Hentikan Mulai Bulan Depan` & `1-Click Bulk Reassign` + TTL Undo guard) dan guard `deleteIncome` (`isBaseSalary: true`).
+  - [x] Sesuaikan & jalankan seluruh unit test R10 (`months.test.ts`, `schemas.test.ts`, `backend-phases-b7-b13.test.ts`, `frontend-phases-f7-f18.test.tsx`).
 
 ---
 
@@ -544,10 +544,10 @@ Agar tidak terjadi konflik edit antar-fase, modifikasi pada file *hotspot* digab
 
 ## 5. Definition of Done (Global Batch `R1–R10`)
 
-- [ ] Seluruh fase revisi **`R1–R10`** pada dokumen ini selesai diimplementasikan sesuai spesifikasi dan kontrak tipe.
-- [ ] `bun test` lulus penuh (`0 failed`, `0 skipped`, mencakup Zero-Emoji Regex Audit & test regresi 5 berkas uji eksisting + test R1–R10).
-- [ ] `bun run typecheck` menghasilkan `0 errors`.
-- [ ] Audit Kanonikal Tailwind CSS v4 via `@tailwindcss/node` menghasilkan **`Total non-canonical: 0`**:
+- [x] Seluruh fase revisi **`R1–R10`** pada dokumen ini selesai diimplementasikan sesuai spesifikasi dan kontrak tipe.
+- [x] `bun test` lulus penuh (`0 failed`, `0 skipped`, mencakup Zero-Emoji Regex Audit & test regresi 5 berkas uji eksisting + test R1–R10).
+- [x] `bun run typecheck` menghasilkan `0 errors`.
+- [x] Audit Kanonikal Tailwind CSS v4 via `@tailwindcss/node` menghasilkan **`Total non-canonical: 0`**:
   ```bash
   bun -e '
   import fs from "node:fs"; import path from "node:path";
@@ -562,12 +562,12 @@ Agar tidak terjadi konflik edit antar-fase, modifikasi pada file *hotspot* digab
   console.log("Total non-canonical:", nonCanonical.length, nonCanonical);
   '
   ```
-- [ ] Zero `font-mono` audit (`grep -rn "font-mono" src/`) menghasilkan **0 kecocokan**.
-- [ ] Zero-Emoji & Zero-Dummy audit lintas `src/app/`, `src/components/`, `src/actions/`, `src/lib/` menghasilkan **0 kecocokan pribadi/emoji** (kecuali copyright `©` & test fixtures).
-- [ ] `bun run build` berhasil tanpa error bundler.
-- [ ] Audit berkas migrasi DB + RLS policy `user_budget_templates` terverifikasi dan migrasi aman selesai dijalankan.
-- [ ] Dokumentasi [`docs/DESIGN-SYSTEM.md`](../DESIGN-SYSTEM.md), [`docs/PROJECT-STRUCTURE.md`](../PROJECT-STRUCTURE.md), `.changelog/`, dan `laporan.md` diperbarui.
-- [ ] Pengujian UI manual oleh Kenzo terverifikasi:
+- [x] Zero `font-mono` audit (`grep -rn "font-mono" src/`) menghasilkan **0 kecocokan**.
+- [x] Zero-Emoji & Zero-Dummy audit lintas `src/app/`, `src/components/`, `src/actions/`, `src/lib/` menghasilkan **0 kecocokan pribadi/emoji** (kecuali copyright `©` & test fixtures).
+- [x] `bun run build` berhasil tanpa error bundler.
+- [x] Audit berkas migrasi DB + RLS policy `user_budget_templates` terverifikasi dan migrasi aman selesai dijalankan.
+- [x] Dokumentasi [`docs/DESIGN-SYSTEM.md`](../DESIGN-SYSTEM.md), [`docs/PROJECT-STRUCTURE.md`](../PROJECT-STRUCTURE.md), `.changelog/`, dan `laporan.md` diperbarui.
+- [x] Pengujian UI manual oleh Kenzo terverifikasi:
   - Flow daftar user baru $\rightarrow$ redirect `/login` + toast $\rightarrow$ masuk `/onboarding` (5 step + `Lewati` Step 2–4 + buat Bulan 1 lewat `+ Buat Bulan Baru`).
   - `/dashboard`, `/dashboard/analytics`, `/dashboard/wishlists`, `/dashboard/vault` bebas data contoh pribadi (0 item personal Kenzo) pada user baru.
   - Semua ikon tampil sebagai Lucide SVG, `<IconPicker />` tetap `min-h-11` di mobile sempit (`< 380px`), `SlidingSegmentedControl` & `MobileBottomNav` menampilkan transisi geser horizontal (`duration-200`), pindah bulan langsung mengganti konten menjadi `<DashboardSkeleton hideHeader />`, `QuickTransactionDrawer` single-scroll + `Semua Sisa` + auto-fill keterangan berfungsi penuh, header desktop 2x2 rata kanan, pembayaran cicilan Opsi A masuk ke rincian pos & Cashflow KPI, serta `deleteCategory` (*Hentikan Bulan Depan* & *1-Click Bulk Reassign*) + editor Settings berfungsi penuh.

@@ -26,6 +26,7 @@ import {
   BarChart3,
   AlertTriangle,
   Settings,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppCategoryIcon } from "@/components/common/AppCategoryIcon";
@@ -278,44 +279,107 @@ async function DashboardMonthContent({
             </p>
           </div>
 
-          {/* Right Header Controls: 2x2 Grid di Desktop */}
-          <div className="flex flex-wrap items-center gap-2 lg:grid lg:grid-cols-2 lg:gap-2.5 lg:w-[440px] lg:shrink-0">
+          {/* Right Header Controls: 2x2 Grid Simetris (Mobile & Desktop) */}
+          <div className="grid grid-cols-2 gap-2 w-full sm:w-[420px] shrink-0">
+            {/* 1. Selector Bulan */}
             <MonthSelector
+              showCreateButton={false}
               months={monthsList}
               currentMonthId={currentMonthDetail?.id}
               isClosed={currentMonthDetail?.isClosed}
               defaultBaseSalary={defaultSalary}
             />
+
+            {/* 2. Dialog Buat Bulan Baru */}
             <CreateMonthDialog
+              latestMonth={monthsList[0] ?? null}
               defaultBaseSalary={defaultSalary}
               trigger={
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="h-9 px-3 rounded-xl gap-1.5 text-xs font-medium w-full justify-center"
+                  className="h-9 px-3 rounded-xl gap-1.5 text-xs font-semibold w-full justify-center border-border/80 bg-background hover:bg-muted/50 text-foreground shadow-2xs"
                 >
-                  <Plus className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-                  <span>+ Bulan Baru</span>
+                  <Plus className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="truncate">+ Bulan Baru</span>
                 </Button>
               }
             />
-            <AiMonthlyReviewModal
-              monthId={currentMonthDetail?.id}
-              monthName={currentMonthDetail?.name ?? "Bulan Ini"}
-              isClosed={currentMonthDetail?.isClosed}
-              totalIncome={salaryBase}
-              totalSpent={totalSpent}
-              categories={activeCategories}
-            />
-            {currentMonthDetail && (
+
+            {/* 3. Modal Evaluasi AI */}
+            {currentMonthDetail ? (
+              <AiMonthlyReviewModal
+                monthId={currentMonthDetail.id}
+                monthName={currentMonthDetail.name}
+                isClosed={currentMonthDetail.isClosed}
+                totalIncome={salaryBase}
+                totalSpent={totalSpent}
+                categories={activeCategories}
+                trigger={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 px-3 rounded-xl gap-1.5 text-xs font-semibold border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 text-foreground shadow-2xs w-full justify-center"
+                  >
+                    <Sparkles className="size-3.5 text-amber-500 shrink-0" />
+                    <span className="truncate">Evaluasi AI</span>
+                  </Button>
+                }
+              />
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled
+                title="Buat siklus bulan terlebih dahulu untuk evaluasi AI"
+                className="h-9 px-3 rounded-xl gap-1.5 text-xs font-semibold border-border/60 bg-muted/20 text-muted-foreground/60 shadow-2xs w-full justify-center opacity-60 cursor-not-allowed"
+              >
+                <Sparkles className="size-3.5 text-muted-foreground/60 shrink-0" />
+                <span className="truncate">Evaluasi AI</span>
+              </Button>
+            )}
+
+            {/* 4. Drawer Catat Transaksi Cepat (Selalu isi sel ke-4 agar grid 2x2 simetris) */}
+            {currentMonthDetail &&
+            !currentMonthDetail.isClosed &&
+            quickCategories.length > 0 ? (
               <QuickTransactionDrawer
                 monthId={currentMonthDetail.id}
                 isClosed={currentMonthDetail.isClosed}
                 cycleYear={currentMonthDetail.year}
                 cycleMonthIndex={currentMonthDetail.monthIndex}
                 categories={quickCategories}
+                trigger={
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-9 px-3 rounded-xl gap-1.5 font-semibold text-xs shadow-xs w-full justify-center bg-primary text-primary-foreground hover:bg-primary/90"
+                  >
+                    <Zap className="size-3.5 shrink-0" />
+                    <span className="truncate">+ Catat Transaksi</span>
+                  </Button>
+                }
               />
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                disabled
+                title={
+                  !currentMonthDetail
+                    ? "Buat siklus bulan terlebih dahulu untuk mencatat transaksi"
+                    : currentMonthDetail.isClosed
+                      ? "Siklus bulan telah diarsipkan"
+                      : "Belum ada pos anggaran aktif"
+                }
+                className="h-9 px-3 rounded-xl gap-1.5 font-semibold text-xs shadow-xs w-full justify-center opacity-50 cursor-not-allowed border border-border/60 bg-muted/20 text-muted-foreground/60"
+              >
+                <Zap className="size-3.5 shrink-0" />
+                <span className="truncate">+ Catat Transaksi</span>
+              </Button>
             )}
           </div>
         </div>
