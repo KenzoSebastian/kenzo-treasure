@@ -7,8 +7,8 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 ## 📌 Ringkasan Status Proyek
 
 - **Status Saat Ini:**
-  - **Fase B1–B6 & Fase F1–F6:** `Approved by Kenzo ✅`
-  - **Fase B7–B13 (Backend) & Fase F7–F18 (Frontend):** `IMPLEMENTED — AWAITING APPROVAL` $\rightarrow$ Seluruh fase backend dan frontend hingga fase terakhir telah selesai diimplementasikan dan lulus uji otomatis (`bun test` 81/81 PASS, `bun run typecheck` PASS, Tailwind v4 Canonical Audit PASS, `bun run build` PASS). Menunggu review & approval eksplisit dari Kenzo.
+  - **Seluruh Fase Backend (B1–B13) & Frontend (F1–F18):** `Approved by Kenzo ✅ (2026-11-15 13:21 WIB)` — Seluruh roadmap telah tuntas 100%.
+  - **Revisi UI Pasca-Fase (2026-11-15 13:45 WIB):** Detail rincian `BudgetCategoryCard` diubah dari dropdown inline menjadi Modal Box (`Dialog`) + kompatibilitas Toast Undo 5 detik (`Approved by Kenzo ✅ 2026-11-15 13:46 WIB`). Uji otomatis (`bun test` 81/81 PASS, `bun run typecheck` PASS, Tailwind v4 Canonical Audit PASS, `bun run build` PASS).
 - **Tech Stack Terkunci:**
   - Runtime & Package Manager: Bun (v1.4+)
   - Frontend: Next.js 16 (App Router, React 19, TypeScript)
@@ -25,49 +25,52 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
 ## 🚀 Roadmap Pelaksanaan Fase
 
 Seluruh fase teknis didokumentasikan di dua berkas roadmap:
-- 🛠️ **Backend Roadmap:** [`docs/plans/PLANBACKEND.md`](docs/plans/PLANBACKEND.md) (13 Fase Granular: B1–B6 Disetujui ✅, B7–B13 `IMPLEMENTED — AWAITING APPROVAL`)
-- 🎨 **Frontend Roadmap:** [`docs/plans/PLANFRONTEND.md`](docs/plans/PLANFRONTEND.md) (18 Fase Granular: F1–F6 Disetujui ✅, F7–F18 `IMPLEMENTED — AWAITING APPROVAL`)
+- 🛠️ **Backend Roadmap:** [`docs/plans/PLANBACKEND.md`](docs/plans/PLANBACKEND.md) (13 Fase Granular: B1–B13 Disetujui ✅)
+- 🎨 **Frontend Roadmap:** [`docs/plans/PLANFRONTEND.md`](docs/plans/PLANFRONTEND.md) (18 Fase Granular: F1–F18 Disetujui ✅)
 
-> **Protokol:** Checklist pada `docs/plans/PLANBACKEND.md` dan `docs/plans/PLANFRONTEND.md` untuk Fase B7–B13 dan F7–F18 baru akan dicentang (`- [x]`) setelah di-approve secara eksplisit oleh Kenzo.
+> **Status Roadmap:** Seluruh item checklist Fase B1–B13 dan Fase F1–F18 telah dicentang (`- [x]`) setelah persetujuan eksplisit dari Kenzo pada `2026-11-15 13:21 WIB`.
 
 ---
 
 ## 📝 Log Checkpoint Terbaru (Maksimal 5 Checkpoint Aktif)
 
-### Checkpoint 1: Implementasi Penuh Backend Fase B7–B13 & Frontend Fase F7–F18 (2026-11-14 23:03 WIB)
-- **Status:** `IMPLEMENTED — AWAITING APPROVAL`
-- **Agent:** Antigravity (Google DeepMind) — Persona: Cecillia (Cil)
+### Checkpoint 1: Revisi UI — Modal Box Rincian Pos Pengeluaran (2026-11-15 13:45 WIB • Approved 2026-11-15 13:46 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. Mengganti dropdown collapsible pada `BudgetCategoryCard` menjadi modal box (`Dialog`) berisi ringkasan pos (`Target`, `Terpakai`, `Sisa`/`Overbudget`) dan sub-list transaksi `TransactionSubList` yang dapat di-scroll (`max-h-[45dvh]`).
+  2. Menambahkan `pointer-events-auto` di `src/components/ui/sonner.tsx` serta guard `[data-sonner-toaster]` pada `DialogContent` agar Toast Undo 5 detik tetap interaktif saat modal terbuka.
+  3. Memperbarui unit test `frontend-phases-f7-f18.test.tsx`; hasil `bun test` (81/81 PASS), `bun run typecheck` PASS, Tailwind v4 Canonical Audit (`Total non-canonical: 0`), dan `bun run build` PASS.
+- **File Changelog:** [`2026-11-15_replace_budget_category_dropdown_with_modal.md`](.changelog/2026-11-15_replace_budget_category_dropdown_with_modal.md).
+
+### Checkpoint 2: Persetujuan & Penuntasan Penuh Backend B7–B13 & Frontend F7–F18 (2026-11-14 23:03 WIB • Approved 2026-11-15 13:21 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo`
+- **Agent:** Antigravity
 - **Capaian Utama:**
   1. **Backend Fase B7–B13:** Menyelesaikan seluruh Server Actions (`liabilities.ts`, `categories.ts`, `transactions.ts`, `wishlists.ts`, `savings.ts`, `analytics.ts`, `ai-review.ts`, `export.ts`), Read-Only Queries (`src/lib/queries/*`), Kontrak Tipe (`src/types/*`), dan klien AI Gemini (`src/lib/ai/gemini.ts`) dengan fallback deterministik.
   2. **Frontend Fase F7–F18:** Menyelesaikan komponen 7 Pos Anggaran Wajib + Inline Target Edit (`BudgetCategoryCard`), Quick Add Transaksi `<5s` (`QuickTransactionDrawer`), Sub-List Transaksi + 5s Undo Toast (`TransactionSubList`), Gaji vs Freelance Dynamic Buffer (`IncomeSection`), Tracking Cicilan (`LiabilityTrackerCard`), Gamified Wishlist + Kompresor WebP `<200KB` + Confetti (`WishlistCard`, `AllocateWishlistDrawer`, `image-compressor.ts`), Brankas Dana Darurat + Konfirmasi Ganda (`EmergencyVaultCard`), Recharts Analytics (`AnalyticsDashboard`), Modal Evaluasi AI Bulanan (`AiMonthlyReviewModal`), Panel Ekspor Data CSV/Excel/JSON (`DataExportPanel`), serta PWA Manifest, Service Worker, dan `NetworkStatusBanner`.
   3. **Verifikasi Otomatis:** `bun test` (81/81 PASS), `bun run typecheck` (0 error), Audit Kanonikalisasi Tailwind v4 (`Total non-canonical: 0`), Audit `font-mono` (0 pelanggaran), dan `bun run build` (PASS).
 - **File Changelog:** [`2026-11-14_complete_phases_b7_b13_and_f7_f18.md`](.changelog/2026-11-14_complete_phases_b7_b13_and_f7_f18.md).
 
-### Checkpoint 2: Relokasi Dokumen Plan ke `docs/plans/` & Sinkronisasi Referensi (2026-11-14 22:10 WIB)
+### Checkpoint 3: Relokasi Dokumen Plan ke `docs/plans/` & Sinkronisasi Referensi (2026-11-14 22:10 WIB)
 - **Status:** COMPLETED ✅
 - **Capaian:**
   1. Memindahkan `PLANBACKEND.md` dan `PLANFRONTEND.md` dari root repositori ke `docs/plans/` serta mengubah link internal ke jalur relatif (`../../AGENTS.md`, `../../PRD.md`).
   2. Memperbarui referensi path roadmap di `AGENTS.md`, `.agents/rules/project-architecture.md`, `.agents/skills/phase-delivery/SKILL.md`, `docs/PROJECT-STRUCTURE.md`, dan `laporan.md`.
 - **File Changelog:** [`2026-11-14_move_plans_to_docs_plans.md`](.changelog/2026-11-14_move_plans_to_docs_plans.md).
 
-### Checkpoint 3: Persetujuan Resmi Fase F6 — Executive Summary Card & Cashflow KPI Bulanan (2026-10-18 21:26 WIB)
+### Checkpoint 4: Persetujuan Resmi Fase F6 — Executive Summary Card & Cashflow KPI Bulanan (2026-10-18 21:26 WIB)
 - **Status:** Approved by Kenzo ✅
 - **Capaian:**
   1. Membuat `src/components/features/dashboard/ExecutiveSummaryCard.tsx` (Total Pemasukan, Realisasi Kas Keluar, Net Tabungan & Savings Rate) dengan Multi-Zone Health Progress Bar (`Healthy`, `Warning`, `Overbudget`).
   2. Menyediakan barrel export `src/components/features/dashboard/index.ts` dan 7 unit test di `ExecutiveSummaryCard.test.tsx`.
 - **File Changelog:** [`2026-10-18_fase_f6_executive_summary_card_cashflow_kpi.md`](.changelog/2026-10-18_fase_f6_executive_summary_card_cashflow_kpi.md).
 
-### Checkpoint 4: Persetujuan Resmi Fase B6 — Server Actions Multi-Source Incomes Engine (2026-10-18 21:02 WIB)
+### Checkpoint 5: Persetujuan Resmi Fase B6 — Server Actions Multi-Source Incomes Engine (2026-10-18 21:02 WIB)
 - **Status:** Approved by Kenzo ✅
 - **Capaian:**
   1. Membuat kontrak tipe `src/types/income.ts`, query read-only `src/lib/queries/incomes.ts`, dan Server Actions mutasi `src/actions/incomes.ts` (`addIncome`, `updateIncome`, `deleteIncome`) beserta 11 unit test di `src/actions/__tests__/incomes.test.ts`.
 - **File Changelog:** [`2026-10-18_fase_b6_server_actions_multi_source_incomes.md`](.changelog/2026-10-18_fase_b6_server_actions_multi_source_incomes.md).
-
-### Checkpoint 5: Optimasi Token Efisiensi Dokumentasi & Aturan (2026-10-18 20:15 WIB)
-- **Status:** COMPLETED ✅
-- **Capaian:**
-  1. Perampingan `AGENTS.md` (~45% hemat token) dan penerapan mekanisme Rolling Window di `laporan.md`.
-- **File Changelog:** [`2026-10-18_optimize_markdown_token_efficiency.md`](.changelog/2026-10-18_optimize_markdown_token_efficiency.md).
 
 ---
 
@@ -77,6 +80,7 @@ Seluruh rincian teknis, log kode, dan verifikasi fase terdahulu telah terdokumen
 
 | Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
 | :--- | :--- | :--- | :--- |
+| **Optimasi Token Efisiensi Dokumentasi** | 2026-10-18 | Perampingan `AGENTS.md` (~45% hemat token) dan penerapan mekanisme Rolling Window di `laporan.md`. | [`2026-10-18_optimize_markdown_token_efficiency.md`](.changelog/2026-10-18_optimize_markdown_token_efficiency.md) |
 | **Refactor Clean Page Architecture** | 2026-10-18 | Pemisahan `CashflowSummaryCard`, `DashboardHubCard`, `BudgetCategoryCard`, dan `BudgetCategoryList` dari `dashboard/page.tsx`. | [`2026-10-18_refactor_clean_page_architecture_and_feature_cards.md`](.changelog/2026-10-18_refactor_clean_page_architecture_and_feature_cards.md) |
 | **Fase F5: Month Selector & 1-Click Generator** | 2026-10-18 | Komponen `MonthSelector`, `CreateMonthDialog`, integrasi URL `/dashboard?month=<id>`, dan baseline query bulan. | [`2026-10-18_fase_f5_dropdown_pemilih_bulan_generator.md`](.changelog/2026-10-18_fase_f5_dropdown_pemilih_bulan_generator.md) |
 | **Fase B5: Month Lifecycle & Category Generator** | 2026-10-16 | Pemisahan modular 4 lapis, actions create/close/reopen, automatic savings sweep, 9 unit test lulus. | [`2026-10-16_fase_b5_server_actions_month_lifecycle.md`](.changelog/2026-10-16_fase_b5_server_actions_month_lifecycle.md) |

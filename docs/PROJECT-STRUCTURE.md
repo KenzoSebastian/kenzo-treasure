@@ -48,8 +48,11 @@ kenzo-treasure/
 │   │   │   ├── login/page.tsx        # Halaman Masuk Akun
 │   │   │   └── register/page.tsx     # Halaman Registrasi Akun
 │   │   ├── (dashboard)/              # Zona Workspace Privat Terproteksi
+│   │   │   ├── layout.tsx            # Wrapper Layout Zona Dashboard Privat
 │   │   │   └── dashboard/
 │   │   │       ├── page.tsx          # Panel Utama (Orchestrator Ikhtisar Bulanan)
+│   │   │       ├── loading.tsx       # Skeleton UI saat transisi halaman
+│   │   │       ├── error.tsx         # Error boundary pemulihan workspace
 │   │   │       ├── wishlists/page.tsx# Sinking Fund & Wishlist Barang Impian
 │   │   │       ├── analytics/page.tsx# Grafik Tren Tabungan & Cashflow Recharts
 │   │   │       ├── vault/page.tsx    # Brankas Dana Darurat (Safety Months)
@@ -71,19 +74,20 @@ kenzo-treasure/
 │   │   └── export.ts                 # Fase B13: exportFinancialData (CSV, Excel, JSON)
 │   ├── components/
 │   │   ├── ui/                       # Primitif/reusable Shadcn UI
-│   │   ├── layout/                   # AppHeader, MobileBottomNav, DashboardLayout, ThemeToggle
+│   │   ├── layout/                   # AppHeader, MobileBottomNav, DashboardLayout, DashboardSkeleton, DashboardErrorBoundary, ThemeToggle
 │   │   ├── common/
 │   │   │   ├── NetworkStatusBanner.tsx # Fase F18: Banner Offline & Auto-Sync
 │   │   │   └── index.ts
 │   │   └── features/
+│   │       ├── __tests__/            # frontend-phases-f7-f18.test.tsx
 │   │       ├── landing/              # Komponen Halaman Depan Publik (Fase F3)
 │   │       ├── months/               # MonthSelector, CreateMonthDialog, index.ts (Fase F5)
-│   │       ├── dashboard/            # ExecutiveSummaryCard, CashflowSummaryCard, DashboardHubCard, index.ts (Fase F6)
+│   │       ├── dashboard/            # ExecutiveSummaryCard, CashflowSummaryCard, DashboardHubCard, __tests__/, index.ts (Fase F6)
 │   │       ├── categories/           # BudgetCategoryCard, BudgetCategoryList, index.ts (Fase F7)
 │   │       ├── transactions/         # QuickTransactionDrawer, TransactionSubList, index.ts (Fase F8 & F9)
 │   │       ├── incomes/              # IncomeSection, index.ts (Fase F10)
 │   │       ├── liabilities/          # LiabilityTrackerCard, index.ts (Fase F11)
-│   │       ├── wishlists/            # WishlistCard, WishlistGrid, AllocateWishlistDrawer, index.ts (Fase F12 & F13)
+│   │       ├── wishlists/            # WishlistCard (+ WishlistGrid), AllocateWishlistDrawer, index.ts (Fase F12 & F13)
 │   │       ├── savings/              # EmergencyVaultCard, index.ts (Fase F14)
 │   │       ├── analytics/            # AnalyticsDashboard, index.ts (Fase F15)
 │   │       ├── ai/                   # AiMonthlyReviewModal, index.ts (Fase F16)

@@ -78,10 +78,10 @@ Dokumen ini adalah rencana kerja backend bertahap (granular) untuk **Kenzo Treas
 ---
 
 ### Fase B7: Server Actions — Finite Liabilities & Installment Tracker
-- [ ] Buat `src/actions/liabilities.ts`.
-- [ ] Implementasikan `getLiabilities(userId)` (daftar cicilan aktif vs yang sudah 🏆 lunas).
-- [ ] Implementasikan `createLiability(data)` untuk menambah pos cicilan bertarget baru.
-- [ ] Implementasikan `recordInstallmentPayment(liabilityId, amount, transactionId)`:
+- [x] Buat `src/actions/liabilities.ts`.
+- [x] Implementasikan `getLiabilities(userId)` (daftar cicilan aktif vs yang sudah 🏆 lunas).
+- [x] Implementasikan `createLiability(data)` untuk menambah pos cicilan bertarget baru.
+- [x] Implementasikan `recordInstallmentPayment(liabilityId, amount, transactionId)`:
   - Update akumulasi `paidAmount`.
   - Auto-set `isSettled = true` jika `paidAmount >= totalAmount`.
   - Update pos kategori terkait agar di bulan berikutnya dinonaktifkan/pensiun.
@@ -89,60 +89,60 @@ Dokumen ini adalah rencana kerja backend bertahap (granular) untuk **Kenzo Treas
 ---
 
 ### Fase B8: Server Actions — Budget Categories Management
-- [ ] Buat `src/actions/categories.ts`.
-- [ ] Implementasikan `getCategoriesByMonth(monthId)` beserta agregasi nominal terpakai (`spentAmount`) dan sisa anggaran.
-- [ ] Implementasikan `updateCategoryTarget(categoryId, newTarget)`.
-- [ ] Implementasikan `addCustomCategory(monthId, data)`.
-- [ ] Implementasikan `reorderCategories(categoryIds)`.
+- [x] Buat `src/actions/categories.ts`.
+- [x] Implementasikan `getCategoriesByMonth(monthId)` beserta agregasi nominal terpakai (`spentAmount`) dan sisa anggaran.
+- [x] Implementasikan `updateCategoryTarget(categoryId, newTarget)`.
+- [x] Implementasikan `addCustomCategory(monthId, data)`.
+- [x] Implementasikan `reorderCategories(categoryIds)`.
 
 ---
 
 ### Fase B9: Server Actions — Sub-Second Transactions & Soft-Delete (Undo 5s)
-- [ ] Buat `src/actions/transactions.ts`.
-- [ ] Implementasikan `createTransaction(data)`:
+- [x] Buat `src/actions/transactions.ts`.
+- [x] Implementasikan `createTransaction(data)`:
   - Validasi *Strict Month-Date Boundary* (tanggal transaksi wajib berada di rentang bulan dari `categoryId` terkait).
   - Validasi integer nominal > 0.
-- [ ] Implementasikan `softDeleteTransaction(transactionId)` (ubah flag `is_deleted = true`).
-- [ ] Implementasikan `restoreTransaction(transactionId)` (fitur Undo: kembalikan `is_deleted = false`).
-- [ ] Implementasikan `hardDeleteExpiredTransactions()` (pembersihan transaksi yang dihapus setelah melewati window undo).
-- [ ] Implementasikan `getTransactionsByMonth(monthId)` dan `getTransactionsByCategory(categoryId)`.
+- [x] Implementasikan `softDeleteTransaction(transactionId)` (ubah flag `is_deleted = true`).
+- [x] Implementasikan `restoreTransaction(transactionId)` (fitur Undo: kembalikan `is_deleted = false`).
+- [x] Implementasikan `hardDeleteExpiredTransactions()` (pembersihan transaksi yang dihapus setelah melewati window undo).
+- [x] Implementasikan `getTransactionsByMonth(monthId)` dan `getTransactionsByCategory(categoryId)`.
 
 ---
 
 ### Fase B10: Server Actions — Gamified Wishlists & Sinking Fund Ledger
-- [ ] Buat `src/actions/wishlists.ts`.
-- [ ] Implementasikan `getWishlists(userId)` dengan milestone status (50%, 75%, 90%, 95%, 100%).
-- [ ] Implementasikan `createWishlist(data)`.
-- [ ] Implementasikan `allocateSavings(wishlistId, amount, notes)`:
+- [x] Buat `src/actions/wishlists.ts`.
+- [x] Implementasikan `getWishlists(userId)` dengan milestone status (50%, 75%, 90%, 95%, 100%).
+- [x] Implementasikan `createWishlist(data)`.
+- [x] Implementasikan `allocateSavings(wishlistId, amount, notes)`:
   - Transaksi atomik database: kurangi saldo tabungan bebas di `savings_account`, tambah `saved_amount` di `wishlists`, dan catat riwayat di `wishlist_allocations`.
-- [ ] Implementasikan `withdrawFromWishlist(wishlistId, amount)` (tarik kembali dana ke tabungan bebas).
-- [ ] Implementasikan `markWishlistAsPurchased(wishlistId)`.
+- [x] Implementasikan `withdrawFromWishlist(wishlistId, amount)` (tarik kembali dana ke tabungan bebas).
+- [x] Implementasikan `markWishlistAsPurchased(wishlistId)`.
 
 ---
 
 ### Fase B11: Server Actions — Brankas Dana Darurat (Emergency Fund Vault)
-- [ ] Buat `src/actions/savings.ts`.
-- [ ] Implementasikan `getSavingsAccount(userId)` (saldo tabungan bebas, saldo dana darurat, target dana darurat, dan safety months).
-- [ ] Implementasikan `transferToEmergencyFund(userId, amount)`.
-- [ ] Implementasikan `withdrawFromEmergencyFund(userId, amount)`.
-- [ ] Implementasikan `updateEmergencyFundTarget(userId, newTarget)`.
+- [x] Buat `src/actions/savings.ts`.
+- [x] Implementasikan `getSavingsAccount(userId)` (saldo tabungan bebas, saldo dana darurat, target dana darurat, dan safety months).
+- [x] Implementasikan `transferToEmergencyFund(userId, amount)`.
+- [x] Implementasikan `withdrawFromEmergencyFund(userId, amount)`.
+- [x] Implementasikan `updateEmergencyFundTarget(userId, newTarget)`.
 
 ---
 
 ### Fase B12: Server Actions — Analytics & Financial Aggregation Engine
-- [ ] Buat `src/actions/analytics.ts`.
-- [ ] Implementasikan query tren tabungan bulanan `getSavingsGrowthTrend(userId, year)`.
-- [ ] Implementasikan query cashflow bulanan `getMonthlyCashflowSummary(userId, year)` (Pemasukan, Pengeluaran, Tabungan Bersih).
-- [ ] Implementasikan query perbandingan tahunan `getYearlyComparison(userId)`.
-- [ ] Implementasikan agregasi pengeluaran per kategori pos untuk pie/bar distribution.
+- [x] Buat `src/actions/analytics.ts`.
+- [x] Implementasikan query tren tabungan bulanan `getSavingsGrowthTrend(userId, year)`.
+- [x] Implementasikan query cashflow bulanan `getMonthlyCashflowSummary(userId, year)` (Pemasukan, Pengeluaran, Tabungan Bersih).
+- [x] Implementasikan query perbandingan tahunan `getYearlyComparison(userId)`.
+- [x] Implementasikan agregasi pengeluaran per kategori pos untuk pie/bar distribution.
 
 ---
 
 ### Fase B13: AI Review Engine (Google Gemini 1.5 Flash) & Data Export
-- [ ] Setup `@google/genai` client di `src/lib/ai/gemini.ts`.
-- [ ] Buat Server Action `generateMonthlyReview(monthId)`:
+- [x] Setup `@google/genai` client di `src/lib/ai/gemini.ts`.
+- [x] Buat Server Action `generateMonthlyReview(monthId)`:
   - Siapkan prompt terstruktur dengan data cashflow bulan berjalan.
   - Hasilkan analisis pos hemat vs boros, skor disiplin anggaran, dan rekomendasi alokasi bulan depan.
-- [ ] Buat Server Action `exportFinancialData(userId, format)` di `src/actions/export.ts`:
+- [x] Buat Server Action `exportFinancialData(userId, format)` di `src/actions/export.ts`:
   - Format CSV transaksi bulanan.
   - Format Full JSON backup untuk kedaulatan data.

@@ -77,8 +77,8 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 ---
 
 ### Fase F7: Presentasi 7 Pos Anggaran Wajib & Indikator Status
-- [ ] Buat komponen grid pos pengeluaran `src/components/features/categories/BudgetCategoryList.tsx`.
-- [ ] Buat kartu individu pos `src/components/features/categories/BudgetCategoryCard.tsx`:
+- [x] Buat komponen grid pos pengeluaran `src/components/features/categories/BudgetCategoryList.tsx`.
+- [x] Buat kartu individu pos `src/components/features/categories/BudgetCategoryCard.tsx`:
   - Icon pos (`✝️`, `⚡`, `💰`, `⛽`, `🍿`, `📱`, `👩‍👦`).
   - Target Alokasi vs Realisasi Terpakai vs Sisa Budget.
   - Progress bar persentase penggunaan pos.
@@ -88,20 +88,20 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 ---
 
 ### Fase F8: Mobile Sub-Second Quick Add Drawer (<5 Detik)
-- [ ] Buat tombol floating action / sticky bottom `+ Catat Pengeluaran` di tampilan mobile.
-- [ ] Buat Drawer modal kilat `src/components/features/transactions/QuickTransactionDrawer.tsx`:
+- [x] Buat tombol floating action / sticky bottom `+ Catat Pengeluaran` di tampilan mobile.
+- [x] Buat Drawer modal kilat `src/components/features/transactions/QuickTransactionDrawer.tsx`:
   - Input nominal uang dengan format angka otomatis dan numberpad ponsel (`inputMode="numeric"`).
   - Selector cepat pos kategori anggaran (icon + nama pos).
   - Selector cepat metode bayar (QRIS, Tunai, Debit, Transfer).
   - Input keterangan singkat transaksi.
-- [ ] Integrasikan React Hook Form + Zod resolver dengan optimistic response (tutup drawer $< 50$ ms).
+- [x] Integrasikan React Hook Form + Zod resolver dengan optimistic response (tutup drawer $< 50$ ms).
 
 ---
 
 ### Fase F9: Sub-Log Riwayat Transaksi & 5-Second Undo Toast
-- [ ] Buat daftar transaksi harian di dalam masing-masing pos `src/components/features/transactions/TransactionSubList.tsx`.
-- [ ] Tampilkan baris transaksi: tanggal, nominal Rupiah, keterangan, dan badge metode bayar.
-- [ ] Pasang tombol aksi hapus transaksi:
+- [x] Buat daftar transaksi harian di dalam masing-masing pos `src/components/features/transactions/TransactionSubList.tsx`.
+- [x] Tampilkan baris transaksi: tanggal, nominal Rupiah, keterangan, dan badge metode bayar.
+- [x] Pasang tombol aksi hapus transaksi:
   - Memanggil `softDeleteTransaction` Server Action.
   - Memunculkan notifikasi Toast Sonner dengan countdown timer 5 detik dan tombol **"↩️ Batalkan (Undo)"**.
   - Jika tombol Undo ditekan dalam 5 detik, transaksi langsung pulih instan di layar.
@@ -109,68 +109,68 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 ---
 
 ### Fase F10: Komponen Pemasukan Gaji vs Freelance (Alokasi Dinamis)
-- [ ] Buat seksi manajemen pemasukan bulanan `src/components/features/incomes/IncomeSection.tsx`.
-- [ ] Tampilkan kartu `💵 Gaji Pokok: Rp 4.000.000` (terikat ke 7 pos wajib).
-- [ ] Tampilkan kartu pemasukan tambahan (Freelance Edit Video, Project Luar, dll.).
-- [ ] Buat formulir modal `Tambah Pemasukan Tambahan` dengan notifikasi alokasi dinamis otomatis ke pos *🍿 Uang Bebas / Tabungan*.
+- [x] Buat seksi manajemen pemasukan bulanan `src/components/features/incomes/IncomeSection.tsx`.
+- [x] Tampilkan kartu `💵 Gaji Pokok: Rp 4.000.000` (terikat ke 7 pos wajib).
+- [x] Tampilkan kartu pemasukan tambahan (Freelance Edit Video, Project Luar, dll.).
+- [x] Buat formulir modal `Tambah Pemasukan Tambahan` dengan notifikasi alokasi dinamis otomatis ke pos *🍿 Uang Bebas / Tabungan*.
 
 ---
 
 ### Fase F11: Kartu Tracking Cicilan / Utang Bertarget Lunas
-- [ ] Buat kartu khusus cicilan `src/components/features/liabilities/LiabilityTrackerCard.tsx`:
+- [x] Buat kartu khusus cicilan `src/components/features/liabilities/LiabilityTrackerCard.tsx`:
   - Tracking Cicilan iPhone: Target Rp 17.640.000 (Rp 735.000/bln x 24 bulan), akumulasi terbayar (Rp 5.000.000+).
   - Tracking Talangan Mama: Target Rp 2.500.000 (Rp 500.000/bln).
   - Baris progress pelunasan dengan meter persentase.
   - Sisa bulan berjalan menuju lunas.
-- [ ] Tampilkan badge `🏆 100% LUNAS` dan status pensiun pos saat utang lunas.
+- [x] Tampilkan badge `🏆 100% LUNAS` dan status pensiun pos saat utang lunas.
 
 ---
 
 ### Fase F12: Gamified Dream Wishlists Grid & Kompresor Foto WebP
-- [ ] Buat halaman / seksi impian `src/components/features/wishlists/WishlistGrid.tsx`.
-- [ ] Buat kartu barang impian `src/components/features/wishlists/WishlistCard.tsx`:
+- [x] Buat halaman / seksi impian `src/components/features/wishlists/WishlistGrid.tsx`.
+- [x] Buat kartu barang impian `src/components/features/wishlists/WishlistCard.tsx`:
   - Foto barang impian (Mobil, Kamera, Gadget) dengan loading skeleton.
   - Progress bar tabungan terkumpul vs target harga barang.
   - Milestone badges: `50%`, `75%`, `90%`, `95%`, dan `🎉 100% Tercapai!`.
-- [ ] Buat utilitas kompresi gambar client-side `src/lib/image-compressor.ts`:
+- [x] Buat utilitas kompresi gambar client-side `src/lib/image-compressor.ts`:
   - Otomatis mengubah gambar upload apa pun menjadi WebP (<200KB, max 1200px) sebelum dikirim ke Supabase Storage.
-- [ ] Buat form modal `Tambah Barang Impian Baru` dengan drag-and-drop preview gambar.
+- [x] Buat form modal `Tambah Barang Impian Baru` dengan drag-and-drop preview gambar.
 
 ---
 
 ### Fase F13: Modal Alokasi Sinking Fund & Milestone Confetti
-- [ ] Buat Drawer/Modal alokasi dana `src/components/features/wishlists/AllocateWishlistDrawer.tsx`:
+- [x] Buat Drawer/Modal alokasi dana `src/components/features/wishlists/AllocateWishlistDrawer.tsx`:
   - Menampilkan sisa Saldo Tabungan Bebas yang tersedia.
   - Input nominal alokasi dengan quick pill shortcut (`10%`, `25%`, `50%`, `Semua Saldo`).
   - Opsi tarik balik dana dari wishlist ke tabungan bebas.
-- [ ] Pasang efek animasi selebrasi Confetti (`canvas-confetti`) saat alokasi mencapai milestone penting (terutama 100% Lunas).
-- [ ] Tampilkan tabel log riwayat mutasi alokasi di dalam detail wishlist.
+- [x] Pasang efek animasi selebrasi Confetti (`canvas-confetti`) saat alokasi mencapai milestone penting (terutama 100% Lunas).
+- [x] Tampilkan tabel log riwayat mutasi alokasi di dalam detail wishlist.
 
 ---
 
 ### Fase F14: Tampilan Brankas Dana Darurat & Safety Months Meter
-- [ ] Buat kartu Brankas Dana Darurat `src/components/features/savings/EmergencyVaultCard.tsx`:
+- [x] Buat kartu Brankas Dana Darurat `src/components/features/savings/EmergencyVaultCard.tsx`:
   - Tampilan visual brankas dengan indikator kunci keamanan.
   - Nominal Saldo Dana Darurat terkumpul vs Target Ideal (Rp 18.000.000).
   - Meter *Safety Months* (contoh: "🛡️ Bertahan Aman selama 4.2 Bulan Biaya Hidup").
-- [ ] Buat modal `Setor / Tarik Dana Darurat` dengan proteksi konfirmasi ganda.
+- [x] Buat modal `Setor / Tarik Dana Darurat` dengan proteksi konfirmasi ganda.
 
 ---
 
 ### Fase F15: Dashboard Grafik Analytics Recharts
-- [ ] Pasang dependensi visualisasi `recharts`.
-- [ ] Buat komponen analitik `src/components/features/analytics/AnalyticsDashboard.tsx`:
+- [x] Pasang dependensi visualisasi `recharts`.
+- [x] Buat komponen analitik `src/components/features/analytics/AnalyticsDashboard.tsx`:
   - Toggle Switch antara **Grafik Batang (Bar Chart)** dan **Grafik Garis (Line Chart)**.
   - Grafik Pertumbuhan Saldo Tabungan dari bulan ke bulan.
   - Grafik Perbandingan Cashflow Bulanan (Pemasukan vs Pengeluaran).
   - Tab perbandingan tahunan (Tahun 2026 vs 2027).
-- [ ] Pastikan chart responsif di layar HP tanpa lag dan mendukung dark mode styling.
+- [x] Pastikan chart responsif di layar HP tanpa lag dan mendukung dark mode styling.
 
 ---
 
 ### Fase F16: Modal Review Finansial Bulanan AI (Gemini 1.5 Flash)
-- [ ] Buat tombol trigger `[✨ Evaluasi Bulan Ini dengan AI]` di panel penutupan buku bulanan.
-- [ ] Buat modal dialog review cerdas `src/components/features/ai/AiMonthlyReviewModal.tsx`:
+- [x] Buat tombol trigger `[✨ Evaluasi Bulan Ini dengan AI]` di panel penutupan buku bulanan.
+- [x] Buat modal dialog review cerdas `src/components/features/ai/AiMonthlyReviewModal.tsx`:
   - Animasi loading shimmering saat AI sedang menganalisis data.
   - Kartu evaluasi pos paling hemat vs pos overbudget.
   - Kartu skor disiplin finansial.
@@ -179,20 +179,20 @@ Dokumen ini adalah rencana kerja frontend bertahap (granular) untuk **Kenzo Trea
 ---
 
 ### Fase F17: Antarmuka Export Data & Backup Mandiri
-- [ ] Buat panel pengaturan data `src/components/features/settings/DataExportPanel.tsx`.
-- [ ] Pasang tombol aksi:
+- [x] Buat panel pengaturan data `src/components/features/settings/DataExportPanel.tsx`.
+- [x] Pasang tombol aksi:
   - `📥 Download CSV Transaksi Bulanan`.
   - `📊 Download Excel (.xlsx) Rekap Keuangan`.
   - `💾 Full JSON Backup (Kedaulatan Data)`.
-- [ ] Berikan feedback status unduhan yang jelas kepada pengguna.
+- [x] Berikan feedback status unduhan yang jelas kepada pengguna.
 
 ---
 
 ### Fase F18: PWA Setup, Status Sinkronisasi Offline & Ergonomi Mobile
-- [ ] Setup Web App Manifest (`public/manifest.json`), icons, dan meta theme color.
-- [ ] Buat indikator banner status konektivitas `src/components/common/NetworkStatusBanner.tsx`:
+- [x] Setup Web App Manifest (`public/manifest.json`), icons, dan meta theme color.
+- [x] Buat indikator banner status konektivitas `src/components/common/NetworkStatusBanner.tsx`:
   - Menampilkan badge "🟡 Mode Offline — Disimpan di perangkat" saat koneksi terputus.
   - Otomatis trigger background sync TanStack Query saat kembali online.
-- [ ] Audit touch targets seluruh tombol mobile (minimal $48 \times 48\text{ px}$).
-- [ ] Verifikasi uji kontras Dark & Light Mode di seluruh layar.
+- [x] Audit touch targets seluruh tombol mobile (minimal $48 \times 48\text{ px}$).
+- [x] Verifikasi uji kontras Dark & Light Mode di seluruh layar.
 

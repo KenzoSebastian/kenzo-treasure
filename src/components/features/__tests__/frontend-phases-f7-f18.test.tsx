@@ -15,7 +15,10 @@ mock.module("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-import { BudgetCategoryCard } from "@/components/features/categories/BudgetCategoryCard";
+import {
+  BudgetCategoryCard,
+  BudgetCategoryDetailsPanel,
+} from "@/components/features/categories/BudgetCategoryCard";
 import { calculateWishlistProgress } from "@/lib/financial-calculations";
 import { TransactionSubList } from "@/components/features/transactions/TransactionSubList";
 import { QuickTransactionDrawer } from "@/components/features/transactions/QuickTransactionDrawer";
@@ -28,7 +31,7 @@ import { AiMonthlyReviewModal } from "@/components/features/ai/AiMonthlyReviewMo
 import { DataExportPanel } from "@/components/features/settings/DataExportPanel";
 
 describe("Frontend Phases F7–F18 Component Suite", () => {
-  it("Fase F7: BudgetCategoryCard renders target, spent, remaining, status badge, and zero font-mono", () => {
+  it("Fase F7: BudgetCategoryCard renders target, spent, remaining, status badge, modal trigger, and zero font-mono", () => {
     const html = renderToString(
       <BudgetCategoryCard
         category={{
@@ -51,8 +54,55 @@ describe("Frontend Phases F7–F18 Component Suite", () => {
     expect(html).toContain("Rp 170.000");
     expect(html).toContain("Rp 30.000");
     expect(html).toContain("Mendekati Limit &gt;80%");
+    expect(html).toContain('data-slot="dialog-trigger"');
+    expect(html).toContain(
+      'aria-label="Buka rincian transaksi pos Bensin &amp; Mobilitas (0 transaksi)"'
+    );
+    expect(html).toContain('aria-haspopup="dialog"');
+    expect(html).not.toContain("Belum ada catatan transaksi di pos ini.");
     expect(html).toContain("tabular-nums");
     expect(html).not.toContain("font-mono");
+
+    const modalPanelHtml = renderToString(
+      <BudgetCategoryDetailsPanel
+        category={{
+          id: "cat-1",
+          name: "Bensin & Mobilitas",
+          icon: "⛽",
+          group: "kebutuhan",
+          target: 200000,
+          spent: 225000,
+          remaining: -25000,
+          usagePercent: 113,
+          status: "Overbudget",
+          transactions: [
+            {
+              id: "tx-modal-1",
+              categoryId: "cat-1",
+              userId: "u-1",
+              description: "Shell Super Full Tank",
+              amount: 225000,
+              method: "qris",
+              date: "2026-10-15",
+              isDeleted: false,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          ],
+        }}
+        isOverbudget={true}
+      />
+    );
+
+    expect(modalPanelHtml).toContain("Target");
+    expect(modalPanelHtml).toContain("Rp 200.000");
+    expect(modalPanelHtml).toContain("Terpakai");
+    expect(modalPanelHtml).toContain("Rp 225.000");
+    expect(modalPanelHtml).toContain("Overbudget");
+    expect(modalPanelHtml).toContain("-Rp 25.000");
+    expect(modalPanelHtml).toContain("Shell Super Full Tank");
+    expect(modalPanelHtml).toContain("QRIS");
+    expect(modalPanelHtml).not.toContain("font-mono");
   });
 
   it("Fase F8 & F9: QuickTransactionDrawer & TransactionSubList render cleanly without font-mono", () => {
