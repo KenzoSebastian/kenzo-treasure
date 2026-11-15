@@ -268,8 +268,8 @@ describe("Financial Calculation Engine & Icon Registry (Kenzo Treasury Invariant
      8. Curated Lucide Category Icon Registry (Fase R1)
      ────────────────────────────────────────────────────────────────────────── */
   describe("Category Icon Registry & Legacy Fallback", () => {
-    it("should contain 24 curated semantic Lucide icons", () => {
-      expect(CURATED_CATEGORY_ICONS).toHaveLength(24);
+    it("should contain 36 curated semantic Lucide icons (6x6 grid)", () => {
+      expect(CURATED_CATEGORY_ICONS).toHaveLength(36);
     });
 
     it("should resolve valid icon keys, legacy escaped emoji strings, and group fallbacks", () => {

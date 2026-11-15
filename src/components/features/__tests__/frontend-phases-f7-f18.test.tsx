@@ -396,6 +396,8 @@ describe("Frontend Phases F7–F18 & R1–R10 Component Suite", () => {
       <FinanceDefaultsPanel defaultBaseSalary={5000000} emergencyFundTarget={15000000} />
     );
     expect(defaultsHtml).toContain("Konfigurasi Gaji Pokok");
+    expect(defaultsHtml).toContain("3x Gaji");
+    expect(defaultsHtml).toContain("6x Gaji");
     expect(defaultsHtml).not.toContain(FORBIDDEN_MONO_CLASS);
 
     const tplHtml = renderToString(

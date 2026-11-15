@@ -171,6 +171,29 @@ export function FinanceDefaultsPanel({
             <p className="text-[11px] text-muted-foreground">
               Rekomendasi umum adalah 3–6x pengeluaran wajib bulanan Anda.
             </p>
+            {parseRupiah(salaryRaw) > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                <span className="text-[11px] text-muted-foreground mr-0.5">
+                  Rekomendasi:
+                </span>
+                {[
+                  { label: "3x Gaji", val: parseRupiah(salaryRaw) * 3 },
+                  { label: "6x Gaji", val: parseRupiah(salaryRaw) * 6 },
+                ].map((opt) => (
+                  <button
+                    key={opt.label}
+                    type="button"
+                    onClick={() => {
+                      setEmergencyRaw(String(opt.val));
+                      setErrorMsg(null);
+                    }}
+                    className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 tabular-nums cursor-pointer transition-colors"
+                  >
+                    {opt.label} ({formatRupiah(opt.val)})
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

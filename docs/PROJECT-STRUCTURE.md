@@ -90,7 +90,7 @@ kenzo-treasure/
 │   │   ├── layout/                   # AppHeader, MobileBottomNav, DashboardLayout, DashboardSkeleton, PageSectionSkeleton, DashboardErrorBoundary, ThemeToggle
 │   │   ├── common/
 │   │   │   ├── AppCategoryIcon.tsx   # Fase R1: Komponen ikon pos/cicilan/wishlist berbasis Lucide
-│   │   │   ├── IconPicker.tsx        # Fase R1: Pemilih 24 ikon kurasi Lucide ramah mobile
+│   │   │   ├── IconPicker.tsx        # Fase R1: Pemilih 36 ikon kurasi Lucide ramah mobile (grid simetris 6x6)
 │   │   │   ├── SlidingSegmentedControl.tsx # Fase R6 & R10: Segmented control taktil dengan indikator geser
 │   │   │   ├── NetworkStatusBanner.tsx # Fase F18 & R10: Banner Offline & Auto-Sync
 │   │   │   └── index.ts
@@ -135,7 +135,7 @@ kenzo-treasure/
 │   │   ├── ai/
 │   │   │   └── gemini.ts             # Fase B13 & R1: Google GenAI SDK client & deterministic evaluator
 │   │   ├── supabase/                 # Helper SSR/browser Supabase Auth
-│   │   ├── category-icons.ts         # Fase R1: Registry 24 ikon kurasi Lucide & fallback emoji historis
+│   │   ├── category-icons.ts         # Fase R1: Registry 36 ikon kurasi Lucide & fallback emoji historis
 │   │   ├── category-transaction-tx.ts# Fase R8: Helper atomik transaksi pos + cicilan dengan FOR UPDATE
 │   │   ├── revalidate.ts             # Fase R10: revalidateDashboardRoutes terpusat 5 rute
 │   │   ├── month-generator.ts        # Generator pos anggaran bulanan dinamis dari DB & template

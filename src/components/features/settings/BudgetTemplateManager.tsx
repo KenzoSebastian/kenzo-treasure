@@ -85,6 +85,8 @@ export function BudgetTemplateManager({
   const [icon, setIcon] = React.useState("wallet");
   const [group, setGroup] = React.useState<CategoryGroup>("kebutuhan");
   const [targetRaw, setTargetRaw] = React.useState("0");
+  const [targetMode, setTargetMode] = React.useState<"rp" | "percent">("rp");
+  const [targetPercent, setTargetPercent] = React.useState<number>(0);
   const [isActive, setIsActive] = React.useState(true);
   const [sortOrder, setSortOrder] = React.useState(1);
   const [formError, setFormError] = React.useState<string | null>(null);
@@ -105,6 +107,8 @@ export function BudgetTemplateManager({
     setIcon("wallet");
     setGroup("kebutuhan");
     setTargetRaw("0");
+    setTargetMode("rp");
+    setTargetPercent(0);
     setIsActive(true);
     setSortOrder(templates.length + 1);
     setFormError(null);
@@ -117,6 +121,12 @@ export function BudgetTemplateManager({
     setIcon(tpl.icon);
     setGroup(tpl.group);
     setTargetRaw(String(tpl.targetBudget));
+    setTargetMode("rp");
+    setTargetPercent(
+      defaultBaseSalary && defaultBaseSalary > 0
+        ? Math.round((tpl.targetBudget / defaultBaseSalary) * 100)
+        : 0
+    );
     setIsActive(tpl.isActive !== false);
     setSortOrder(tpl.sortOrder);
     setFormError(null);
@@ -337,24 +347,169 @@ export function BudgetTemplateManager({
                 />
               </div>
 
-              <div className="space-y-1">
-                <Label htmlFor="tpl-target" className="text-xs font-medium">
-                  Target Alokasi Default (Rp)
-                </Label>
-                <Input
-                  id="tpl-target"
-                  type="text"
-                  inputMode="numeric"
-                  value={
-                    parseRupiah(targetRaw) > 0
-                      ? parseRupiah(targetRaw).toLocaleString("id-ID")
-                      : "0"
-                  }
-                  onChange={(e) =>
-                    setTargetRaw(String(parseRupiah(e.target.value)))
-                  }
-                  className="h-10 rounded-xl text-xs tabular-nums"
-                />
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="tpl-target" className="text-xs font-medium">
+                    Target Alokasi Default
+                  </Label>
+                  {defaultBaseSalary && defaultBaseSalary > 0 && (
+                    <div className="relative inline-flex items-center rounded-lg border border-border/70 bg-muted/40 p-1 text-[10px] font-medium select-none">
+                      <span
+                        aria-hidden="true"
+                        className={cn(
+                          "pointer-events-none absolute top-1 bottom-1 left-1 w-8 rounded-md bg-background shadow-2xs transition-transform duration-200 ease-out",
+                          targetMode === "percent"
+                            ? "translate-x-8"
+                            : "translate-x-0"
+                        )}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setTargetMode("rp")}
+                        className={cn(
+                          "relative z-10 w-8 py-0.5 text-center transition-colors duration-200 cursor-pointer font-bold",
+                          targetMode !== "percent"
+                            ? "text-foreground"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        Rp
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const pct = Math.min(
+                            100,
+                            Math.round(
+                              (parseRupiah(targetRaw) / defaultBaseSalary) * 100
+                            )
+                          );
+                          setTargetPercent(pct);
+                          setTargetMode("percent");
+                        }}
+                        className={cn(
+                          "relative z-10 w-8 py-0.5 text-center transition-colors duration-200 cursor-pointer font-bold",
+                          targetMode === "percent"
+                            ? "text-foreground"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        %
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="relative">
+                  {targetMode === "percent" ? (
+                    <div className="flex h-10 w-full items-center rounded-xl border border-input bg-transparent dark:bg-input/30 px-3 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 transition-all">
+                      <div className="inline-flex items-center">
+                        <input
+                          id="tpl-target"
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="0"
+                          value={targetPercent > 0 ? String(targetPercent) : ""}
+                          style={{
+                            width: `${
+                              Math.max(
+                                1,
+                                (targetPercent > 0 ? String(targetPercent) : "0")
+                                  .length
+                              ) *
+                                8.5 +
+                              2
+                            }px`,
+                          }}
+                          onChange={(e) => {
+                            const raw = e.target.value.replace(/[^0-9]/g, "");
+                            const pct = Math.min(
+                              100,
+                              Math.max(0, raw === "" ? 0 : Number(raw))
+                            );
+                            const nominal = defaultBaseSalary
+                              ? Math.round((pct / 100) * defaultBaseSalary)
+                              : 0;
+                            setTargetPercent(raw === "" ? 0 : pct);
+                            setTargetRaw(String(nominal));
+                          }}
+                          className="h-full bg-transparent text-xs font-semibold tabular-nums text-foreground placeholder:text-muted-foreground focus:outline-none text-left p-0 m-0"
+                        />
+                        <span className="text-xs font-bold text-muted-foreground select-none pl-0.5">
+                          %
+                        </span>
+                      </div>
+                      {defaultBaseSalary && parseRupiah(targetRaw) > 0 && (
+                        <span className="ml-auto text-xs font-medium text-muted-foreground tabular-nums select-none">
+                          = {formatRupiah(parseRupiah(targetRaw))}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <Input
+                      id="tpl-target"
+                      type="text"
+                      inputMode="numeric"
+                      value={
+                        parseRupiah(targetRaw) > 0
+                          ? parseRupiah(targetRaw).toLocaleString("id-ID")
+                          : "0"
+                      }
+                      onChange={(e) => {
+                        const nominal = parseRupiah(e.target.value);
+                        setTargetRaw(String(nominal));
+                        if (defaultBaseSalary && defaultBaseSalary > 0) {
+                          setTargetPercent(
+                            Math.round((nominal / defaultBaseSalary) * 100)
+                          );
+                        }
+                      }}
+                      className="h-10 rounded-xl text-xs tabular-nums"
+                    />
+                  )}
+                </div>
+
+                {defaultBaseSalary && defaultBaseSalary > 0 && (
+                  <div className="flex flex-wrap items-center justify-between gap-1.5 pt-0.5 text-[11px] tabular-nums">
+                    <span className="text-muted-foreground">
+                      {targetMode === "percent"
+                        ? "Rekomendasi persentase:"
+                        : parseRupiah(targetRaw) > 0
+                        ? `≈ ${(
+                            (parseRupiah(targetRaw) / defaultBaseSalary) *
+                            100
+                          )
+                            .toFixed(1)
+                            .replace(".0", "")}% gaji default`
+                        : "0% gaji default"}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {[10, 20, 30, 50].map((pct) => (
+                        <button
+                          key={pct}
+                          type="button"
+                          onClick={() => {
+                            const val = Math.round(
+                              (pct / 100) * defaultBaseSalary
+                            );
+                            setTargetRaw(String(val));
+                            setTargetPercent(pct);
+                          }}
+                          className={cn(
+                            "rounded-md border px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer",
+                            Math.round(
+                              (parseRupiah(targetRaw) / defaultBaseSalary) * 100
+                            ) === pct
+                              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold"
+                              : "border-border/60 bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground"
+                          )}
+                        >
+                          {pct}%
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1">

@@ -40,7 +40,6 @@ import { AppCategoryIcon } from "@/components/common/AppCategoryIcon";
 import { IconPicker } from "@/components/common/IconPicker";
 import { SlidingSegmentedControl } from "@/components/common/SlidingSegmentedControl";
 import { formatRupiah, parseRupiah } from "@/lib/financial-calculations";
-import { NEUTRAL_PRESET_TEMPLATES } from "@/lib/month-generator";
 import { completeOnboarding, skipOnboarding } from "@/actions/onboarding";
 import { cn } from "@/lib/utils";
 import type { CategoryGroup } from "@/db/schema";
@@ -52,6 +51,8 @@ export interface OnboardingTemplateItem {
   group: CategoryGroup;
   targetBudget: number;
   sortOrder: number;
+  targetMode?: "rp" | "percent";
+  targetPercent?: number;
 }
 
 export interface OnboardingLiabilityItem {
@@ -76,17 +77,6 @@ const GROUP_OPTIONS: Array<{ value: CategoryGroup; label: string }> = [
   { value: "uang_bebas_tabungan", label: "Uang Bebas" },
 ];
 
-function createNeutralInitialTemplates(): OnboardingTemplateItem[] {
-  return NEUTRAL_PRESET_TEMPLATES.map((tpl, idx) => ({
-    id: `tpl-${idx + 1}`,
-    name: tpl.name,
-    icon: tpl.icon,
-    group: tpl.group,
-    targetBudget: 0,
-    sortOrder: tpl.sortOrder,
-  }));
-}
-
 export function OnboardingWizard({
   userName,
   initialBaseSalary,
@@ -100,9 +90,7 @@ export function OnboardingWizard({
   const [emergencyRaw, setEmergencyRaw] = React.useState(
     String(Math.max(0, initialEmergencyFundTarget ?? 0))
   );
-  const [templates, setTemplates] = React.useState<OnboardingTemplateItem[]>(
-    () => createNeutralInitialTemplates()
-  );
+  const [templates, setTemplates] = React.useState<OnboardingTemplateItem[]>([]);
   const [liabilities, setLiabilities] = React.useState<
     OnboardingLiabilityItem[]
   >([]);
@@ -133,25 +121,6 @@ export function OnboardingWizard({
       ? Math.min(100, Math.round((allocatedFixedBudget / baseSalary) * 100))
       : 0;
 
-  const handleLoadNeutralPresets = () => {
-    setTemplates(createNeutralInitialTemplates());
-    setErrorMsg(null);
-  };
-
-  const handleStartFromScratch = () => {
-    setTemplates([
-      {
-        id: "tpl-free",
-        name: "Uang Bebas / Tabungan",
-        icon: "sparkles",
-        group: "uang_bebas_tabungan",
-        targetBudget: 0,
-        sortOrder: 99,
-      },
-    ]);
-    setErrorMsg(null);
-  };
-
   const handleAddTemplateRow = () => {
     const nextIdx = templates.length + 1;
     setTemplates((prev) => [
@@ -159,16 +128,17 @@ export function OnboardingWizard({
       {
         id: `tpl-${Date.now()}-${nextIdx}`,
         name: "",
-        icon: "wallet",
+        icon: "help-circle",
         group: "kebutuhan",
         targetBudget: 0,
         sortOrder: nextIdx,
+        targetMode: "rp",
+        targetPercent: 0,
       },
     ]);
   };
 
   const handleRemoveTemplateRow = (id: string) => {
-    if (templates.length <= 1) return;
     setTemplates((prev) => prev.filter((item) => item.id !== id));
   };
 
@@ -177,7 +147,18 @@ export function OnboardingWizard({
     patch: Partial<OnboardingTemplateItem>
   ) => {
     setTemplates((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
+      prev.map((item) => {
+        if (item.id === id) {
+          return { ...item, ...patch };
+        }
+        if (
+          patch.group === "uang_bebas_tabungan" &&
+          item.group === "uang_bebas_tabungan"
+        ) {
+          return { ...item, group: "kebutuhan" };
+        }
+        return item;
+      })
     );
     setErrorMsg(null);
   };
@@ -497,28 +478,6 @@ export function OnboardingWizard({
                     Atur daftar pos pengeluaran bulanan dan target alokasinya.
                   </p>
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleLoadNeutralPresets}
-                    className="h-8 px-2.5 rounded-lg text-[11px]"
-                  >
-                    <Layers className="size-3 mr-1" />
-                    <span>6 Template Netral</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleStartFromScratch}
-                    className="h-8 px-2.5 rounded-lg text-[11px]"
-                  >
-                    Mulai dari Kosong
-                  </Button>
-                </div>
               </div>
 
               {/* Live Allocation Bar */}
@@ -555,133 +514,346 @@ export function OnboardingWizard({
                 </div>
               </div>
 
-              <div className="space-y-3">
-                {templates.map((tpl) => {
-                  const isFreeBudget = tpl.group === "uang_bebas_tabungan";
-                  const isPickingIcon = activeIconRowId === tpl.id;
-                  return (
-                    <div
-                      key={tpl.id}
-                      className="rounded-xl border border-border/70 bg-background p-3.5 space-y-3"
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setActiveIconRowId(isPickingIcon ? null : tpl.id)
-                          }
-                          className="inline-flex items-center gap-2 self-start rounded-xl border border-border/70 bg-muted/30 px-2.5 py-1.5 text-xs font-medium hover:bg-muted transition-colors cursor-pointer"
-                          title="Klik untuk ganti ikon"
-                        >
-                          <AppCategoryIcon
-                            iconKey={tpl.icon}
-                            group={tpl.group}
-                            size="xs"
-                          />
-                          <span className="text-[11px] text-muted-foreground">
-                            Ikon
-                          </span>
-                        </button>
-
-                        <div className="flex-1 min-w-0">
-                          <Input
-                            type="text"
-                            placeholder="Nama pos anggaran (misal: Kebutuhan Pokok)"
-                            value={tpl.name}
-                            onChange={(e) =>
-                              handleUpdateTemplateRow(tpl.id, {
-                                name: e.target.value,
-                              })
+              {/* Daftar Baris Pos Anggaran (2 Baris per Card) atau Empty State */}
+              {templates.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-border/70 bg-muted/15 p-6 text-center space-y-1.5">
+                  <Layers className="size-6 mx-auto text-muted-foreground/60" />
+                  <p className="text-xs font-semibold text-foreground">
+                    Belum ada pos anggaran rutin
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Mulai susun dari kosong sesuai kebutuhan finansial Anda.
+                    Klik tombol di bawah untuk menambah pos anggaran pertama.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {templates.map((tpl) => {
+                    const isFreeBudget = tpl.group === "uang_bebas_tabungan";
+                    const isPickingIcon = activeIconRowId === tpl.id;
+                    return (
+                      <div
+                        key={tpl.id}
+                        className="rounded-xl border border-border/70 bg-background p-3.5 sm:p-4 space-y-3"
+                      >
+                        {/* Baris 1: Ikon + Input Nama Pos + Tombol Hapus */}
+                        <div className="flex items-center gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setActiveIconRowId(isPickingIcon ? null : tpl.id)
                             }
-                            className="h-9 rounded-lg text-xs"
-                          />
-                        </div>
+                            className="flex size-9 items-center justify-center shrink-0 rounded-xl border border-border/70 bg-muted/30 hover:bg-muted transition-colors cursor-pointer"
+                            title="Klik untuk memilih ikon"
+                            aria-label="Pilih ikon pos anggaran"
+                          >
+                            <AppCategoryIcon
+                              iconKey={tpl.icon}
+                              group={tpl.group}
+                              size="xs"
+                            />
+                          </button>
 
-                        <div className="w-full sm:w-40">
-                          {isFreeBudget ? (
-                            <div className="flex h-9 items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 text-xs font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
-                              <span>Otomatis:</span>
-                              <span>
-                                {formatRupiah(
-                                  Math.max(0, remainingUnallocated)
-                                )}
-                              </span>
-                            </div>
-                          ) : (
+                          <div className="flex-1 min-w-0">
                             <Input
                               type="text"
-                              inputMode="numeric"
-                              placeholder="Target (Rp)"
-                              value={
-                                tpl.targetBudget > 0
-                                  ? tpl.targetBudget.toLocaleString("id-ID")
-                                  : "0"
-                              }
+                              placeholder="Nama pos anggaran (misal: Kebutuhan Pokok)"
+                              value={tpl.name}
                               onChange={(e) =>
                                 handleUpdateTemplateRow(tpl.id, {
-                                  targetBudget: parseRupiah(e.target.value),
+                                  name: e.target.value,
                                 })
                               }
-                              className="h-9 rounded-lg text-xs tabular-nums"
+                              className="h-9 rounded-lg text-xs"
                             />
-                          )}
+                          </div>
+
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveTemplateRow(tpl.id)}
+                            className="size-9 rounded-lg text-muted-foreground hover:text-destructive shrink-0 cursor-pointer"
+                            aria-label="Hapus baris pos"
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
                         </div>
 
-                        <div className="flex items-center justify-between sm:justify-end gap-2">
-                          <SlidingSegmentedControl
-                            options={GROUP_OPTIONS}
-                            value={tpl.group}
-                            onValueChange={(nextGroup) =>
-                              handleUpdateTemplateRow(tpl.id, {
-                                group: nextGroup,
-                              })
-                            }
-                            role="radiogroup"
-                            ariaLabel={`Kelompok pos ${tpl.name || "baru"}`}
-                            size="sm"
-                          />
-                          {templates.length > 1 && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleRemoveTemplateRow(tpl.id)}
-                              className="size-8 rounded-lg text-muted-foreground hover:text-destructive shrink-0"
-                              aria-label="Hapus baris pos"
-                            >
-                              <Trash2 className="size-3.5" />
-                            </Button>
-                          )}
+                        {/* Baris 2: Segmented Control Group + Target Anggaran / Otomatis Badge */}
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pt-1">
+                          <div className="w-full sm:w-auto">
+                            <SlidingSegmentedControl
+                              options={GROUP_OPTIONS}
+                              value={tpl.group}
+                              onValueChange={(nextGroup) =>
+                                handleUpdateTemplateRow(tpl.id, {
+                                  group: nextGroup,
+                                })
+                              }
+                              role="radiogroup"
+                              ariaLabel={`Kelompok pos ${tpl.name || "baru"}`}
+                              size="sm"
+                              className="w-full sm:w-auto"
+                            />
+                          </div>
+
+                          <div className="w-full sm:w-auto shrink-0 flex items-center">
+                            {isFreeBudget ? (
+                              <div className="flex h-9 w-full sm:w-auto items-center justify-between gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 text-xs font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
+                                <span className="text-[11px] font-semibold text-emerald-700/80 dark:text-emerald-400/80">
+                                  Sisa Otomatis:
+                                </span>
+                                <div className="flex items-center gap-1.5">
+                                  <span>
+                                    {formatRupiah(
+                                      Math.max(0, remainingUnallocated)
+                                    )}
+                                  </span>
+                                  {baseSalary > 0 && (
+                                    <span className="text-[10px] font-medium text-emerald-700/70 dark:text-emerald-400/70">
+                                      (≈{" "}
+                                      {Math.min(
+                                        100,
+                                        Math.max(
+                                          0,
+                                          Math.round(
+                                            (Math.max(
+                                              0,
+                                              remainingUnallocated
+                                            ) /
+                                              baseSalary) *
+                                              100
+                                          )
+                                        )
+                                      )}
+                                      %)
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex h-9 w-full sm:w-64 shrink-0 items-center rounded-xl border border-input bg-transparent dark:bg-input/30 overflow-hidden focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/40 transition-all shadow-2xs">
+                                {/* Toggle Mode: Rp vs % Gaji dengan Animasi Transisi Sliding Pill */}
+                                <div className="relative inline-flex h-full items-center bg-muted/40 p-1 border-r border-border/60 shrink-0 select-none">
+                                  {/* Sliding Indicator Pill */}
+                                  <span
+                                    aria-hidden="true"
+                                    className={cn(
+                                      "pointer-events-none absolute top-1 bottom-1 left-1 w-7 rounded-md bg-background shadow-2xs transition-transform duration-200 ease-out",
+                                      tpl.targetMode === "percent"
+                                        ? "translate-x-7"
+                                        : "translate-x-0"
+                                    )}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleUpdateTemplateRow(tpl.id, {
+                                        targetMode: "rp",
+                                      })
+                                    }
+                                    title="Input nominal langsung dalam Rupiah"
+                                    className={cn(
+                                      "relative z-10 size-7 inline-flex items-center justify-center rounded-md text-[11px] font-bold transition-colors duration-200 cursor-pointer",
+                                      tpl.targetMode !== "percent"
+                                        ? "text-foreground"
+                                        : "text-muted-foreground hover:text-foreground"
+                                    )}
+                                  >
+                                    Rp
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={baseSalary <= 0}
+                                    onClick={() => {
+                                      const currentPct =
+                                        baseSalary > 0
+                                          ? Math.min(
+                                              100,
+                                              Math.round(
+                                                (tpl.targetBudget / baseSalary) *
+                                                  100
+                                              )
+                                            )
+                                          : 0;
+                                      handleUpdateTemplateRow(tpl.id, {
+                                        targetMode: "percent",
+                                        targetPercent: currentPct,
+                                      });
+                                    }}
+                                    title={
+                                      baseSalary <= 0
+                                        ? "Isi gaji pokok di Langkah 1 untuk memilih target persentase"
+                                        : "Target sebagai persentase dari gaji pokok"
+                                    }
+                                    className={cn(
+                                      "relative z-10 size-7 inline-flex items-center justify-center rounded-md text-[11px] font-bold transition-colors duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed",
+                                      tpl.targetMode === "percent"
+                                        ? "text-foreground"
+                                        : "text-muted-foreground hover:text-foreground"
+                                    )}
+                                  >
+                                    %
+                                  </button>
+                                </div>
+
+                                {/* Input Target (Rp atau %) + Live Inline Equivalent */}
+                                {tpl.targetMode === "percent" ? (
+                                  (() => {
+                                    const percentStr =
+                                      tpl.targetPercent !== undefined &&
+                                      tpl.targetPercent > 0
+                                        ? String(tpl.targetPercent)
+                                        : baseSalary > 0 &&
+                                          tpl.targetBudget > 0
+                                        ? String(
+                                            Math.min(
+                                              100,
+                                              Math.round(
+                                                (tpl.targetBudget /
+                                                  baseSalary) *
+                                                  100
+                                              )
+                                            )
+                                          )
+                                        : "";
+                                    return (
+                                      <div className="flex h-full flex-1 items-center px-2.5 min-w-0">
+                                        <div className="inline-flex items-center">
+                                          <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            placeholder="0"
+                                            value={percentStr}
+                                            style={{
+                                              width: `${
+                                                Math.max(
+                                                  1,
+                                                  (percentStr || "0").length
+                                                ) *
+                                                  8.5 +
+                                                2
+                                              }px`,
+                                            }}
+                                            onChange={(e) => {
+                                              const raw =
+                                                e.target.value.replace(
+                                                  /[^0-9]/g,
+                                                  ""
+                                                );
+                                              const pct = Math.min(
+                                                100,
+                                                Math.max(
+                                                  0,
+                                                  raw === "" ? 0 : Number(raw)
+                                                )
+                                              );
+                                              const budget = Math.round(
+                                                (pct / 100) * baseSalary
+                                              );
+                                              handleUpdateTemplateRow(tpl.id, {
+                                                targetPercent:
+                                                  raw === "" ? 0 : pct,
+                                                targetBudget: budget,
+                                              });
+                                            }}
+                                            className="h-full bg-transparent text-xs font-semibold tabular-nums text-foreground placeholder:text-muted-foreground focus:outline-none text-left p-0 m-0"
+                                          />
+                                          <span className="text-xs font-bold text-muted-foreground select-none pl-0.5">
+                                            %
+                                          </span>
+                                        </div>
+                                        {baseSalary > 0 &&
+                                          tpl.targetBudget > 0 && (
+                                            <span className="ml-auto text-[11px] text-muted-foreground truncate select-none tabular-nums pl-1.5 font-medium">
+                                              = {formatRupiah(tpl.targetBudget)}
+                                            </span>
+                                          )}
+                                      </div>
+                                    );
+                                  })()
+                                ) : (
+                                  <div className="flex h-full flex-1 items-center px-2.5 min-w-0">
+                                    <input
+                                      type="text"
+                                      inputMode="numeric"
+                                      placeholder="0"
+                                      value={
+                                        tpl.targetBudget > 0
+                                          ? tpl.targetBudget.toLocaleString(
+                                              "id-ID"
+                                            )
+                                          : "0"
+                                      }
+                                      onChange={(e) => {
+                                        const nominal = parseRupiah(
+                                          e.target.value
+                                        );
+                                        const pct =
+                                          baseSalary > 0
+                                            ? Math.min(
+                                                100,
+                                                Math.round(
+                                                  (nominal / baseSalary) * 100
+                                                )
+                                              )
+                                            : 0;
+                                        handleUpdateTemplateRow(tpl.id, {
+                                          targetBudget: nominal,
+                                          targetPercent: pct,
+                                        });
+                                      }}
+                                      className="h-full flex-1 min-w-0 bg-transparent text-xs font-semibold tabular-nums text-foreground placeholder:text-muted-foreground focus:outline-none text-left"
+                                    />
+                                    {baseSalary > 0 && tpl.targetBudget > 0 && (
+                                      <span className="ml-auto text-[11px] text-muted-foreground shrink-0 select-none tabular-nums pl-1.5 font-medium">
+                                        ≈{" "}
+                                        {(
+                                          (tpl.targetBudget / baseSalary) *
+                                          100
+                                        )
+                                          .toFixed(1)
+                                          .replace(".0", "")}
+                                        %
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
+
+                        {/* Expandable Icon Picker */}
+                        {isPickingIcon && (
+                          <div className="pt-2 border-t border-border/50">
+                            <IconPicker
+                              value={tpl.icon}
+                              onChange={(nextIcon) => {
+                                handleUpdateTemplateRow(tpl.id, {
+                                  icon: nextIcon,
+                                });
+                                setActiveIconRowId(null);
+                              }}
+                              fallbackGroup={tpl.group}
+                            />
+                          </div>
+                        )}
                       </div>
+                    );
+                  })}
+                </div>
+              )}
 
-                      {isPickingIcon && (
-                        <div className="pt-2 border-t border-border/50">
-                          <IconPicker
-                            value={tpl.icon}
-                            onChange={(nextIcon) => {
-                              handleUpdateTemplateRow(tpl.id, {
-                                icon: nextIcon,
-                              });
-                              setActiveIconRowId(null);
-                            }}
-                            fallbackGroup={tpl.group}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
+              {/* Tombol Tambah Baris Pos Anggaran Lebar Penuh (w-full) */}
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
                 onClick={handleAddTemplateRow}
-                className="h-9 rounded-xl gap-1.5 text-xs font-semibold"
+                className="w-full h-10 rounded-xl gap-2 text-xs font-semibold border-dashed border-border/80 bg-background/50 hover:bg-muted/50 hover:border-foreground/30 transition-all text-foreground justify-center shadow-2xs cursor-pointer"
               >
-                <Plus className="size-3.5" />
+                <Plus className="size-4 text-primary" />
                 <span>Tambah Baris Pos Anggaran</span>
               </Button>
             </div>

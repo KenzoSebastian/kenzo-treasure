@@ -20,8 +20,8 @@ export interface IconPickerProps {
 }
 
 /**
- * Komponen pemilih ikon 24 opsi kurasi `lucide-react` dengan ergonomi sentuh (`min-h-11`)
- * dan grid responsif (`grid-cols-4 min-[380px]:grid-cols-6`).
+ * Komponen pemilih ikon 36 opsi kurasi `lucide-react` dengan ergonomi sentuh (`min-h-11`)
+ * dan grid responsif simetris 6x6 (`grid-cols-4 min-[380px]:grid-cols-6`).
  */
 export function IconPicker({
   value,

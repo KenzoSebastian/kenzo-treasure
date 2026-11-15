@@ -64,7 +64,10 @@ export function AppCategoryIcon({
   let toneClasses =
     "bg-muted text-foreground/80 border border-border/60";
 
-  if (liabilityId) {
+  if (iconKey === "help-circle" || iconKey === "circle-help") {
+    toneClasses =
+      "bg-muted/40 text-muted-foreground/80 border border-dashed border-border/80";
+  } else if (liabilityId) {
     toneClasses =
       "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20";
   } else if (group === "pos_wajib") {

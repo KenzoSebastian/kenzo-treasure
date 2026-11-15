@@ -137,7 +137,11 @@ export function MonthSelector({
 
       <DropdownMenuContent
         align="start"
-        className="w-64 rounded-xl border-border/80 p-1.5 shadow-md"
+        style={{
+          width: "var(--radix-dropdown-menu-trigger-width)",
+          minWidth: "var(--radix-dropdown-menu-trigger-width)",
+        }}
+        className="w-[var(--radix-dropdown-menu-trigger-width)] sm:w-[360px] min-w-[var(--radix-dropdown-menu-trigger-width)] rounded-xl border-border/80 p-1.5 shadow-md"
       >
         {activeMonths.length > 0 && (
           <>

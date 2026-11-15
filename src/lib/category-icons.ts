@@ -4,7 +4,7 @@
  * ==============================================================================
  *
  * Menyediakan:
- * 1. 24 ikon kurasi `lucide-react` beserta label Bahasa Indonesia.
+ * 1. 36 ikon kurasi `lucide-react` (6x6 grid) beserta label Bahasa Indonesia.
  * 2. Peta kompatibilitas mundur (fallback) dari string emoji historis database
  *    menuju key Lucide.
  * 3. Helper `stripEmojiPrefix` untuk membersihkan awalan/simbol emoji pada nama.
@@ -14,28 +14,40 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Award,
+  Baby,
   Banknote,
+  Briefcase,
   Camera,
   Car,
   Coffee,
+  Coins,
   CreditCard,
+  Dog,
   Flame,
   Fuel,
   Gift,
+  GraduationCap,
   HeartHandshake,
+  HeartPulse,
+  HelpCircle,
   Home,
   Landmark,
   Monitor,
   Package,
   PiggyBank,
+  Plane,
   Receipt,
   Rocket,
   ShieldCheck,
   ShoppingBag,
+  ShoppingBasket,
   Smartphone,
   Sparkles,
+  Store,
   Target,
+  TrendingUp,
   Trophy,
+  Tv,
   Users,
   Utensils,
   Wallet,
@@ -45,28 +57,41 @@ import {
 } from "lucide-react";
 
 export const CATEGORY_ICON_KEYS = [
+  "help-circle",
   "wallet",
   "banknote",
+  "coins",
   "credit-card",
   "piggy-bank",
   "landmark",
   "receipt",
-  "heart-handshake",
+  "trending-up",
+  "briefcase",
   "shield-check",
-  "zap",
+  "heart-handshake",
+  "gift",
   "home",
+  "zap",
   "wifi",
   "smartphone",
-  "camera",
   "monitor",
+  "camera",
   "wrench",
   "fuel",
   "car",
+  "plane",
+  "shopping-basket",
   "utensils",
   "coffee",
   "shopping-bag",
+  "store",
+  "graduation-cap",
+  "heart-pulse",
+  "baby",
+  "dog",
   "users",
-  "gift",
+  "tv",
+  "sparkles",
   "target",
   "package",
 ] as const;
@@ -93,26 +118,38 @@ const RAW_ICON_SPECS: ReadonlyArray<{
 }> = [
   { key: "wallet", label: "Dompet", Icon: Wallet },
   { key: "banknote", label: "Tunai", Icon: Banknote },
+  { key: "coins", label: "Koin/Receh", Icon: Coins },
   { key: "credit-card", label: "Kartu/Cicilan", Icon: CreditCard },
   { key: "piggy-bank", label: "Tabungan", Icon: PiggyBank },
   { key: "landmark", label: "Bank", Icon: Landmark },
   { key: "receipt", label: "Struk", Icon: Receipt },
-  { key: "heart-handshake", label: "Amal/Sosial", Icon: HeartHandshake },
+  { key: "trending-up", label: "Investasi", Icon: TrendingUp },
+  { key: "briefcase", label: "Gaji/Karir", Icon: Briefcase },
   { key: "shield-check", label: "Dana Darurat", Icon: ShieldCheck },
-  { key: "zap", label: "Listrik", Icon: Zap },
+  { key: "heart-handshake", label: "Amal/Sosial", Icon: HeartHandshake },
+  { key: "gift", label: "Hadiah", Icon: Gift },
   { key: "home", label: "Hunian", Icon: Home },
+  { key: "zap", label: "Listrik", Icon: Zap },
   { key: "wifi", label: "Internet", Icon: Wifi },
   { key: "smartphone", label: "Gadget", Icon: Smartphone },
+  { key: "monitor", label: "Komputer", Icon: Monitor },
   { key: "camera", label: "Fotografi", Icon: Camera },
-  { key: "monitor", label: "Monitor", Icon: Monitor },
   { key: "wrench", label: "Servis", Icon: Wrench },
   { key: "fuel", label: "Bensin", Icon: Fuel },
   { key: "car", label: "Transportasi", Icon: Car },
-  { key: "utensils", label: "Makan/Jajan", Icon: Utensils },
+  { key: "plane", label: "Liburan", Icon: Plane },
+  { key: "shopping-basket", label: "Belanja Dapur", Icon: ShoppingBasket },
+  { key: "utensils", label: "Makan/Resto", Icon: Utensils },
   { key: "coffee", label: "Kopi", Icon: Coffee },
   { key: "shopping-bag", label: "Belanja", Icon: ShoppingBag },
+  { key: "store", label: "Usaha/Toko", Icon: Store },
+  { key: "graduation-cap", label: "Pendidikan", Icon: GraduationCap },
+  { key: "heart-pulse", label: "Kesehatan", Icon: HeartPulse },
+  { key: "baby", label: "Anak/Bayi", Icon: Baby },
+  { key: "dog", label: "Hewan/Pet", Icon: Dog },
   { key: "users", label: "Keluarga", Icon: Users },
-  { key: "gift", label: "Hadiah", Icon: Gift },
+  { key: "tv", label: "Langganan", Icon: Tv },
+  { key: "sparkles", label: "Hiburan", Icon: Sparkles },
   { key: "target", label: "Target/Impian", Icon: Target },
   { key: "package", label: "Lainnya", Icon: Package },
 ] as const;
@@ -125,10 +162,27 @@ export const CATEGORY_ICON_OPTIONS: readonly CategoryIconOption[] =
 
 export const CURATED_CATEGORY_ICONS = CATEGORY_ICON_OPTIONS;
 
-export const CATEGORY_ICON_MAP: Record<CategoryIconKey, CategoryIconOption> =
-  Object.fromEntries(
+const SPECIAL_ICON_SPECS: Record<string, CategoryIconOption> = {
+  "help-circle": {
+    key: "help-circle",
+    label: "Pilih Ikon",
+    Icon: HelpCircle,
+    icon: HelpCircle,
+  },
+  "circle-help": {
+    key: "help-circle",
+    label: "Pilih Ikon",
+    Icon: HelpCircle,
+    icon: HelpCircle,
+  },
+};
+
+export const CATEGORY_ICON_MAP: Record<CategoryIconKey, CategoryIconOption> = {
+  ...Object.fromEntries(
     CATEGORY_ICON_OPTIONS.map((item) => [item.key, item])
-  ) as Record<CategoryIconKey, CategoryIconOption>;
+  ),
+  ...SPECIAL_ICON_SPECS,
+} as Record<CategoryIconKey, CategoryIconOption>;
 
 /**
  * Pemetaan kompatibilitas mundur dari kode poin / urutan karakter emoji lama

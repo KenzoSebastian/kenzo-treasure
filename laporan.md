@@ -36,7 +36,27 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
 
 ## 📝 Log Checkpoint Terbaru (Maksimal 5 Checkpoint Aktif)
 
-### Checkpoint 1: Penyelarasan Notifikasi Error Login ke Toast Global (2026-11-15 18:50 WIB • Approved 2026-11-15 18:54 WIB)
+### Checkpoint 1: Layout Card Pos Ketat 2 Baris, Animasi Geser Tab Rp/%, Header Action Buttons Dashboard & 36 Ikon Finansial (2026-11-15 20:49 WIB • Approved 2026-11-15 20:52 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-15 20:52 WIB)`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. **Rekonfigurasi Header Action Buttons Dashboard (Width Ringkas 360px & Dropdown Edge-to-Edge):**
+     - Baris 1: Menempatkan `MonthSelector` secara penuh dalam kontainer ringkas `sm:w-[360px]` sehingga nama bulan ("November 2026") dan badge "Aktif" tampil utuh tanpa terpotong elipsis.
+     - Sinkronisasi Lebar Dropdown: Memperbarui `DropdownMenuContent` pada `MonthSelector.tsx` dengan `sm:w-[360px]` dan inline style `style={{ width: "var(--radix-dropdown-menu-trigger-width)", minWidth: "var(--radix-dropdown-menu-trigger-width)" }}`, memastikan popup menu memiliki lebar yang presisi dan sama persis 100% tepi-ke-tepi (360px) dengan tombol pemilih bulannya.
+     - Baris 2: Menyusun 3 tombol aksi lainnya ke dalam grid 3 kolom simetris (`grid grid-cols-3 gap-2 w-full`) dengan lebar masing-masing 1/3 dari baris 1 (`Bulan Baru`, `Evaluasi AI`, `Transaksi`).
+     - Eliminasi double plus: Menghapus teks `+` duplikat pada tombol Buat Bulan Baru sehingga menjadi single plus `<Plus /> Bulan Baru`.
+  2. **Harmonisasi Warna Input Persen (`dark:bg-input/30`):** Mengganti permukaan kotak input persen dari `bg-background` (yang menjadi hitam pekat) menjadi `border border-input bg-transparent dark:bg-input/30`, selaras 100% dengan permukaan field `<Input />` standar pada form (misal: field Nama Pos Anggaran).
+  3. **Animasi Geser Horizontal Tab Rp/% (`Sliding Indicator`):** Menambahkan pill indikator geser horizontal (`transition-transform duration-200 ease-out`, akselerasi GPU) pada toggle mode `Rp` dan `%` di Langkah 2 Onboarding dan Settings, menyamakan transisi halus tactile seperti pada `SlidingSegmentedControl`.
+  4. **Jarak Simbol `%` Rapat & Adaptif (*Snug Percent*):** Mengatur lebar elemen input angka persentase secara dinamis sesuai panjang karakter (1–3 digit, dibatasi ketat maksimal 100%) sehingga simbol `%` langsung menempel rapat di sebelah kanan angka tanpa celah kosong berlebih.
+  5. **Layout 2 Baris Ketat per Card Pos & Tanda Tanya Default:** Memastikan setiap kartu pos anggaran di Langkah 2 Onboarding hanya memiliki 2 baris visual murni (Baris 1: Tombol Ikon kotak simetris `size-9` tanpa teks "Ikon", Input Nama Pos `flex-1 min-w-0`, Tombol Hapus; Baris 2: `SlidingSegmentedControl` di kiri dan pill input target di kanan). Ikon baru otomatis bertanda tanya (`help-circle`) sebagai placeholder sebelum dipilih.
+  6. **Prefix Semantik & Live Conversion Inline:** Menyatukan toggle mode terintegrasi `[ Rp | % ]` pada input target pos anggaran, memendekkan lebar input menjadi `w-full sm:w-64`, dan menampilkan konversi live (`= Rp X.XXX.XXX` pada mode `%` atau `≈ X%` pada mode `Rp`) langsung di dalam pill input yang sama tanpa baris tambahan di bawahnya.
+  7. **Kanvas Awal Bersih & Tombol Full-Width:** Mengosongkan daftar awal `templates: []` tanpa 6 preset netral, menyediakan *empty state* pemandu, dan menjadikan tombol `+ Tambah Baris Pos Anggaran` berukuran lebar penuh (`w-full h-10 border-dashed`).
+  8. **Ekspansi 36 Ikon Finansial (Grid 6x6):** Menambahkan 12 ikon keuangan baru (`trending-up`, `coins`, `briefcase`, `graduation-cap`, `heart-pulse`, `shopping-basket`, `plane`, `baby`, `dog`, `tv`, `sparkles`, `store`) sehingga `<IconPicker />` tersusun dalam grid simetris sempurna 6 kolom x 6 baris.
+  9. **Penyelarasan Rekomendasi di Halaman Settings:** Menambahkan chip rekomendasi interaktif `3x Gaji` dan `6x Gaji` di bawah kolom *Target Ideal Dana Darurat* pada `FinanceDefaultsPanel` di `/dashboard/settings`.
+  10. **Verifikasi Otomatis:** `bun test` (87/87 PASS), `bun run typecheck` (0 errors), `font-mono = 0`, dan `bun run build` (PASS).
+- **File Changelog:** [`2026-11-15_refine_onboarding_template_cards_and_full_width_button.md`](.changelog/2026-11-15_refine_onboarding_template_cards_and_full_width_button.md), [`2026-11-15_expand_curated_financial_icons_to_36.md`](.changelog/2026-11-15_expand_curated_financial_icons_to_36.md), [`2026-11-15_unselected_question_mark_icon_and_remove_label.md`](.changelog/2026-11-15_unselected_question_mark_icon_and_remove_label.md), [`2026-11-15_settings_emergency_fund_salary_recommendations.md`](.changelog/2026-11-15_settings_emergency_fund_salary_recommendations.md), [`2026-11-15_refine_onboarding_target_input_prefix_and_compact_width.md`](.changelog/2026-11-15_refine_onboarding_target_input_prefix_and_compact_width.md), [`2026-11-15_onboarding_target_budget_percentage_of_salary.md`](.changelog/2026-11-15_onboarding_target_budget_percentage_of_salary.md), [`2026-11-15_dashboard_header_actions_layout_and_single_plus.md`](.changelog/2026-11-15_dashboard_header_actions_layout_and_single_plus.md).
+
+### Checkpoint 2: Penyelarasan Notifikasi Error Login ke Toast Global (2026-11-15 18:50 WIB • Approved 2026-11-15 18:54 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -45,7 +65,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   3. **Verifikasi Otomatis:** `bun test` (87/87 PASS), `bun run typecheck` (0 errors), dan `bun run build` (PASS).
 - **File Changelog:** [`2026-11-15_auth_error_toast_feedback.md`](.changelog/2026-11-15_auth_error_toast_feedback.md).
 
-### Checkpoint 2: Perbaikan Visual Layout Simetris 2x2 Header Action Buttons Dashboard (2026-11-15 18:05 WIB • Approved 2026-11-15 18:33 WIB)
+### Checkpoint 3: Perbaikan Visual Layout Simetris 2x2 Header Action Buttons Dashboard (2026-11-15 18:05 WIB • Approved 2026-11-15 18:33 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -56,7 +76,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Pembersihan Artefak Review:** Menghapus folder sementara `docs/review/` (7 berkas laporan review EGM) sesuai aturan operasional EGM §2 pasca-persetujuan revisi.
 - **File Changelog:** [`2026-11-15_fix_dashboard_header_action_buttons_grid.md`](.changelog/2026-11-15_fix_dashboard_header_action_buttons_grid.md), [`2026-11-15_cleanup_ephemeral_egm_review_files.md`](.changelog/2026-11-15_cleanup_ephemeral_egm_review_files.md).
 
-### Checkpoint 3: Implementasi Penuh Fase R1–R10 — Pilihan A Batch Terkendali (2026-11-15 17:32 WIB • Approved 2026-11-15 18:33 WIB)
+### Checkpoint 4: Implementasi Penuh Fase R1–R10 — Pilihan A Batch Terkendali (2026-11-15 17:32 WIB • Approved 2026-11-15 18:33 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -66,7 +86,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   4. **UX, Sliding Indicator & Performance (R5, R6, R7, R9, R10):** Menata header kanan desktop menjadi grid 2x2 simetris, mengintegrasikan `<SlidingSegmentedControl />` (`useSlidingIndicator`), pencarian/filter `TransactionSubList`, `getCachedAuthenticatedSession` (`React.cache`), `revalidateDashboardRoutes()`, `DashboardMonthShell`, `PageSectionSkeleton` + 4 `loading.tsx`, dan memverifikasi `87/87 bun test PASS`, `typecheck PASS`, `Tailwind v4 Canonical = 0`, `font-mono = 0`, serta `bun run build PASS`.
 - **File Changelog:** [`2026-11-15_implement_phases_r1_to_r10_batch.md`](.changelog/2026-11-15_implement_phases_r1_to_r10_batch.md).
 
-### Checkpoint 4: Master Plan Revisi `PLANREVISI.md` (R1–R10) & Resolusi Review EGM (2026-11-15 16:22 WIB)
+### Checkpoint 5: Master Plan Revisi `PLANREVISI.md` (R1–R10) & Resolusi Review EGM (2026-11-15 16:22 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (Pilihan A Batch Terkendali)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -74,15 +94,6 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   2. Menjalankan audit multi-perspektif (`/egm-review` Stages 5–9) dan menerapkan **17 `PROPOSE FIX`** melalui `/egm-resolve`.
   3. Menandai review EGM selesai (`Status: resolved`) dan membersihkan folder sementara `docs/review/` pasca-implementasi.
 - **File Changelog:** [`2026-11-15_create_planrevisi_workflow.md`](.changelog/2026-11-15_create_planrevisi_workflow.md).
-
-### Checkpoint 5: Revisi UI — Modal Box Rincian Pos Pengeluaran (2026-11-15 13:45 WIB • Approved 2026-11-15 13:46 WIB)
-- **Status:** `COMPLETED ✅ — Approved by Kenzo`
-- **Agent:** Antigravity
-- **Capaian Utama:**
-  1. Mengganti dropdown collapsible pada `BudgetCategoryCard` menjadi modal box (`Dialog`) berisi ringkasan pos (`Target`, `Terpakai`, `Sisa`/`Overbudget`) dan sub-list transaksi `TransactionSubList` yang dapat di-scroll (`max-h-[45dvh]`).
-  2. Menambahkan `pointer-events-auto` di `src/components/ui/sonner.tsx` serta guard `[data-sonner-toaster]` pada `DialogContent` agar Toast Undo 5 detik tetap interaktif saat modal terbuka.
-  3. Memperbarui unit test `frontend-phases-f7-f18.test.tsx`; hasil `bun test` (81/81 PASS), `bun run typecheck` PASS, Tailwind v4 Canonical Audit (`Total non-canonical: 0`), dan `bun run build` PASS.
-- **File Changelog:** [`2026-11-15_replace_budget_category_dropdown_with_modal.md`](.changelog/2026-11-15_replace_budget_category_dropdown_with_modal.md).
 
 ---
 
