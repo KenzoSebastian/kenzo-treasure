@@ -58,11 +58,8 @@ export default function RegisterPage() {
             email: result.fieldErrors.email?.[0],
             password: result.fieldErrors.password?.[0],
           });
-        } else {
-          setErrors({
-            form: result.error,
-          });
         }
+        toast.error(result.error || "Gagal mendaftarkan akun");
         return;
       }
 

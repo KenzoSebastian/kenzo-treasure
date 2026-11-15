@@ -51,11 +51,8 @@ export default function LoginPage() {
             email: result.fieldErrors.email?.[0],
             password: result.fieldErrors.password?.[0],
           });
-        } else {
-          setErrors({
-            form: result.error,
-          });
         }
+        toast.error(result.error || "Email atau password salah");
         return;
       }
 

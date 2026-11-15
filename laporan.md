@@ -36,7 +36,16 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
 
 ## 📝 Log Checkpoint Terbaru (Maksimal 5 Checkpoint Aktif)
 
-### Checkpoint 1: Perbaikan Visual Layout Simetris 2x2 Header Action Buttons Dashboard (2026-11-15 18:05 WIB • Approved 2026-11-15 18:33 WIB)
+### Checkpoint 1: Penyelarasan Notifikasi Error Login ke Toast Global (2026-11-15 18:50 WIB • Approved 2026-11-15 18:54 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. **Eliminasi Error Inline Kredensial:** Menghapus pengikatan `fieldErrors: { password: ["Email atau password salah"] }` di `src/actions/auth.ts` saat kredensial Supabase Auth salah.
+  2. **Notifikasi Toast Global (Sonner):** Memperbarui `src/app/(auth)/login/page.tsx` dan `src/app/(auth)/register/page.tsx` agar memunculkan `toast.error(result.error)` melayang di layar, menjaga kedua field input tetap bersih tanpa salah satu field disalahkan secara sepihak.
+  3. **Verifikasi Otomatis:** `bun test` (87/87 PASS), `bun run typecheck` (0 errors), dan `bun run build` (PASS).
+- **File Changelog:** [`2026-11-15_auth_error_toast_feedback.md`](.changelog/2026-11-15_auth_error_toast_feedback.md).
+
+### Checkpoint 2: Perbaikan Visual Layout Simetris 2x2 Header Action Buttons Dashboard (2026-11-15 18:05 WIB • Approved 2026-11-15 18:33 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -47,7 +56,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Pembersihan Artefak Review:** Menghapus folder sementara `docs/review/` (7 berkas laporan review EGM) sesuai aturan operasional EGM §2 pasca-persetujuan revisi.
 - **File Changelog:** [`2026-11-15_fix_dashboard_header_action_buttons_grid.md`](.changelog/2026-11-15_fix_dashboard_header_action_buttons_grid.md), [`2026-11-15_cleanup_ephemeral_egm_review_files.md`](.changelog/2026-11-15_cleanup_ephemeral_egm_review_files.md).
 
-### Checkpoint 2: Implementasi Penuh Fase R1–R10 — Pilihan A Batch Terkendali (2026-11-15 17:32 WIB • Approved 2026-11-15 18:33 WIB)
+### Checkpoint 3: Implementasi Penuh Fase R1–R10 — Pilihan A Batch Terkendali (2026-11-15 17:32 WIB • Approved 2026-11-15 18:33 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -57,16 +66,16 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   4. **UX, Sliding Indicator & Performance (R5, R6, R7, R9, R10):** Menata header kanan desktop menjadi grid 2x2 simetris, mengintegrasikan `<SlidingSegmentedControl />` (`useSlidingIndicator`), pencarian/filter `TransactionSubList`, `getCachedAuthenticatedSession` (`React.cache`), `revalidateDashboardRoutes()`, `DashboardMonthShell`, `PageSectionSkeleton` + 4 `loading.tsx`, dan memverifikasi `87/87 bun test PASS`, `typecheck PASS`, `Tailwind v4 Canonical = 0`, `font-mono = 0`, serta `bun run build PASS`.
 - **File Changelog:** [`2026-11-15_implement_phases_r1_to_r10_batch.md`](.changelog/2026-11-15_implement_phases_r1_to_r10_batch.md).
 
-### Checkpoint 3: Master Plan Revisi `PLANREVISI.md` (R1–R10) & Resolusi Review EGM (2026-11-15 16:22 WIB)
+### Checkpoint 4: Master Plan Revisi `PLANREVISI.md` (R1–R10) & Resolusi Review EGM (2026-11-15 16:22 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (Pilihan A Batch Terkendali)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
   1. Membuat & mengunci [`docs/plans/PLANREVISI.md`](docs/plans/PLANREVISI.md) mencakup **Fase R1–R10** lewat `/grill-me`.
   2. Menjalankan audit multi-perspektif (`/egm-review` Stages 5–9) dan menerapkan **17 `PROPOSE FIX`** melalui `/egm-resolve`.
-  3. Menandai [`goldfish_review_report.md`](docs/review/goldfish_review_report.md) `Status: resolved`.
+  3. Menandai review EGM selesai (`Status: resolved`) dan membersihkan folder sementara `docs/review/` pasca-implementasi.
 - **File Changelog:** [`2026-11-15_create_planrevisi_workflow.md`](.changelog/2026-11-15_create_planrevisi_workflow.md).
 
-### Checkpoint 4: Revisi UI — Modal Box Rincian Pos Pengeluaran (2026-11-15 13:45 WIB • Approved 2026-11-15 13:46 WIB)
+### Checkpoint 5: Revisi UI — Modal Box Rincian Pos Pengeluaran (2026-11-15 13:45 WIB • Approved 2026-11-15 13:46 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -74,15 +83,6 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   2. Menambahkan `pointer-events-auto` di `src/components/ui/sonner.tsx` serta guard `[data-sonner-toaster]` pada `DialogContent` agar Toast Undo 5 detik tetap interaktif saat modal terbuka.
   3. Memperbarui unit test `frontend-phases-f7-f18.test.tsx`; hasil `bun test` (81/81 PASS), `bun run typecheck` PASS, Tailwind v4 Canonical Audit (`Total non-canonical: 0`), dan `bun run build` PASS.
 - **File Changelog:** [`2026-11-15_replace_budget_category_dropdown_with_modal.md`](.changelog/2026-11-15_replace_budget_category_dropdown_with_modal.md).
-
-### Checkpoint 5: Persetujuan & Penuntasan Penuh Backend B7–B13 & Frontend F7–F18 (2026-11-14 23:03 WIB • Approved 2026-11-15 13:21 WIB)
-- **Status:** `COMPLETED ✅ — Approved by Kenzo`
-- **Agent:** Antigravity
-- **Capaian Utama:**
-  1. **Backend Fase B7–B13:** Menyelesaikan seluruh Server Actions (`liabilities.ts`, `categories.ts`, `transactions.ts`, `wishlists.ts`, `savings.ts`, `analytics.ts`, `ai-review.ts`, `export.ts`), Read-Only Queries (`src/lib/queries/*`), Kontrak Tipe (`src/types/*`), dan klien AI Gemini (`src/lib/ai/gemini.ts`) dengan fallback deterministik.
-  2. **Frontend Fase F7–F18:** Menyelesaikan komponen 7 Pos Anggaran Wajib + Inline Target Edit (`BudgetCategoryCard`), Quick Add Transaksi `<5s` (`QuickTransactionDrawer`), Sub-List Transaksi + 5s Undo Toast (`TransactionSubList`), Gaji vs Freelance Dynamic Buffer (`IncomeSection`), Tracking Cicilan (`LiabilityTrackerCard`), Gamified Wishlist + Kompresor WebP `<200KB` + Confetti (`WishlistCard`, `AllocateWishlistDrawer`, `image-compressor.ts`), Brankas Dana Darurat + Konfirmasi Ganda (`EmergencyVaultCard`), Recharts Analytics (`AnalyticsDashboard`), Modal Evaluasi AI Bulanan (`AiMonthlyReviewModal`), Panel Ekspor Data CSV/Excel/JSON (`DataExportPanel`), serta PWA Manifest, Service Worker, dan `NetworkStatusBanner`.
-  3. **Verifikasi Otomatis:** `bun test` (81/81 PASS), `bun run typecheck` (0 error), Audit Kanonikalisasi Tailwind v4 (`Total non-canonical: 0`), Audit `font-mono` (0 pelanggaran), dan `bun run build` (PASS).
-- **File Changelog:** [`2026-11-14_complete_phases_b7_b13_and_f7_f18.md`](.changelog/2026-11-14_complete_phases_b7_b13_and_f7_f18.md).
 
 ---
 
@@ -92,6 +92,8 @@ Seluruh rincian teknis, log kode, dan verifikasi fase terdahulu telah terdokumen
 
 | Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
 | :--- | :--- | :--- | :--- |
+| **Backend B7–B13 & Frontend F7–F18** | 2026-11-15 | Penuntasan penuh seluruh roadmap backend dan frontend (100% tuntas & disetujui). | [`2026-11-14_complete_phases_b7_b13_and_f7_f18.md`](.changelog/2026-11-14_complete_phases_b7_b13_and_f7_f18.md) |
+| **Relokasi Plan ke `docs/plans/`** | 2026-11-14 | Memindahkan roadmap ke `docs/plans/` dan memperbarui seluruh referensi path. | [`2026-11-14_move_plans_to_docs_plans.md`](.changelog/2026-11-14_move_plans_to_docs_plans.md) |
 | **Relokasi Plan ke `docs/plans/`** | 2026-11-14 | Memindahkan roadmap ke `docs/plans/` dan memperbarui seluruh referensi path. | [`2026-11-14_move_plans_to_docs_plans.md`](.changelog/2026-11-14_move_plans_to_docs_plans.md) |
 | **Fase F6: Executive Summary Card & Cashflow KPI** | 2026-10-18 | Komponen `ExecutiveSummaryCard` dengan Multi-Zone Health Progress Bar + 7 unit test. | [`2026-10-18_fase_f6_executive_summary_card_cashflow_kpi.md`](.changelog/2026-10-18_fase_f6_executive_summary_card_cashflow_kpi.md) |
 | **Fase B6: Multi-Source Incomes Engine** | 2026-10-18 | Kontrak tipe, query read-only, dan Server Actions pemasukan (`addIncome`, `updateIncome`, `deleteIncome`) + 11 unit test. | [`2026-10-18_fase_b6_server_actions_multi_source_incomes.md`](.changelog/2026-10-18_fase_b6_server_actions_multi_source_incomes.md) |

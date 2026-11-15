@@ -160,9 +160,6 @@ export async function login(
     return {
       success: false,
       error: isInvalidCreds ? "Email atau password salah" : authError.message,
-      fieldErrors: isInvalidCreds
-        ? { password: ["Email atau password salah"] }
-        : undefined,
     };
   }
 
