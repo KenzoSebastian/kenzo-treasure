@@ -323,6 +323,7 @@ async function DashboardMonthContent({
                   monthId={currentMonthDetail.id}
                   monthName={currentMonthDetail.name}
                   isClosed={currentMonthDetail.isClosed}
+                  sweptAmount={currentMonthDetail.sweptAmount}
                   totalIncome={salaryBase}
                   totalSpent={totalSpent}
                   categories={activeCategories}

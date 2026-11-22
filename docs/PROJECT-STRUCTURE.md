@@ -113,7 +113,7 @@ kenzo-treasure/
 │   ├── db/
 │   │   ├── index.ts                  # Koneksi/klien DB Drizzle + Postgres
 │   │   ├── schema.ts                 # Skema 10 Tabel Drizzle ORM (termasuk user_budget_templates)
-│   │   └── migrations/               # Migrasi SQL (0000, 0001 RLS, 0002 onboarding & restrict, 0003 cleanup emojis)
+│   │   └── migrations/               # Migrasi SQL (0000 init, 0001 RLS, 0002 onboarding, 0003 cleanup emojis, 0004 swept_amount)
 │   ├── hooks/                        # Hook React (Fase F18, R6 & R10)
 │   │   ├── use-mobile.ts
 │   │   ├── use-offline-sync.ts

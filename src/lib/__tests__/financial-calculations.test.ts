@@ -271,10 +271,14 @@ describe("Financial Calculation Engine & Icon Registry (Kenzo Treasury Invariant
       expect(calculateSavingsRate(0, 500000)).toBe(0);
     });
 
-    it("should sweep positive remaining free budget to savings account, and 0 for deficit", () => {
+    it("should sweep positive real cash surplus (income - expenses) to savings account, and 0 for deficit", () => {
       expect(calculateMonthSweep(450000)).toBe(450000);
       expect(calculateMonthSweep(0)).toBe(0);
       expect(calculateMonthSweep(-150000)).toBe(0);
+      // SC-14: Pemanggilan berpasangan (totalIncome, totalExpenses)
+      expect(calculateMonthSweep(5000000, 0)).toBe(5000000);
+      expect(calculateMonthSweep(5000000, 1867000)).toBe(3133000);
+      expect(calculateMonthSweep(5000000, 6000000)).toBe(0);
     });
 
     it("should resolve default cycle date to today in Asia/Jakarta for current cycle or 01 for other cycles", () => {

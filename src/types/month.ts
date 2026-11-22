@@ -17,6 +17,7 @@ export interface MonthSummary {
   year: number;
   monthIndex: number;
   isClosed: boolean;
+  sweptAmount?: number;
   createdAt: Date;
   updatedAt: Date;
 }

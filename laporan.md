@@ -40,7 +40,33 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
 
 ## 📝 Log Checkpoint Terbaru (Maksimal 5 Checkpoint Aktif)
 
-### Checkpoint 1: Skenario 1 — Penanda Status "Sudah Dibayar Bulan Ini" & Fitur Bayar Ekstra dari Uang Bebas (2026-11-22 20:21 WIB • Approved 2026-11-22 20:28 WIB)
+### Checkpoint 1: Skenario SC-14 — Tutup Buku Menyapu Bersih Surplus Realisasi Kas (Total Pemasukan – Total Kas Keluar) (2026-11-22 21:38 WIB • Approved 2026-11-22 21:45 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 21:45 WIB)`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. **Audit & Penyelamatan Sisa Kas Fisik (Anti-Uang Menguap):** Memperbaiki celah finansial di mana `closeMonth` sebelumnya hanya menyapu pos `uang_bebas_tabungan`. Jika ada pos wajib/kebutuhan yang belum terealisasi (kas keluar = Rp 0), selisih kas fisik tersebut (seperti Rp 1.867.000) tidak ikut disapu ke tabungan.
+  2. **Rumus Sweep Berbasis Realisasi Kas (Opsi 1):** Mengubah rumus penutupan buku menjadi berbasis Surplus Kas Riil Bersih:
+     $$\text{Uang Disapu} = \max(0, \text{totalIncome} - \text{totalSpent})$$
+     Memastikan saat kas keluar Rp 0 dari pemasukan Rp 5.000.000, penuh Rp 5.000.000 disapu ke `savings_account.balance` (Tabungan Bebas).
+  3. **Fleksibilitas Fungsi `calculateMonthSweep` (`src/lib/financial-calculations.ts`):** Mendukung parameter tunggal surplus maupun berpasangan `(totalIncome, totalExpenses)` tanpa breaking change.
+  4. **Pembaruan Aksi Server `closeMonth` (`src/actions/months.ts`):** Mengambil `netCashSurplus = Math.max(0, totalIncome - totalSpent)` sebagai dasar penyapuan saldo ke tabungan.
+  5. **Rekonsiliasi Data Aktual Database:** Menyesuaikan data bulan September 2026 (`sweptAmount = 5.000.000`) dan saldo `savings_account.balance = 5.000.000` milik Kenzo agar langsung cocok dengan kondisi riil di antarmuka pengguna.
+  6. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 92/92 PASS (414 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
+- **File Changelog:** [`2026-11-22_sc14_real_cashflow_surplus_sweep.md`](.changelog/2026-11-22_sc14_real_cashflow_surplus_sweep.md).
+
+### Checkpoint 2: Skenario 2 (SC-02) — Reopen Month Sweep Reversal & Anti-Double-Counting Tabungan Bebas (2026-11-22 20:58 WIB • Approved 2026-11-22 21:45 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 21:45 WIB)`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. **Audit & Penyelamatan Integritas Saldo Tabungan (Anti-Double-Counting):** Menyelesaikan celah kritis di mana pembukaan kembali bulan (`reopenMonth`) tidak membatalkan/menarik kembali saldo yang telah disapu (*month sweep*) ke `savings_account.balance`, yang sebelumnya menyebabkan saldo tabungan bertambah ganda saat bulan ditutup ulang.
+  2. **Pencatatan Histori Sweep di Database:** Menambahkan kolom `sweptAmount: integer("swept_amount").default(0).notNull()` pada tabel `months` beserta migrasi DDL `0004_add_months_swept_amount.sql`.
+  3. **Reversal Atomik pada `reopenMonth` (`src/actions/months.ts`):** Menarik kembali (*reverse*) nominal `sweptAmount` dari saldo tabungan bebas secara atomik di dalam `db.transaction` dengan *row-level locking* (`FOR UPDATE`) dan me-reset `sweptAmount = 0`.
+  4. **Anti-Defisit Guard:** Memvalidasi `savings.balance >= targetMonth.sweptAmount`. Jika saldo tabungan bebas sudah terlanjur dialokasikan ke Wishlist atau Dana Darurat sehingga saldo bebas tidak cukup, sistem menolak pembukaan kembali dengan pesan edukatif ramah pengguna.
+  5. **Transparansi UI & Dialog Konfirmasi (`AiMonthlyReviewModal.tsx`):** Menampilkan rincian transparan *"Saldo Sweep Ditarik Kembali: -Rp xxx"* pada dialog konfirmasi saat bulan berstatus tertutup, serta notifikasi toast informatif pasca pembukaan kembali siklus.
+  6. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 91/91 PASS (410 assertions across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
+- **File Changelog:** [`2026-11-22_sc02_reopen_month_sweep_reversal_anti_double_counting.md`](.changelog/2026-11-22_sc02_reopen_month_sweep_reversal_anti_double_counting.md).
+
+### Checkpoint 3: Skenario 1 — Penanda Status "Sudah Dibayar Bulan Ini" & Fitur Bayar Ekstra dari Uang Bebas (2026-11-22 20:21 WIB • Approved 2026-11-22 20:28 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 20:28 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -54,7 +80,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 89/89 PASS (396 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-22_liability_extra_installment_and_paid_status.md`](.changelog/2026-11-22_liability_extra_installment_and_paid_status.md).
 
-### Checkpoint 2: Standardisasi Dialog Konfirmasi untuk Seluruh Aksi Mutasi Finansial & Destruktif (2026-11-22 15:25 WIB • Approved 2026-11-22 15:35 WIB)
+### Checkpoint 4: Standardisasi Dialog Konfirmasi untuk Seluruh Aksi Mutasi Finansial & Destruktif (2026-11-22 15:25 WIB • Approved 2026-11-22 15:35 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 15:35 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -67,7 +93,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   7. **Kepatuhan Desain & Verifikasi:** Bebas `font-mono` (100% `tabular-nums`), bebas emoji literal, fixed header & edge-to-edge footer, lolos `tsc --noEmit`, 89/89 `bun test` PASS, dan Turbopack build PASS.
 - **File Changelog:** [`2026-11-22_action_confirmation_dialogs.md`](.changelog/2026-11-22_action_confirmation_dialogs.md).
 
-### Checkpoint 3: Penyelarasan Kontrak Cicilan — Smart Auto-Calculate, Penguncian Pos Cicilan & Modal Edit Terpusat (2026-11-22 14:24 WIB • Approved 2026-11-22 15:02 WIB)
+### Checkpoint 5: Penyelarasan Kontrak Cicilan — Smart Auto-Calculate, Penguncian Pos Cicilan & Modal Edit Terpusat (2026-11-22 14:24 WIB • Approved 2026-11-22 15:02 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 15:02 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -80,32 +106,14 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Penyelarasan Status Semantik 'Target Terpenuhi' (Hijau Emerald) saat Penyerapan Pas 100%:** Pos anggaran dengan realisasi tepat 100% targetnya menampilkan status positif **`Target Terpenuhi`** dengan badge dan progress bar hijau emerald.
 - **File Changelog:** [`2026-11-22_liability_smart_auto_calculate_and_budget_lock.md`](.changelog/2026-11-22_liability_smart_auto_calculate_and_budget_lock.md).
 
-### Checkpoint 4: Rekonfigurasi Skeleton Tiap Halaman (Dashboard, Brankas, Wishlist, Analitik, Data & Backup) Menjadi 1 Layout Otentik (2026-11-22 13:50 WIB • Approved 2026-11-22 15:02 WIB)
-- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 15:02 WIB)`
-- **Agent:** Antigravity
-- **Capaian Utama:**
-  1. **Eliminasi Isu "2 Layout" Bertumpuk:** Menghapus perenderan ganda pada `PageSectionSkeleton.tsx` yang sebelumnya memunculkan grid kartu metrik bersamaan dengan kartu tabel/grafik besar bertumpuk vertikal.
-  2. **5 Skeleton Terdedikasi yang Presisi (1 Layout per Halaman):** `DashboardSkeleton.tsx`, `VaultSkeleton.tsx`, `WishlistsSkeleton.tsx`, `AnalyticsSkeleton.tsx`, `SettingsSkeleton.tsx`.
-  3. **Wiring Seluruh Rute Loading & Isolasi Route Group `(overview)`:** Menghubungkan masing-masing `loading.tsx` langsung ke skeleton terdedikasinya dan memindahkan dashboard utama ke `dashboard/(overview)/` guna mengeliminasi flash skeleton saat pindah tab.
-- **File Changelog:** [`2026-11-22_page_specific_skeletons_and_eliminate_double_layout.md`](.changelog/2026-11-22_page_specific_skeletons_and_eliminate_double_layout.md).
-
-### Checkpoint 5: Standarisasi Semua Modal Box & Sheet — Eliminasi Padding Dialog, Footer Solid Hitam Nempel Tepi, dan Tombol Close Lega (2026-11-15 22:15 WIB • Approved 2026-11-15 22:17 WIB)
-- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-15 22:17 WIB)`
-- **Agent:** Antigravity
-- **Capaian Utama:**
-  1. **Eliminasi Padding Bawaan Dialog (`p-0 gap-0 overflow-hidden` di Akar):** Mengganti base class `DialogPrimitive.Content` pada `src/components/ui/dialog.tsx` menjadi `flex flex-col rounded-2xl bg-popover p-0 gap-0 overflow-hidden`.
-  2. **Footer Tombol Aksi Solid Hitam Menempel Tepi-ke-Tepi:** Menempel 100% rapat ke tepi kiri, kanan, dan bawah tanpa jeda padding samping maupun bawah.
-  3. **Formulir 100% Lebar & Scrollable Mandiri:** Header dan footer terkunci di tempat (*fixed position*), area tengah konten formulir dapat di-scroll mandiri.
-- **File Changelog:** [`2026-11-15_standardize_all_modal_boxes_fixed_header_footer_and_scrollable_body.md`](.changelog/2026-11-15_standardize_all_modal_boxes_fixed_header_footer_and_scrollable_body.md).
-
 ---
 
-## 🗄️ Arsip Rekapitulasi Milestone Disetujui (Fase Lampau)
-
-Seluruh rincian teknis, log kode, dan verifikasi fase terdahulu telah terdokumentasi secara permanen di berkas changelog masing-masing:
+## 📚 Rekapitulasi Arsip Milestone Lengkap
 
 | Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
 | :--- | :--- | :--- | :--- |
+| **Rekonfigurasi Skeleton Tiap Halaman** | 2026-11-22 | 5 skeleton otentik terdedikasi per rute, eliminasi layout ganda di `PageSectionSkeleton.tsx`. | [`2026-11-22_page_specific_skeletons_and_eliminate_double_layout.md`](.changelog/2026-11-22_page_specific_skeletons_and_eliminate_double_layout.md) |
+| **Standarisasi Semua Modal Box & Sheet** | 2026-11-15 | Eliminasi padding Dialog, footer solid hitam nempel tepi-ke-tepi, tombol close lega. | [`2026-11-15_standardize_all_modal_boxes_fixed_header_footer_and_scrollable_body.md`](.changelog/2026-11-15_standardize_all_modal_boxes_fixed_header_footer_and_scrollable_body.md) |
 | **Layout Card Pos 2 Baris, Animasi Tab Rp/% & 36 Ikon Finansial** | 2026-11-15 | MonthSelector 360px 2 baris, animasi geser sliding indicator, dan ekspansi 36 ikon finansial Lucide. | [`2026-11-15_refine_onboarding_template_cards_and_full_width_button.md`](.changelog/2026-11-15_refine_onboarding_template_cards_and_full_width_button.md) |
 | **Implementasi Penuh Fase R1–R10 (Pilihan A Batch)** | 2026-11-15 | 100% zero-emoji, onboarding wizard, single-source of truth database, dynamic categories, concurrency guard, caching & performa. | [`2026-11-15_implement_phases_r1_to_r10_batch.md`](.changelog/2026-11-15_implement_phases_r1_to_r10_batch.md) |
 | **Master Plan Revisi PLANREVISI.md (R1–R10)** | 2026-11-15 | Penyusunan backlog revisi 10 fase via /grill-me dan resolusi 17 temuan audit EGM. | [`2026-11-15_create_planrevisi_workflow.md`](.changelog/2026-11-15_create_planrevisi_workflow.md) |

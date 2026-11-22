@@ -486,11 +486,25 @@ export function calculateSavingsRate(totalIncome: number, netSavings: number): n
 
 /**
  * Menghitung nominal yang disapu bersih ke `savings_account.balance` saat tutup buku.
- * Sesuai Invarian 6: Hanya sisa kuota uang bebas yang bernilai positif yang disapu.
- * Jika minus (overbudget), tidak ada uang yang disapu (mengembalikan 0).
+ * Sesuai Invarian 6 & Skenario SC-14 (Real Cashflow Surplus Sweep):
+ * Menghitung surplus kas riil dari (Total Pemasukan - Total Pengeluaran Kas).
+ * Pos wajib / kebutuhan yang belum dibelanjakan (kas keluar = 0) tidak menguap,
+ * melainkan diakui sebagai sisa uang kas fisik yang disapu ke tabungan bebas.
+ *
+ * Mendukung pemanggilan tunggal surplus `calculateMonthSweep(surplus)`
+ * maupun berpasangan `calculateMonthSweep(totalIncome, totalExpenses)`.
+ * Jika minus / defisit, tidak ada uang yang disapu (mengembalikan 0).
  */
-export function calculateMonthSweep(remainingFreeBudget: number): number {
-  const safeRemaining = toIntegerRupiah(remainingFreeBudget);
+export function calculateMonthSweep(
+  totalIncomeOrSurplus: number,
+  totalExpenses?: number
+): number {
+  if (totalExpenses !== undefined) {
+    const safeIncome = Math.max(0, toIntegerRupiah(totalIncomeOrSurplus));
+    const safeExpenses = Math.max(0, toIntegerRupiah(totalExpenses));
+    return Math.max(0, safeIncome - safeExpenses);
+  }
+  const safeRemaining = toIntegerRupiah(totalIncomeOrSurplus);
   return Math.max(0, safeRemaining);
 }
 

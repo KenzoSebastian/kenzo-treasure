@@ -136,6 +136,7 @@ export const months = pgTable(
     year: integer("year").notNull(), // 2026
     monthIndex: integer("month_index").notNull(), // 1 - 12
     isClosed: boolean("is_closed").default(false).notNull(), // Status tutup buku (read-only archive)
+    sweptAmount: integer("swept_amount").default(0).notNull(), // Akumulasi sisa kuota yang disapu ke savings_account.balance saat tutup buku
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },

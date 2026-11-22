@@ -55,6 +55,7 @@ export interface AiMonthlyReviewModalProps {
   monthId?: string;
   monthName: string;
   isClosed?: boolean;
+  sweptAmount?: number;
   totalIncome: number;
   totalSpent: number;
   categories: BudgetCategoryItem[];
@@ -65,6 +66,7 @@ export function AiMonthlyReviewModal({
   monthId,
   monthName,
   isClosed = false,
+  sweptAmount = 0,
   totalIncome,
   totalSpent,
   categories,
@@ -99,6 +101,7 @@ export function AiMonthlyReviewModal({
         year: new Date().getFullYear(),
         monthIndex: new Date().getMonth() + 1,
         isClosed,
+        sweptAmount,
         createdAt: new Date(),
         updatedAt: new Date(),
         incomes: [],
@@ -171,7 +174,15 @@ export function AiMonthlyReviewModal({
           toast.error(res.error);
           return;
         }
-        toast.success(`Siklus "${monthName}" dibuka kembali.`);
+        if (res.data.reversedSweptAmount > 0) {
+          toast.success(`Siklus "${monthName}" dibuka kembali.`, {
+            description: `Saldo sweep sebesar ${formatRupiah(
+              res.data.reversedSweptAmount
+            )} ditarik kembali dari Tabungan Bebas agar tidak terjadi hitung ganda.`,
+          });
+        } else {
+          toast.success(`Siklus "${monthName}" dibuka kembali.`);
+        }
       }
       router.refresh();
     });
@@ -399,7 +410,11 @@ export function AiMonthlyReviewModal({
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
               {isClosed
-                ? `Apakah Anda yakin ingin membuka kembali siklus ${monthName}? Catatan dan alokasi anggaran akan dapat diedit kembali.`
+                ? (sweptAmount ?? 0) > 0
+                  ? `Apakah Anda yakin ingin membuka kembali siklus ${monthName}? Saldo sweep sebesar ${formatRupiah(
+                      sweptAmount ?? 0
+                    )} akan ditarik kembali dari Tabungan Bebas agar saldo tabungan tetap akurat dan tidak terhitung ganda saat ditutup ulang.`
+                  : `Apakah Anda yakin ingin membuka kembali siklus ${monthName}? Catatan dan alokasi anggaran akan dapat diedit kembali.`
                 : `Apakah Anda yakin ingin menutup buku siklus ${monthName}? Sisa surplus anggaran akan otomatis disapu ke Tabungan Bebas.`}
             </DialogDescription>
           </DialogHeader>
@@ -415,6 +430,14 @@ export function AiMonthlyReviewModal({
                   <span className="text-muted-foreground">Surplus Disapu ke Tabungan</span>
                   <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
                     {formatRupiah(Math.max(0, reviewData.netSavings))}
+                  </span>
+                </div>
+              )}
+              {isClosed && (sweptAmount ?? 0) > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Saldo Sweep Ditarik Kembali</span>
+                  <span className="font-bold text-amber-600 dark:text-amber-400 tabular-nums">
+                    -{formatRupiah(sweptAmount ?? 0)}
                   </span>
                 </div>
               )}

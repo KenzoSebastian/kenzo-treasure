@@ -218,7 +218,8 @@ export async function createMonthlyCycle(
    ══════════════════════════════════════════════════════════════════════════════ */
 
 export async function closeMonth(
-  input: string | CloseMonthInput
+  input: string | CloseMonthInput,
+  explicitUserId?: string
 ): Promise<
   ActionResponse<{ monthId: string; isClosed: boolean; sweptAmount: number }>
 > {
@@ -236,7 +237,7 @@ export async function closeMonth(
   }
 
   const { monthId, surplusAction } = parsed.data;
-  const resolvedUserId = await resolveAuthenticatedUserId();
+  const resolvedUserId = await resolveAuthenticatedUserId(explicitUserId);
   if (!resolvedUserId) {
     return {
       success: false,
@@ -273,14 +274,14 @@ export async function closeMonth(
       };
     }
 
-    const freeBudgetCategory = monthDetail.data.categories.find(
-      (c) => c.group === "uang_bebas_tabungan"
+    // Opsi 1 (SC-14): Surplus kas riil disapu dari (Total Pemasukan - Total Pengeluaran Kas).
+    // Pos wajib / kebutuhan yang belum dibelanjakan (kas keluar = 0) tidak menguap,
+    // melainkan diakui sebagai sisa uang kas fisik yang disapu ke Tabungan Bebas.
+    const netCashSurplus = Math.max(
+      0,
+      monthDetail.data.totalIncome - monthDetail.data.totalSpent
     );
-
-    const remainingFree = freeBudgetCategory
-      ? freeBudgetCategory.remainingBudget
-      : 0;
-    const sweptAmount = calculateMonthSweep(remainingFree);
+    const sweptAmount = calculateMonthSweep(netCashSurplus);
 
     await db.transaction(async (tx) => {
       if (sweptAmount > 0 && surplusAction === "sweep_to_savings") {
@@ -297,6 +298,10 @@ export async function closeMonth(
         .update(months)
         .set({
           isClosed: true,
+          sweptAmount:
+            sweptAmount > 0 && surplusAction === "sweep_to_savings"
+              ? sweptAmount
+              : 0,
           updatedAt: new Date(),
         })
         .where(eq(months.id, monthId));
@@ -321,12 +326,19 @@ export async function closeMonth(
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   3. SERVER ACTION: reopenMonth
+   3. SERVER ACTION: reopenMonth (Anti-Double Counting & Reversal Reopen)
    ══════════════════════════════════════════════════════════════════════════════ */
 
 export async function reopenMonth(
-  input: string | ReopenMonthInput
-): Promise<ActionResponse<{ monthId: string; isClosed: boolean }>> {
+  input: string | ReopenMonthInput,
+  explicitUserId?: string
+): Promise<
+  ActionResponse<{
+    monthId: string;
+    isClosed: boolean;
+    reversedSweptAmount: number;
+  }>
+> {
   const parsed =
     typeof input === "string"
       ? reopenMonthSchema.safeParse({ monthId: input })
@@ -341,7 +353,7 @@ export async function reopenMonth(
   }
 
   const { monthId } = parsed.data;
-  const resolvedUserId = await resolveAuthenticatedUserId();
+  const resolvedUserId = await resolveAuthenticatedUserId(explicitUserId);
   if (!resolvedUserId) {
     return {
       success: false,
@@ -370,13 +382,46 @@ export async function reopenMonth(
       };
     }
 
-    await db
-      .update(months)
-      .set({
-        isClosed: false,
-        updatedAt: new Date(),
-      })
-      .where(eq(months.id, monthId));
+    const previousSwept = targetMonth.sweptAmount ?? 0;
+
+    await db.transaction(async (tx) => {
+      // 1. Jika ada nominal yang disapu saat tutup buku sebelumnya, lakukan reversal dari Tabungan Bebas
+      if (previousSwept > 0) {
+        const [savingsRow] = await tx
+          .select()
+          .from(savingsAccount)
+          .where(eq(savingsAccount.userId, resolvedUserId))
+          .for("update")
+          .limit(1);
+
+        const currentSavings = savingsRow?.balance ?? 0;
+
+        // Anti-Defisit Guard:
+        // Cek apakah saldo tabungan bebas mencukupi untuk ditarik kembali
+        if (currentSavings < previousSwept) {
+          throw new Error("INSUFFICIENT_SAVINGS_FOR_REOPEN");
+        }
+
+        // Potong kembali saldo tabungan bebas sebesar previousSwept
+        await tx
+          .update(savingsAccount)
+          .set({
+            balance: currentSavings - previousSwept,
+            updatedAt: new Date(),
+          })
+          .where(eq(savingsAccount.userId, resolvedUserId));
+      }
+
+      // 2. Buka kembali siklus bulan dan reset sweptAmount ke 0
+      await tx
+        .update(months)
+        .set({
+          isClosed: false,
+          sweptAmount: 0,
+          updatedAt: new Date(),
+        })
+        .where(eq(months.id, monthId));
+    });
 
     revalidateDashboardRoutes();
     return {
@@ -384,9 +429,20 @@ export async function reopenMonth(
       data: {
         monthId,
         isClosed: false,
+        reversedSweptAmount: previousSwept,
       },
     };
   } catch (err: unknown) {
+    if (
+      err instanceof Error &&
+      err.message === "INSUFFICIENT_SAVINGS_FOR_REOPEN"
+    ) {
+      return {
+        success: false,
+        error:
+          "Saldo tabungan bebas tidak mencukupi untuk menarik kembali saldo sweep dari tutup buku sebelumnya (kemungkinan sebagian dana sudah dialokasikan ke Wishlist atau Dana Darurat). Silakan tarik kembali dana ke tabungan bebas terlebih dahulu.",
+      };
+    }
     console.error("Gagal membuka kembali bulan:", err);
     return {
       success: false,
