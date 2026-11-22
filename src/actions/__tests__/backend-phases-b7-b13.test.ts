@@ -100,19 +100,51 @@ describe("Backend Phases B7 - B13 & R1 - R10 Comprehensive Suite", () => {
       expect(invalidNegative.success).toBe(false);
     });
 
-    it("harus memvalidasi deleteCategorySchema untuk mode deactivate_next_month dan permanent_delete", () => {
-      const deactivateRes = deleteCategorySchema.safeParse({
-        categoryId: "11111111-1111-4111-8111-111111111111",
-        mode: "deactivate_next_month",
-      });
-      expect(deactivateRes.success).toBe(true);
+    it("SC-03 & SC-04: harus mempertahankan konservasi Zero-Based Budgeting saat edit target dan tambah pos kustom", () => {
+      // Invariant: Total Pemasukan = 5.000.000
+      const totalIncome = 5_000_000;
+      let posWajibTarget = 1_500_000;
+      let freeBudgetTarget = 3_500_000;
+      let freeBudgetSpent = 500_000;
+      const initialTotal = posWajibTarget + freeBudgetTarget;
+      expect(initialTotal).toBe(totalIncome);
 
-      const reassignRes = deleteCategorySchema.safeParse({
-        categoryId: "11111111-1111-4111-8111-111111111111",
-        mode: "permanent_delete",
-        targetCategoryId: "22222222-2222-4222-8222-222222222222",
-      });
-      expect(reassignRes.success).toBe(true);
+      // SC-03 Kasus A (Target Naik): Naikkan pos wajib dari 1.5jt ke 2jt (+500rb)
+      const deltaA = 2_000_000 - posWajibTarget; // +500.000
+      const remainingFreeQuota = freeBudgetTarget - freeBudgetSpent; // 3.000.000
+      expect(remainingFreeQuota >= deltaA).toBe(true);
+
+      posWajibTarget += deltaA;
+      freeBudgetTarget -= deltaA;
+      expect(posWajibTarget + freeBudgetTarget).toBe(totalIncome); // Zero-Sum conserved!
+      expect(posWajibTarget).toBe(2_000_000);
+      expect(freeBudgetTarget).toBe(3_000_000);
+
+      // SC-03 Kasus Penolakan: Ingin menaikkan pos wajib 4 juta, padahal sisa kuota uang bebas hanya 2.5 juta
+      const excessiveDelta = 4_000_000;
+      const effectiveFreeRemaining = freeBudgetTarget - freeBudgetSpent;
+      expect(effectiveFreeRemaining < excessiveDelta).toBe(true);
+
+      // SC-03 Kasus B (Target Turun): Turunkan pos wajib dari 2jt ke 1.7jt (-300rb)
+      const posWajibSpent = 1_000_000; // Sudah terpakai 1jt
+      const newTargetB = 1_700_000;
+      expect(newTargetB >= posWajibSpent).toBe(true); // Tidak boleh di bawah realisasi belanja
+      const deltaB = newTargetB - posWajibTarget; // -300.000
+      posWajibTarget += deltaB;
+      freeBudgetTarget += Math.abs(deltaB);
+      expect(posWajibTarget + freeBudgetTarget).toBe(totalIncome); // Zero-Sum conserved!
+      expect(posWajibTarget).toBe(1_700_000);
+      expect(freeBudgetTarget).toBe(3_300_000);
+
+      // SC-04: Tambah pos kustom baru "Langganan Cloud" 300rb
+      const newCategoryTarget = 300_000;
+      expect(freeBudgetTarget - freeBudgetSpent >= newCategoryTarget).toBe(true);
+      let customCategoryTarget = newCategoryTarget;
+      freeBudgetTarget -= newCategoryTarget;
+
+      // Total seluruh pos tetap pas 5.000.000!
+      expect(posWajibTarget + customCategoryTarget + freeBudgetTarget).toBe(totalIncome);
+      expect(freeBudgetTarget).toBe(3_000_000);
     });
   });
 

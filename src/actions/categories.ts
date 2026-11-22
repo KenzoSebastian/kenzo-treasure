@@ -16,7 +16,8 @@
 
 import { eq, and, inArray, desc, asc } from "drizzle-orm";
 import { db } from "@/db";
-import { budgetCategories, months, transactions } from "@/db/schema";
+import { budgetCategories, months, transactions, incomes } from "@/db/schema";
+import { formatRupiah } from "@/lib/financial-calculations";
 import {
   createCategorySchema,
   updateCategoryTargetSchema,
@@ -76,54 +77,172 @@ export async function updateCategoryTarget(
       };
     }
 
-    const [catWithMonth] = await db
-      .select({
-        id: budgetCategories.id,
-        monthId: budgetCategories.monthId,
-        liabilityId: budgetCategories.liabilityId,
-        isClosed: months.isClosed,
-      })
-      .from(budgetCategories)
-      .innerJoin(months, eq(budgetCategories.monthId, months.id))
-      .where(
-        and(
-          eq(budgetCategories.id, parsed.data.categoryId),
-          eq(months.userId, userId)
+    const updated = await db.transaction(async (tx) => {
+      // 1. Ambil target pos dengan lock FOR UPDATE dan verifikasi kepemilikan akun
+      const [catWithMonth] = await tx
+        .select({
+          id: budgetCategories.id,
+          monthId: budgetCategories.monthId,
+          liabilityId: budgetCategories.liabilityId,
+          group: budgetCategories.group,
+          targetBudget: budgetCategories.targetBudget,
+          isClosed: months.isClosed,
+        })
+        .from(budgetCategories)
+        .innerJoin(months, eq(budgetCategories.monthId, months.id))
+        .where(
+          and(
+            eq(budgetCategories.id, parsed.data.categoryId),
+            eq(months.userId, userId)
+          )
         )
-      )
-      .limit(1);
+        .for("update")
+        .limit(1);
 
-    if (!catWithMonth) {
-      return {
-        success: false,
-        error: "Pos anggaran tidak ditemukan atau bukan milik akun Anda.",
-      };
-    }
+      if (!catWithMonth) {
+        throw new Error("NOT_FOUND");
+      }
 
-    if (catWithMonth.isClosed) {
-      return {
-        success: false,
-        error:
-          "Tidak dapat mengubah target pos anggaran pada siklus bulan yang telah ditutup (arsip).",
-      };
-    }
+      if (catWithMonth.isClosed) {
+        throw new Error("MONTH_CLOSED");
+      }
 
-    if (catWithMonth.liabilityId) {
-      return {
-        success: false,
-        error:
-          "Pos anggaran ini terikat pada kontrak cicilan. Ubah nominal tagihan melalui menu Tracking Cicilan di bawah.",
-      };
-    }
+      if (catWithMonth.liabilityId) {
+        throw new Error("LINKED_TO_LIABILITY");
+      }
 
-    const [updated] = await db
-      .update(budgetCategories)
-      .set({
-        targetBudget: parsed.data.targetBudget,
-        updatedAt: new Date(),
-      })
-      .where(eq(budgetCategories.id, parsed.data.categoryId))
-      .returning();
+      if (catWithMonth.group === "uang_bebas_tabungan") {
+        throw new Error("CANNOT_EDIT_FREE_BUDGET_DIRECTLY");
+      }
+
+      const delta = parsed.data.targetBudget - catWithMonth.targetBudget;
+
+      // Jika target tidak berubah, langsung kembalikan data eksisting
+      if (delta === 0) {
+        const [existing] = await tx
+          .select()
+          .from(budgetCategories)
+          .where(eq(budgetCategories.id, parsed.data.categoryId));
+        return existing;
+      }
+
+      // 2. Kunci pos Uang Bebas / Tabungan di bulan yang sama untuk rebalancing ZBB
+      const [freeCategory] = await tx
+        .select()
+        .from(budgetCategories)
+        .where(
+          and(
+            eq(budgetCategories.monthId, catWithMonth.monthId),
+            eq(budgetCategories.group, "uang_bebas_tabungan")
+          )
+        )
+        .for("update")
+        .limit(1);
+
+      if (!freeCategory) {
+        throw new Error("FREE_CATEGORY_NOT_FOUND");
+      }
+
+      // 3. Kasus A: Target NAIK (delta > 0) -> Memotong kuota dari Uang Bebas
+      if (delta > 0) {
+        const [monthIncomes, freeTransactions] = await Promise.all([
+          tx
+            .select({ amount: incomes.amount, isBaseSalary: incomes.isBaseSalary })
+            .from(incomes)
+            .where(
+              and(
+                eq(incomes.monthId, catWithMonth.monthId),
+                eq(incomes.userId, userId)
+              )
+            ),
+          tx
+            .select({ amount: transactions.amount })
+            .from(transactions)
+            .where(
+              and(
+                eq(transactions.categoryId, freeCategory.id),
+                eq(transactions.userId, userId),
+                eq(transactions.isDeleted, false)
+              )
+            ),
+        ]);
+
+        const additionalIncomesSum = monthIncomes
+          .filter((inc) => !inc.isBaseSalary)
+          .reduce((sum, inc) => sum + inc.amount, 0);
+        const freeSpentSum = freeTransactions.reduce(
+          (sum, t) => sum + t.amount,
+          0
+        );
+        const effectiveFreeRemaining =
+          freeCategory.targetBudget + additionalIncomesSum - freeSpentSum;
+
+        if (
+          freeCategory.targetBudget < delta ||
+          effectiveFreeRemaining < delta
+        ) {
+          throw new Error(
+            `INSUFFICIENT_FREE_BUDGET:${Math.max(
+              0,
+              effectiveFreeRemaining
+            )}:${delta}`
+          );
+        }
+
+        // Potong target Uang Bebas sebesar delta
+        await tx
+          .update(budgetCategories)
+          .set({
+            targetBudget: freeCategory.targetBudget - delta,
+            updatedAt: new Date(),
+          })
+          .where(eq(budgetCategories.id, freeCategory.id));
+      } else {
+        // 4. Kasus B: Target TURUN (delta < 0) -> Mengembalikan surplus ke Uang Bebas
+        // Validasi: target baru tidak boleh lebih kecil dari uang yang sudah dibelanjakan di pos ini
+        const targetTransactions = await tx
+          .select({ amount: transactions.amount })
+          .from(transactions)
+          .where(
+            and(
+              eq(transactions.categoryId, catWithMonth.id),
+              eq(transactions.userId, userId),
+              eq(transactions.isDeleted, false)
+            )
+          );
+
+        const targetSpentSum = targetTransactions.reduce(
+          (sum, t) => sum + t.amount,
+          0
+        );
+        if (parsed.data.targetBudget < targetSpentSum) {
+          throw new Error(
+            `TARGET_BELOW_EXPENSES:${targetSpentSum}:${parsed.data.targetBudget}`
+          );
+        }
+
+        // Kembalikan selisih |delta| ke Uang Bebas
+        await tx
+          .update(budgetCategories)
+          .set({
+            targetBudget: freeCategory.targetBudget + Math.abs(delta),
+            updatedAt: new Date(),
+          })
+          .where(eq(budgetCategories.id, freeCategory.id));
+      }
+
+      // 5. Perbarui target pos yang bersangkutan
+      const [updatedRow] = await tx
+        .update(budgetCategories)
+        .set({
+          targetBudget: parsed.data.targetBudget,
+          updatedAt: new Date(),
+        })
+        .where(eq(budgetCategories.id, parsed.data.categoryId))
+        .returning();
+
+      return updatedRow;
+    });
 
     revalidateDashboardRoutes();
 
@@ -131,8 +250,65 @@ export async function updateCategoryTarget(
       success: true,
       data: updated,
     };
-  } catch (err) {
+  } catch (err: unknown) {
     console.error("Gagal memperbarui target pos anggaran:", err);
+    if (err instanceof Error) {
+      if (err.message === "NOT_FOUND") {
+        return {
+          success: false,
+          error: "Pos anggaran tidak ditemukan atau bukan milik akun Anda.",
+        };
+      }
+      if (err.message === "MONTH_CLOSED") {
+        return {
+          success: false,
+          error:
+            "Tidak dapat mengubah target pos anggaran pada siklus bulan yang telah ditutup (arsip).",
+        };
+      }
+      if (err.message === "LINKED_TO_LIABILITY") {
+        return {
+          success: false,
+          error:
+            "Pos anggaran ini terikat pada kontrak cicilan. Ubah nominal tagihan melalui menu Tracking Cicilan di bawah.",
+        };
+      }
+      if (err.message === "CANNOT_EDIT_FREE_BUDGET_DIRECTLY") {
+        return {
+          success: false,
+          error:
+            "Target Uang Bebas / Tabungan diatur otomatis sebagai penyeimbang anggaran Zero-Based Budgeting.",
+        };
+      }
+      if (err.message === "FREE_CATEGORY_NOT_FOUND") {
+        return {
+          success: false,
+          error: "Pos Uang Bebas / Tabungan tidak ditemukan pada siklus bulan ini.",
+        };
+      }
+      if (err.message.startsWith("INSUFFICIENT_FREE_BUDGET:")) {
+        const [, remainingStr, neededStr] = err.message.split(":");
+        const remainingNum = parseInt(remainingStr ?? "0", 10);
+        const neededNum = parseInt(neededStr ?? "0", 10);
+        return {
+          success: false,
+          error: `Sisa kuota Uang Bebas tidak mencukupi untuk menambah target pos ini (Tersedia: ${formatRupiah(
+            remainingNum
+          )}, Dibutuhkan: ${formatRupiah(neededNum)}).`,
+        };
+      }
+      if (err.message.startsWith("TARGET_BELOW_EXPENSES:")) {
+        const [, spentStr, targetStr] = err.message.split(":");
+        const spentNum = parseInt(spentStr ?? "0", 10);
+        const targetNum = parseInt(targetStr ?? "0", 10);
+        return {
+          success: false,
+          error: `Target baru tidak boleh lebih kecil dari realisasi belanja saat ini (Sudah terpakai: ${formatRupiah(
+            spentNum
+          )}, Target baru: ${formatRupiah(targetNum)}).`,
+        };
+      }
+    }
     return {
       success: false,
       error: "Terjadi kesalahan saat memperbarui target pos anggaran.",
@@ -141,7 +317,7 @@ export async function updateCategoryTarget(
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   2. SERVER ACTION: addCustomCategory
+   2. SERVER ACTION: addCustomCategory (Fase B8, R10 & SC-04 ZBB Conservation)
    ══════════════════════════════════════════════════════════════════════════════ */
 
 export async function addCustomCategory(
@@ -174,84 +350,155 @@ export async function addCustomCategory(
       };
     }
 
-    const [monthRow] = await db
-      .select({
-        id: months.id,
-        isClosed: months.isClosed,
-      })
-      .from(months)
-      .where(
-        and(eq(months.id, parsed.data.monthId), eq(months.userId, userId))
-      )
-      .limit(1);
-
-    if (!monthRow) {
-      return {
-        success: false,
-        error: "Siklus bulan tidak ditemukan.",
-      };
-    }
-
-    if (monthRow.isClosed) {
-      return {
-        success: false,
-        error:
-          "Tidak dapat menambah pos anggaran pada siklus bulan yang telah ditutup.",
-      };
-    }
-
-    // Invarian: Maksimal 1 pos kelompok uang_bebas_tabungan per siklus bulan
-    if (parsed.data.group === "uang_bebas_tabungan") {
-      const [existingFree] = await db
-        .select({ id: budgetCategories.id })
-        .from(budgetCategories)
+    const created = await db.transaction(async (tx) => {
+      // 1. Verifikasi status bulan
+      const [monthRow] = await tx
+        .select({
+          id: months.id,
+          isClosed: months.isClosed,
+        })
+        .from(months)
         .where(
-          and(
-            eq(budgetCategories.monthId, parsed.data.monthId),
-            eq(budgetCategories.group, "uang_bebas_tabungan")
-          )
+          and(eq(months.id, parsed.data.monthId), eq(months.userId, userId))
         )
         .limit(1);
 
-      if (existingFree) {
-        return {
-          success: false,
-          error:
-            "Setiap siklus bulan hanya boleh memiliki maksimal 1 pos kelompok Uang Bebas / Tabungan.",
-        };
+      if (!monthRow) {
+        throw new Error("MONTH_NOT_FOUND");
       }
-    }
 
-    let sortOrder = parsed.data.sortOrder;
-    if (!sortOrder || sortOrder <= 0) {
-      const [lastCat] = await db
-        .select({ sortOrder: budgetCategories.sortOrder })
-        .from(budgetCategories)
-        .where(eq(budgetCategories.monthId, parsed.data.monthId))
-        .orderBy(desc(budgetCategories.sortOrder))
-        .limit(1);
-      sortOrder = (lastCat?.sortOrder ?? 0) + 1;
-    }
+      if (monthRow.isClosed) {
+        throw new Error("MONTH_CLOSED");
+      }
 
-    const normalizedIcon = resolveCategoryIconKey(
-      parsed.data.icon,
-      parsed.data.group,
-      parsed.data.liabilityId
-    );
+      // Invarian: Maksimal 1 pos kelompok uang_bebas_tabungan per siklus bulan
+      if (parsed.data.group === "uang_bebas_tabungan") {
+        const [existingFree] = await tx
+          .select({ id: budgetCategories.id })
+          .from(budgetCategories)
+          .where(
+            and(
+              eq(budgetCategories.monthId, parsed.data.monthId),
+              eq(budgetCategories.group, "uang_bebas_tabungan")
+            )
+          )
+          .limit(1);
 
-    const [created] = await db
-      .insert(budgetCategories)
-      .values({
-        monthId: parsed.data.monthId,
-        liabilityId: parsed.data.liabilityId ?? null,
-        name: parsed.data.name,
-        icon: normalizedIcon,
-        group: parsed.data.group,
-        targetBudget: parsed.data.targetBudget,
-        isTemporary: parsed.data.isTemporary,
-        sortOrder,
-      })
-      .returning();
+        if (existingFree) {
+          throw new Error("DUPLICATE_FREE_CATEGORY");
+        }
+      }
+
+      // 2. SC-04: Jika target pos baru > 0, wajib potong kuota dari Uang Bebas secara atomik (ZBB Conservation)
+      if (
+        parsed.data.targetBudget > 0 &&
+        parsed.data.group !== "uang_bebas_tabungan"
+      ) {
+        const [freeCategory] = await tx
+          .select()
+          .from(budgetCategories)
+          .where(
+            and(
+              eq(budgetCategories.monthId, parsed.data.monthId),
+              eq(budgetCategories.group, "uang_bebas_tabungan")
+            )
+          )
+          .for("update")
+          .limit(1);
+
+        if (!freeCategory) {
+          throw new Error("FREE_CATEGORY_NOT_FOUND");
+        }
+
+        const [monthIncomes, freeTransactions] = await Promise.all([
+          tx
+            .select({
+              amount: incomes.amount,
+              isBaseSalary: incomes.isBaseSalary,
+            })
+            .from(incomes)
+            .where(
+              and(
+                eq(incomes.monthId, parsed.data.monthId),
+                eq(incomes.userId, userId)
+              )
+            ),
+          tx
+            .select({ amount: transactions.amount })
+            .from(transactions)
+            .where(
+              and(
+                eq(transactions.categoryId, freeCategory.id),
+                eq(transactions.userId, userId),
+                eq(transactions.isDeleted, false)
+              )
+            ),
+        ]);
+
+        const additionalIncomesSum = monthIncomes
+          .filter((inc) => !inc.isBaseSalary)
+          .reduce((sum, inc) => sum + inc.amount, 0);
+        const freeSpentSum = freeTransactions.reduce(
+          (sum, t) => sum + t.amount,
+          0
+        );
+        const effectiveFreeRemaining =
+          freeCategory.targetBudget + additionalIncomesSum - freeSpentSum;
+
+        if (
+          freeCategory.targetBudget < parsed.data.targetBudget ||
+          effectiveFreeRemaining < parsed.data.targetBudget
+        ) {
+          throw new Error(
+            `INSUFFICIENT_FREE_BUDGET:${Math.max(
+              0,
+              effectiveFreeRemaining
+            )}:${parsed.data.targetBudget}`
+          );
+        }
+
+        await tx
+          .update(budgetCategories)
+          .set({
+            targetBudget: freeCategory.targetBudget - parsed.data.targetBudget,
+            updatedAt: new Date(),
+          })
+          .where(eq(budgetCategories.id, freeCategory.id));
+      }
+
+      let sortOrder = parsed.data.sortOrder;
+      if (!sortOrder || sortOrder <= 0) {
+        const [lastCat] = await tx
+          .select({ sortOrder: budgetCategories.sortOrder })
+          .from(budgetCategories)
+          .where(eq(budgetCategories.monthId, parsed.data.monthId))
+          .orderBy(desc(budgetCategories.sortOrder))
+          .limit(1);
+        sortOrder = (lastCat?.sortOrder ?? 0) + 1;
+      }
+
+      const normalizedIcon = resolveCategoryIconKey(
+        parsed.data.icon,
+        parsed.data.group,
+        parsed.data.liabilityId
+      );
+
+      const [createdRow] = await tx
+        .insert(budgetCategories)
+        .values({
+          monthId: parsed.data.monthId,
+          liabilityId: parsed.data.liabilityId ?? null,
+          name: parsed.data.name,
+          icon: normalizedIcon,
+          group: parsed.data.group,
+          targetBudget: parsed.data.targetBudget,
+          isTemporary: parsed.data.isTemporary,
+          sortOrder,
+        })
+        .returning();
+
+      return createdRow;
+    });
 
     revalidateDashboardRoutes();
 
@@ -259,11 +506,47 @@ export async function addCustomCategory(
       success: true,
       data: created,
     };
-  } catch (err) {
+  } catch (err: unknown) {
     console.error("Gagal menambah pos anggaran kustom:", err);
+    if (err instanceof Error) {
+      if (err.message === "MONTH_NOT_FOUND") {
+        return { success: false, error: "Siklus bulan tidak ditemukan." };
+      }
+      if (err.message === "MONTH_CLOSED") {
+        return {
+          success: false,
+          error:
+            "Tidak dapat menambah pos anggaran pada siklus bulan yang telah ditutup.",
+        };
+      }
+      if (err.message === "DUPLICATE_FREE_CATEGORY") {
+        return {
+          success: false,
+          error:
+            "Setiap siklus bulan hanya boleh memiliki maksimal 1 pos kelompok Uang Bebas / Tabungan.",
+        };
+      }
+      if (err.message === "FREE_CATEGORY_NOT_FOUND") {
+        return {
+          success: false,
+          error: "Pos Uang Bebas / Tabungan tidak ditemukan pada siklus bulan ini.",
+        };
+      }
+      if (err.message.startsWith("INSUFFICIENT_FREE_BUDGET:")) {
+        const [, remainingStr, neededStr] = err.message.split(":");
+        const remainingNum = parseInt(remainingStr ?? "0", 10);
+        const neededNum = parseInt(neededStr ?? "0", 10);
+        return {
+          success: false,
+          error: `Sisa kuota Uang Bebas tidak mencukupi untuk membuat pos anggaran baru (Tersedia: ${formatRupiah(
+            remainingNum
+          )}, Dibutuhkan: ${formatRupiah(neededNum)}).`,
+        };
+      }
+    }
     return {
       success: false,
-      error: "Terjadi kesalahan saat menambahkan pos anggaran baru.",
+      error: "Terjadi kesalahan internal saat menambah pos anggaran.",
     };
   }
 }

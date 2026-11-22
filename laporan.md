@@ -40,7 +40,20 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
 
 ## 📝 Log Checkpoint Terbaru (Maksimal 5 Checkpoint Aktif)
 
-### Checkpoint 1: Skenario SC-14 — Tutup Buku Menyapu Bersih Surplus Realisasi Kas (Total Pemasukan – Total Kas Keluar) (2026-11-22 21:38 WIB • Approved 2026-11-22 21:45 WIB)
+### Checkpoint 1: Skenario SC-03 & SC-04 — Zero-Based Budgeting Rebalancing & Custom Category Leak Protection (2026-11-22 22:03 WIB • Approved 2026-11-22 22:05 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 22:05 WIB)`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. **Konservasi Zero-Sum pada Edit Target Pos (`updateCategoryTarget`):** Menutup celah *ZBB drift* di mana pengeditan target pos reguler sebelumnya tidak menyentuh pos `uang_bebas_tabungan`. Sekarang mutasi berjalan di dalam transaksi atomik dengan *row-level locking* (`FOR UPDATE`):
+     - Kenaikan target pos ($\Delta > 0$) memotong kuota `uang_bebas_tabungan` secara atomik setelah validasi ketersediaan sisa dana bebas yang belum terpakai.
+     - Penurunan target pos ($\Delta < 0$) memvalidasi batas realisasi belanja saat ini dan mengembalikan surplus $|\Delta|$ ke `uang_bebas_tabungan`.
+  2. **Proteksi Pos Penyeimbang Bebas:** Memblokir pengeditan langsung pada target pos `uang_bebas_tabungan` via `updateCategoryTarget` karena pos ini bertindak sebagai penyeimbang matematis ZBB.
+  3. **Proteksi Kebocoran Plafon pada Penambahan Pos Kustom (`addCustomCategory`):** Menutup celah *ZBB leak* dengan memotong kuota dari `uang_bebas_tabungan` saat pos kustom baru dibuat dengan `targetBudget > 0`. Menolak pembuatan pos jika kuota Uang Bebas tidak mencukupi.
+  4. **Pesan Kesalahan Edukatif:** Menampilkan rincian nominal tersedia vs dibutuhkan saat kuota Uang Bebas tidak mencukupi, atau saat target diturunkan di bawah realisasi belanja.
+  5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 92/92 PASS (425 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
+- **File Changelog:** [`2026-11-22_sc03_sc04_zbb_rebalancing_and_custom_category_leak_protection.md`](.changelog/2026-11-22_sc03_sc04_zbb_rebalancing_and_custom_category_leak_protection.md).
+
+### Checkpoint 2: Skenario SC-14 — Tutup Buku Menyapu Bersih Surplus Realisasi Kas (Total Pemasukan – Total Kas Keluar) (2026-11-22 21:38 WIB • Approved 2026-11-22 21:45 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 21:45 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -54,7 +67,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   6. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 92/92 PASS (414 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-22_sc14_real_cashflow_surplus_sweep.md`](.changelog/2026-11-22_sc14_real_cashflow_surplus_sweep.md).
 
-### Checkpoint 2: Skenario 2 (SC-02) — Reopen Month Sweep Reversal & Anti-Double-Counting Tabungan Bebas (2026-11-22 20:58 WIB • Approved 2026-11-22 21:45 WIB)
+### Checkpoint 3: Skenario 2 (SC-02) — Reopen Month Sweep Reversal & Anti-Double-Counting Tabungan Bebas (2026-11-22 20:58 WIB • Approved 2026-11-22 21:45 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 21:45 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -66,7 +79,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   6. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 91/91 PASS (410 assertions across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-22_sc02_reopen_month_sweep_reversal_anti_double_counting.md`](.changelog/2026-11-22_sc02_reopen_month_sweep_reversal_anti_double_counting.md).
 
-### Checkpoint 3: Skenario 1 — Penanda Status "Sudah Dibayar Bulan Ini" & Fitur Bayar Ekstra dari Uang Bebas (2026-11-22 20:21 WIB • Approved 2026-11-22 20:28 WIB)
+### Checkpoint 4: Skenario 1 — Penanda Status "Sudah Dibayar Bulan Ini" & Fitur Bayar Ekstra dari Uang Bebas (2026-11-22 20:21 WIB • Approved 2026-11-22 20:28 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 20:28 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -80,7 +93,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 89/89 PASS (396 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-22_liability_extra_installment_and_paid_status.md`](.changelog/2026-11-22_liability_extra_installment_and_paid_status.md).
 
-### Checkpoint 4: Standardisasi Dialog Konfirmasi untuk Seluruh Aksi Mutasi Finansial & Destruktif (2026-11-22 15:25 WIB • Approved 2026-11-22 15:35 WIB)
+### Checkpoint 5: Standardisasi Dialog Konfirmasi untuk Seluruh Aksi Mutasi Finansial & Destruktif (2026-11-22 15:25 WIB • Approved 2026-11-22 15:35 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 15:35 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -93,18 +106,13 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   7. **Kepatuhan Desain & Verifikasi:** Bebas `font-mono` (100% `tabular-nums`), bebas emoji literal, fixed header & edge-to-edge footer, lolos `tsc --noEmit`, 89/89 `bun test` PASS, dan Turbopack build PASS.
 - **File Changelog:** [`2026-11-22_action_confirmation_dialogs.md`](.changelog/2026-11-22_action_confirmation_dialogs.md).
 
-### Checkpoint 5: Penyelarasan Kontrak Cicilan — Smart Auto-Calculate, Penguncian Pos Cicilan & Modal Edit Terpusat (2026-11-22 14:24 WIB • Approved 2026-11-22 15:02 WIB)
-- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 15:02 WIB)`
-- **Agent:** Antigravity
-- **Capaian Utama:**
-  1. **Penguncian Pos Cicilan di `BudgetCategoryCard.tsx` & Eliminasi Teks "Kontrak Utang":** Menghilangkan tombol pensil edit target jika pos memiliki `category.liabilityId` tanpa memunculkan teks/badge "Kontrak Utang" yang canggung, menjaga tampilan pos anggaran bersih, serta proteksi penolakan mutasi di server action `updateCategoryTarget` (*defense-in-depth*).
-  2. **Smart Bidirectional Auto-Calculate (Kalkulasi Timbal Balik Otomatis & Pembulatan Ribuan):**
-     - Total Pokok atau Tenor diubah $\rightarrow$ Cicilan per Bulan otomatis terhitung rapi dibulatkan ke atas ke kelipatan ribuan Rupiah terdekat: $\lceil (\text{totalAmount} / \text{tenorMonths}) / 1000 \rceil \times 1000$ (misal: pokok Rp 4.000.000 / 12 bulan menghasilkan **Rp 334.000**, bukan pecahan ganjil 333.334).
-     - Cicilan per Bulan disesuaikan manual $\rightarrow$ Tenor otomatis dihitung ulang: $\text{tenorMonths} = \max(1, \lceil \text{totalAmount} / \text{monthlyPayment} \rceil)$.
-  3. **Modal Edit Cicilan Terpusat di `LiabilityTrackerCard.tsx`:** Menambahkan tombol edit di samping nama cicilan dan modal edit dengan kalkulasi timbal balik otomatis dan sinkronisasi atomik via `updateLiability`.
-  4. **Fitur Hapus Cicilan (Opsi B — Tombol di Header Kartu + Dialog Konfirmasi):** Server action `deleteLiability` atomik mengembalikan jatah ke Uang Bebas bila belum ada transaksi, atau melepas tautan bila sudah ada transaksi.
-  5. **Penyelarasan Status Semantik 'Target Terpenuhi' (Hijau Emerald) saat Penyerapan Pas 100%:** Pos anggaran dengan realisasi tepat 100% targetnya menampilkan status positif **`Target Terpenuhi`** dengan badge dan progress bar hijau emerald.
-- **File Changelog:** [`2026-11-22_liability_smart_auto_calculate_and_budget_lock.md`](.changelog/2026-11-22_liability_smart_auto_calculate_and_budget_lock.md).
+---
+
+## 📚 Rekapitulasi Arsip Milestone Lengkap
+
+| Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
+| :--- | :--- | :--- | :--- |
+| **Penyelarasan Kontrak Cicilan** | 2026-11-22 | Smart auto-calculate pokok/tenor/angsuran, penguncian pos cicilan, dan modal edit cicilan terpusat. | [`2026-11-22_liability_smart_auto_calculate_and_budget_lock.md`](.changelog/2026-11-22_liability_smart_auto_calculate_and_budget_lock.md) |
 
 ---
 
