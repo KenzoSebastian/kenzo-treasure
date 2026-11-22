@@ -277,6 +277,39 @@ export function calculateRemainingDebtMonths(
   return Math.ceil(safeRemaining / safeMonthly);
 }
 
+/**
+ * Menghitung cicilan per bulan dari total pokok utang dan tenor bulan.
+ * Dibulatkan ke atas ke kelipatan ribuan Rupiah terdekat agar nominal rapi
+ * (contoh: Rp 4.000.000 / 12 bln -> Rp 334.000, bukan 333.334).
+ */
+export function calculateMonthlyInstallment(
+  totalAmount: number,
+  tenorMonths: number
+): number {
+  const safeTotal = Math.max(0, toIntegerRupiah(totalAmount));
+  const safeTenor = Math.max(0, Math.floor(tenorMonths));
+
+  if (safeTotal === 0 || safeTenor === 0) return 0;
+  const rawMonthly = safeTotal / safeTenor;
+  if (rawMonthly < 1000) return Math.min(safeTotal, Math.ceil(rawMonthly));
+  return Math.min(safeTotal, Math.ceil(rawMonthly / 1000) * 1000);
+}
+
+/**
+ * Menghitung estimasi tenor bulan dari total pokok utang dan cicilan per bulan
+ * (dibulatkan ke atas integer bulan).
+ */
+export function calculateTenorFromMonthly(
+  totalAmount: number,
+  monthlyPayment: number
+): number {
+  const safeTotal = Math.max(0, toIntegerRupiah(totalAmount));
+  const safeMonthly = Math.max(0, toIntegerRupiah(monthlyPayment));
+
+  if (safeTotal === 0 || safeMonthly === 0) return 1;
+  return Math.max(1, Math.ceil(safeTotal / safeMonthly));
+}
+
 /* ══════════════════════════════════════════════════════════════════════════════
    5. DANA DARURAT & KETAHANAN FINANSIAL (SAFETY MONTHS)
    ══════════════════════════════════════════════════════════════════════════════ */

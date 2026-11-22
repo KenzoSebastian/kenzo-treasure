@@ -1,5 +1,5 @@
-import { PageSectionSkeleton } from "@/components/layout/PageSectionSkeleton";
+import { WishlistsSkeleton } from "@/components/layout/WishlistsSkeleton";
 
 export default function WishlistsLoading() {
-  return <PageSectionSkeleton cardsCount={3} />;
+  return <WishlistsSkeleton />;
 }

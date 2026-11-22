@@ -1,5 +1,5 @@
-import { PageSectionSkeleton } from "@/components/layout/PageSectionSkeleton";
+import { SettingsSkeleton } from "@/components/layout/SettingsSkeleton";
 
 export default function SettingsLoading() {
-  return <PageSectionSkeleton cardsCount={2} />;
+  return <SettingsSkeleton />;
 }

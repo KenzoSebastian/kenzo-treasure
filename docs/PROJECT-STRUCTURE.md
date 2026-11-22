@@ -53,21 +53,22 @@ kenzo-treasure/
 │   │   ├── (dashboard)/              # Zona Workspace Privat Terproteksi
 │   │   │   ├── layout.tsx            # Wrapper Layout Zona Dashboard Privat
 │   │   │   └── dashboard/
-│   │   │       ├── page.tsx          # Panel Utama (Orchestrator Ikhtisar Bulanan + Suspense)
-│   │   │       ├── loading.tsx       # Skeleton UI saat transisi halaman utama
+│   │   │       ├── (overview)/       # Route group isolasi transisi dashboard utama
+│   │   │       │   ├── page.tsx      # Panel Utama (Orchestrator Ikhtisar Bulanan + Suspense)
+│   │   │       │   └── loading.tsx   # DashboardSkeleton UI saat transisi rute overview
 │   │   │       ├── error.tsx         # Error boundary pemulihan workspace
 │   │   │       ├── wishlists/
 │   │   │       │   ├── page.tsx      # Sinking Fund & Wishlist Barang Impian
-│   │   │       │   └── loading.tsx   # Fase R10: Instant Tab Skeleton Wishlist
+│   │   │       │   └── loading.tsx   # WishlistsSkeleton (1 layout terdedikasi)
 │   │   │       ├── analytics/
 │   │   │       │   ├── page.tsx      # Grafik Tren Tabungan & Cashflow Recharts
-│   │   │       │   └── loading.tsx   # Fase R10: Instant Tab Skeleton Analytics
+│   │   │       │   └── loading.tsx   # AnalyticsSkeleton (1 layout terdedikasi)
 │   │   │       ├── vault/
 │   │   │       │   ├── page.tsx      # Brankas Dana Darurat (Safety Months)
-│   │   │       │   └── loading.tsx   # Fase R10: Instant Tab Skeleton Vault
+│   │   │       │   └── loading.tsx   # VaultSkeleton (1 layout terdedikasi)
 │   │   │       └── settings/
 │   │   │           ├── page.tsx      # Pengaturan Keuangan, Template Pos & Backup Mandiri
-│   │   │           └── loading.tsx   # Fase R10: Instant Tab Skeleton Settings
+│   │   │           └── loading.tsx   # SettingsSkeleton (1 layout terdedikasi)
 │   │   ├── globals.css               # Tailwind v4 / theme / global CSS
 │   │   ├── layout.tsx                # Root layout & PWA metadata/viewport
 │   │   └── providers.tsx             # Komposisi provider (Theme + TanStack Query)
@@ -77,7 +78,7 @@ kenzo-treasure/
 │   │   ├── settings.ts               # Fase R3, R4 & R10: updateFinanceDefaults, upsertBudgetTemplate, deleteBudgetTemplate
 │   │   ├── months.ts                 # Fase B5 & R3: createMonthlyCycle, closeMonth, reopenMonth
 │   │   ├── incomes.ts                # Fase B6: addIncome, updateIncome, deleteIncome
-│   │   ├── liabilities.ts            # Fase B7 & R8: createLiability, recordInstallmentPayment, updateLiability
+│   │   ├── liabilities.ts            # Fase B7 & R8: createLiability, recordInstallmentPayment, updateLiability, deleteLiability
 │   │   ├── categories.ts             # Fase B8 & R4: updateCategoryTarget, addCustomCategory, reorderCategories, deleteCategory
 │   │   ├── transactions.ts           # Fase B9 & R8: createTransaction, softDeleteTransaction, restoreTransaction, hardDeleteExpiredTransactions
 │   │   ├── wishlists.ts              # Fase B10 & R1: createWishlist, allocateSavings, withdrawFromWishlist, markWishlistAsPurchased
@@ -87,7 +88,7 @@ kenzo-treasure/
 │   │   └── export.ts                 # Fase B13 & R1: exportFinancialData (CSV, Excel, JSON)
 │   ├── components/
 │   │   ├── ui/                       # Primitif/reusable Shadcn UI
-│   │   ├── layout/                   # AppHeader, MobileBottomNav, DashboardLayout, DashboardSkeleton, PageSectionSkeleton, DashboardErrorBoundary, ThemeToggle
+│   │   ├── layout/                   # AppHeader, MobileBottomNav, DashboardLayout, DashboardSkeleton, VaultSkeleton, WishlistsSkeleton, AnalyticsSkeleton, SettingsSkeleton, PageSectionSkeleton, DashboardErrorBoundary, ThemeToggle
 │   │   ├── common/
 │   │   │   ├── AppCategoryIcon.tsx   # Fase R1: Komponen ikon pos/cicilan/wishlist berbasis Lucide
 │   │   │   ├── IconPicker.tsx        # Fase R1: Pemilih 36 ikon kurasi Lucide ramah mobile (grid simetris 6x6)

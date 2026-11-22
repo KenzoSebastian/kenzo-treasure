@@ -140,6 +140,16 @@ export const updateLiabilitySchema = z.object({
     .nullable(),
 });
 
+/**
+ * Validasi penghapusan data utang/cicilan.
+ */
+export const deleteLiabilitySchema = z.object({
+  liabilityId: z
+    .string({ message: "ID utang/cicilan wajib diisi" })
+    .uuid({ message: "Format ID utang tidak valid" }),
+});
+
 export type CreateLiabilityInput = z.infer<typeof createLiabilitySchema>;
 export type RecordInstallmentInput = z.infer<typeof recordInstallmentSchema>;
 export type UpdateLiabilityInput = z.infer<typeof updateLiabilitySchema>;
+export type DeleteLiabilityInput = z.infer<typeof deleteLiabilitySchema>;

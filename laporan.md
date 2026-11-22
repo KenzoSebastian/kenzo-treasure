@@ -10,6 +10,8 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
   - **Seluruh Fase Backend (B1–B13) & Frontend (F1–F18):** `Approved by Kenzo ✅ (2026-11-15 13:21 WIB)` — Seluruh roadmap telah tuntas 100%.
   - **Revisi UI Pasca-Fase (2026-11-15 13:45 WIB):** Detail rincian `BudgetCategoryCard` diubah dari dropdown inline menjadi Modal Box (`Dialog`) + kompatibilitas Toast Undo 5 detik (`Approved by Kenzo ✅ 2026-11-15 13:46 WIB`).
   - **Batch Revisi Terkumpul (Fase R1–R10 & Action Grid):** `Approved by Kenzo ✅ (2026-11-15 18:33 WIB)` — Seluruh checklist `docs/plans/PLANREVISI.md` tuntas 100% dan terverifikasi penuh (`87/87 bun test PASS`, `typecheck PASS`, `font-mono = 0`, `bun run build PASS`).
+  - **Penyelarasan Skeleton Tiap Halaman & Eliminasi Layout Ganda:** `Approved by Kenzo ✅ (2026-11-22 15:02 WIB)`.
+  - **Penyelarasan Kontrak Cicilan (Auto-Calculate, Edit & Hapus Cicilan, Pos Lock, Status Target Terpenuhi):** `Approved by Kenzo ✅ (2026-11-22 15:02 WIB)`.
 - **Tech Stack Terkunci:**
   - Runtime & Package Manager: Bun (v1.4+)
   - Frontend: Next.js 16 (App Router, React 19, TypeScript)
@@ -36,7 +38,44 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
 
 ## 📝 Log Checkpoint Terbaru (Maksimal 5 Checkpoint Aktif)
 
-### Checkpoint 1: Standarisasi Semua Modal Box & Sheet — Eliminasi Padding Dialog, Footer Solid Hitam Nempel Tepi, dan Tombol Close Lega (2026-11-15 22:15 WIB • Approved 2026-11-15 22:17 WIB)
+### Checkpoint 1: Penyelarasan Kontrak Cicilan — Smart Auto-Calculate, Penguncian Pos Cicilan & Modal Edit Terpusat (2026-11-22 14:24 WIB • Approved 2026-11-22 15:02 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 15:02 WIB)`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. **Penguncian Pos Cicilan di `BudgetCategoryCard.tsx` & Eliminasi Teks "Kontrak Utang":** Menghilangkan tombol pensil edit target jika pos memiliki `category.liabilityId` tanpa memunculkan teks/badge "Kontrak Utang" yang canggung, menjaga tampilan pos anggaran bersih, serta proteksi penolakan mutasi di server action `updateCategoryTarget` (*defense-in-depth*).
+  2. **Smart Bidirectional Auto-Calculate (Kalkulasi Timbal Balik Otomatis & Pembulatan Ribuan):**
+     - Total Pokok atau Tenor diubah $\rightarrow$ Cicilan per Bulan otomatis terhitung rapi dibulatkan ke atas ke kelipatan ribuan Rupiah terdekat: $\lceil (\text{totalAmount} / \text{tenorMonths}) / 1000 \rceil \times 1000$ (misal: pokok Rp 4.000.000 / 12 bulan menghasilkan **Rp 334.000**, bukan pecahan ganjil 333.334).
+     - Cicilan per Bulan disesuaikan manual $\rightarrow$ Tenor otomatis dihitung ulang: $\text{tenorMonths} = \max(1, \lceil \text{totalAmount} / \text{monthlyPayment} \rceil)$.
+     - Mengeliminasi tuntas kontradiksi matematis (misal: pokok 17jt dengan tenor 12 bulan otomatis terisi Rp 1.417.000/bln dan sisa bulan tepat 12 bulan).
+  3. **Modal Edit Cicilan Terpusat di `LiabilityTrackerCard.tsx`:**
+     - Menambahkan tombol edit (ikon pensil kecil) di samping nama cicilan pada setiap kartu cicilan aktif.
+     - Menyediakan dialog modal edit dengan kalkulasi timbal balik otomatis dan sinkronisasi atomik via `updateLiability` (otomatis memperbarui `budgetCategories` siklus terbuka dan menyeimbangkan saldo Uang Bebas).
+  4. **Fitur Hapus Cicilan (Opsi B — Tombol di Header Kartu + Dialog Konfirmasi):**
+     - Tombol ikon tempat sampah merah (`Trash2`) langsung di samping tombol pensil edit kartu cicilan.
+     - Server action `deleteLiability` atomik: Jika pos cicilan di bulan berjalan belum ada transaksi, pos dihapus dan sisa plafon dikembalikan utuh ke `Uang Bebas / Tabungan`. Jika sudah ada transaksi, pos anggaran dilepas tautannya (`liabilityId = null`) agar catatan pengeluaran harian tidak hilang.
+  5. **Penyelarasan Status Semantik 'Target Terpenuhi' (Hijau Emerald) saat Penyerapan Pas 100%:**
+     - Pos anggaran dengan realisasi tepat 100% targetnya (`spent === target` dan `sisa === 0`) kini menampilkan status positif **`Target Terpenuhi`** dengan badge dan progress bar hijau emerald, bukan lagi peringatan waspada kuning *"Mendekati Limit >80%"*.
+  6. **Kepatuhan Standar Desain:** Bebas 100% dari emoji literal (menggunakan ikon semantik Lucide `Info`, `Lock`, `Pencil`, `Trash2`), fixed header & edge-to-edge footer, serta seluruh angka dan metrik menggunakan `tabular-nums` tanpa `font-mono`.
+  7. **Verifikasi Kualitas:** `tsc --noEmit` (PASS), `bun test` (89/89 PASS, 380 expect calls), `bun run build` (Turbopack 11/11 routes PASS).
+- **File Changelog:** [`2026-11-22_liability_smart_auto_calculate_and_budget_lock.md`](.changelog/2026-11-22_liability_smart_auto_calculate_and_budget_lock.md).
+
+### Checkpoint 2: Rekonfigurasi Skeleton Tiap Halaman (Dashboard, Brankas, Wishlist, Analitik, Data & Backup) Menjadi 1 Layout Otentik (2026-11-22 13:50 WIB • Approved 2026-11-22 15:02 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 15:02 WIB)`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. **Eliminasi Isu "2 Layout" Bertumpuk:** Menghapus perenderan ganda pada `PageSectionSkeleton.tsx` yang sebelumnya memunculkan grid kartu metrik bersamaan dengan kartu tabel/grafik besar bertumpuk vertikal. Komponen direfaktor menjadi modular dan bebas dari duplikasi layout.
+  2. **5 Skeleton Terdedikasi yang Presisi (1 Layout per Halaman):**
+     - `DashboardSkeleton.tsx`: Menyelaraskan baris kanan header dengan kontrol 2 baris aktual (Baris 1: Month Selector lebar penuh; Baris 2: Grid 3 action buttons simetris: Bulan Baru, Evaluasi AI, Transaksi), diikuti Executive Summary KPI Card, 3 Cashflow Pillar Cards, 6 Grid Pos Anggaran Bulanan, dan 2 Hub Cards di bawah.
+     - `VaultSkeleton.tsx`: 1 layout utuh mencerminkan `EmergencyVaultCard` (Header proteksi brankas & tombol mutasi, 3 Pilar Angka: Dana Darurat, Tabungan Bebas, Safety Months Meter, dan target progress bar).
+     - `WishlistsSkeleton.tsx`: 1 layout utuh mencerminkan `WishlistGrid` (Header halaman, Top Banner Sinking Fund + tombol tambah barang impian, dan katalog 6 kartu wishlist dengan thumbnail WebP, milestone badge, dan progress bar).
+     - `AnalyticsSkeleton.tsx`: 1 layout utuh mencerminkan `AnalyticsDashboard` (Header halaman, Control Strip toggle Bar vs Line, 2 kartu grafik lebar Recharts, serta 2 kartu bawah untuk perbandingan tahunan dan distribusi pos anggaran).
+     - `SettingsSkeleton.tsx`: 1 layout utuh mencerminkan `SettingsPage` (Header halaman, Panel 1 Form Gaji Pokok & Target Darurat, Panel 2 Manajemen Template Pos Rutin, dan Panel 3 Ekspor Data dengan 3 format unduhan: CSV, Excel, JSON).
+  3. **Wiring Seluruh Rute Loading & Isolasi Route Group `(overview)`:** Menghubungkan masing-masing `loading.tsx` langsung ke skeleton terdedikasinya. Memindahkan `page.tsx` & `loading.tsx` utama dashboard ke route group `dashboard/(overview)/` agar skeleton dashboard tidak membungkus sub-rute sebaya, mengeliminasi tuntas akar masalah flash skeleton dashboard saat berpindah sub-tab.
+  4. **Invarian Tipografi & A11y:** Seluruh komponen skeleton bebas 100% dari utility font monospace (`font-mono = 0`) dan mematuhi atribut aksesibilitas `aria-busy="true"`.
+  5. **Verifikasi Kualitas Lengkap:** `tsc --noEmit` (0 errors), `bun test` (87/87 PASS, 364 expect calls), `bun run build` (Turbopack Next.js 16.4.6 pass).
+- **File Changelog:** [`2026-11-22_page_specific_skeletons_and_eliminate_double_layout.md`](.changelog/2026-11-22_page_specific_skeletons_and_eliminate_double_layout.md).
+
+### Checkpoint 3: Standarisasi Semua Modal Box & Sheet — Eliminasi Padding Dialog, Footer Solid Hitam Nempel Tepi, dan Tombol Close Lega (2026-11-15 22:15 WIB • Approved 2026-11-15 22:17 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-15 22:17 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -49,7 +88,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   7. **Verifikasi Otomatis:** `bun test` (87/87 PASS), `bun run typecheck` (0 errors), `font-mono = 0`, dan `bun run build` (Turbopack compile PASS).
 - **File Changelog:** [`2026-11-15_standardize_all_modal_boxes_fixed_header_footer_and_scrollable_body.md`](.changelog/2026-11-15_standardize_all_modal_boxes_fixed_header_footer_and_scrollable_body.md).
 
-### Checkpoint 2: Layout Card Pos Ketat 2 Baris, Animasi Geser Tab Rp/%, Header Action Buttons Dashboard & 36 Ikon Finansial (2026-11-15 20:49 WIB • Approved 2026-11-15 20:52 WIB)
+### Checkpoint 4: Layout Card Pos Ketat 2 Baris, Animasi Geser Tab Rp/%, Header Action Buttons Dashboard & 36 Ikon Finansial (2026-11-15 20:49 WIB • Approved 2026-11-15 20:52 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-15 20:52 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -69,7 +108,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   10. **Verifikasi Otomatis:** `bun test` (87/87 PASS), `bun run typecheck` (0 errors), `font-mono = 0`, dan `bun run build` (PASS).
 - **File Changelog:** [`2026-11-15_refine_onboarding_template_cards_and_full_width_button.md`](.changelog/2026-11-15_refine_onboarding_template_cards_and_full_width_button.md), [`2026-11-15_expand_curated_financial_icons_to_36.md`](.changelog/2026-11-15_expand_curated_financial_icons_to_36.md), [`2026-11-15_unselected_question_mark_icon_and_remove_label.md`](.changelog/2026-11-15_unselected_question_mark_icon_and_remove_label.md), [`2026-11-15_settings_emergency_fund_salary_recommendations.md`](.changelog/2026-11-15_settings_emergency_fund_salary_recommendations.md), [`2026-11-15_refine_onboarding_target_input_prefix_and_compact_width.md`](.changelog/2026-11-15_refine_onboarding_target_input_prefix_and_compact_width.md), [`2026-11-15_onboarding_target_budget_percentage_of_salary.md`](.changelog/2026-11-15_onboarding_target_budget_percentage_of_salary.md), [`2026-11-15_dashboard_header_actions_layout_and_single_plus.md`](.changelog/2026-11-15_dashboard_header_actions_layout_and_single_plus.md).
 
-### Checkpoint 3: Penyelarasan Notifikasi Error Login ke Toast Global (2026-11-15 18:50 WIB • Approved 2026-11-15 18:54 WIB)
+### Checkpoint 5: Penyelarasan Notifikasi Error Login ke Toast Global (2026-11-15 18:50 WIB • Approved 2026-11-15 18:54 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -78,7 +117,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   3. **Verifikasi Otomatis:** `bun test` (87/87 PASS), `bun run typecheck` (0 errors), dan `bun run build` (PASS).
 - **File Changelog:** [`2026-11-15_auth_error_toast_feedback.md`](.changelog/2026-11-15_auth_error_toast_feedback.md).
 
-### Checkpoint 4: Perbaikan Visual Layout Simetris 2x2 Header Action Buttons Dashboard (2026-11-15 18:05 WIB • Approved 2026-11-15 18:33 WIB)
+### Checkpoint 5: Perbaikan Visual Layout Simetris 2x2 Header Action Buttons Dashboard (2026-11-15 18:05 WIB • Approved 2026-11-15 18:33 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -89,16 +128,6 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Pembersihan Artefak Review:** Menghapus folder sementara `docs/review/` (7 berkas laporan review EGM) sesuai aturan operasional EGM §2 pasca-persetujuan revisi.
 - **File Changelog:** [`2026-11-15_fix_dashboard_header_action_buttons_grid.md`](.changelog/2026-11-15_fix_dashboard_header_action_buttons_grid.md), [`2026-11-15_cleanup_ephemeral_egm_review_files.md`](.changelog/2026-11-15_cleanup_ephemeral_egm_review_files.md).
 
-### Checkpoint 5: Implementasi Penuh Fase R1–R10 — Pilihan A Batch Terkendali (2026-11-15 17:32 WIB • Approved 2026-11-15 18:33 WIB)
-- **Status:** `COMPLETED ✅ — Approved by Kenzo`
-- **Agent:** Antigravity
-- **Capaian Utama:**
-  1. **Zero-Emoji & Curated Lucide System (R1–R2):** Membuat `src/lib/category-icons.ts` (24 ikon kurasi + fallback emoji historis), `<AppCategoryIcon />`, `<IconPicker />`, dan membersihkan 100% literal emoji dari seluruh komponen dashboard, AI, ekspor, serta landing page.
-  2. **Zero-Dummy Architecture & Guided Onboarding (R3):** Menambahkan migrasi `0002` & `0003` (`defaultBaseSalary`, `onboardingCompletedAt`, `emergencyFundTarget: 0`, `liabilities.icon`, `user_budget_templates`, `ON DELETE RESTRICT`), menghapus seluruh fallback dummy pribadi, serta membangun `/onboarding` (`OnboardingWizard`) dan panel `/dashboard/settings` (`FinanceDefaultsPanel`, `BudgetTemplateManager`).
-  3. **Safe Category Deletion & Concurrency Guard (R4 & R8):** Menerapkan `deleteCategory` (`deactivate_next_month` vs `permanent_delete` + *1-Click Bulk Reassign*), `executeCategoryTransactionTx` dengan `.for("update")` row locking & anti-overpayment guard, serta `resolveDefaultCycleDate` (`Asia/Jakarta`).
-  4. **UX, Sliding Indicator & Performance (R5, R6, R7, R9, R10):** Menata header kanan desktop menjadi grid 2x2 simetris, mengintegrasikan `<SlidingSegmentedControl />` (`useSlidingIndicator`), pencarian/filter `TransactionSubList`, `getCachedAuthenticatedSession` (`React.cache`), `revalidateDashboardRoutes()`, `DashboardMonthShell`, `PageSectionSkeleton` + 4 `loading.tsx`, dan memverifikasi `87/87 bun test PASS`, `typecheck PASS`, `Tailwind v4 Canonical = 0`, `font-mono = 0`, serta `bun run build PASS`.
-- **File Changelog:** [`2026-11-15_implement_phases_r1_to_r10_batch.md`](.changelog/2026-11-15_implement_phases_r1_to_r10_batch.md).
-
 ---
 
 ## 🗄️ Arsip Rekapitulasi Milestone Disetujui (Fase Lampau)
@@ -107,6 +136,7 @@ Seluruh rincian teknis, log kode, dan verifikasi fase terdahulu telah terdokumen
 
 | Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
 | :--- | :--- | :--- | :--- |
+| **Implementasi Penuh Fase R1–R10 (Pilihan A Batch)** | 2026-11-15 | 100% zero-emoji, onboarding wizard, single-source of truth database, dynamic categories, concurrency guard, caching & performa. | [`2026-11-15_implement_phases_r1_to_r10_batch.md`](.changelog/2026-11-15_implement_phases_r1_to_r10_batch.md) |
 | **Master Plan Revisi PLANREVISI.md (R1–R10)** | 2026-11-15 | Penyusunan backlog revisi 10 fase via /grill-me dan resolusi 17 temuan audit EGM. | [`2026-11-15_create_planrevisi_workflow.md`](.changelog/2026-11-15_create_planrevisi_workflow.md) |
 | **Backend B7–B13 & Frontend F7–F18** | 2026-11-15 | Penuntasan penuh seluruh roadmap backend dan frontend (100% tuntas & disetujui). | [`2026-11-14_complete_phases_b7_b13_and_f7_f18.md`](.changelog/2026-11-14_complete_phases_b7_b13_and_f7_f18.md) |
 | **Relokasi Plan ke `docs/plans/`** | 2026-11-14 | Memindahkan roadmap ke `docs/plans/` dan memperbarui seluruh referensi path. | [`2026-11-14_move_plans_to_docs_plans.md`](.changelog/2026-11-14_move_plans_to_docs_plans.md) |

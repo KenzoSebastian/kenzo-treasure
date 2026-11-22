@@ -10,6 +10,8 @@ import {
   calculateDynamicFreedomBuffer,
   calculateDebtProgress,
   calculateRemainingDebtMonths,
+  calculateMonthlyInstallment,
+  calculateTenorFromMonthly,
   calculateSafetyMonths,
   calculateFreeSavings,
   calculateWishlistProgress,
@@ -159,6 +161,24 @@ describe("Financial Calculation Engine & Icon Registry (Kenzo Treasury Invariant
       expect(calculateRemainingDebtMonths(1000000, 300000)).toBe(4);
       expect(calculateRemainingDebtMonths(0, 500000)).toBe(0);
       expect(calculateRemainingDebtMonths(500000, 0)).toBe(0);
+    });
+
+    it("should calculate monthly installment rounded up to nearest thousand Rupiah", () => {
+      // 4jt / 12 bln = 333.333,33 -> dibulatkan ke ribuan ke atas menjadi 334.000
+      expect(calculateMonthlyInstallment(4000000, 12)).toBe(334000);
+      // 17jt / 12 bln = 1.416.666,66 -> 1.417.000
+      expect(calculateMonthlyInstallment(17000000, 12)).toBe(1417000);
+      // 12jt / 12 bln = 1.000.000 bulat
+      expect(calculateMonthlyInstallment(12000000, 12)).toBe(1000000);
+      // Edge cases
+      expect(calculateMonthlyInstallment(0, 12)).toBe(0);
+      expect(calculateMonthlyInstallment(4000000, 0)).toBe(0);
+      // Tenor 1 bln
+      expect(calculateMonthlyInstallment(4000000, 1)).toBe(4000000);
+
+      // Tenor from monthly
+      expect(calculateTenorFromMonthly(4000000, 334000)).toBe(12);
+      expect(calculateTenorFromMonthly(17000000, 200000)).toBe(85);
     });
   });
 

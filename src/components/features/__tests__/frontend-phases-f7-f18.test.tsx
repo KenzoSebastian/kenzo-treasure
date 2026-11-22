@@ -42,7 +42,14 @@ import { MonthSelector } from "@/components/features/months/MonthSelector";
 import { AppCategoryIcon } from "@/components/common/AppCategoryIcon";
 import { IconPicker } from "@/components/common/IconPicker";
 import { SlidingSegmentedControl } from "@/components/common/SlidingSegmentedControl";
-import { PageSectionSkeleton } from "@/components/layout/PageSectionSkeleton";
+import {
+  PageSectionSkeleton,
+  VaultSkeleton,
+  WishlistsSkeleton,
+  AnalyticsSkeleton,
+  SettingsSkeleton,
+} from "@/components/layout/PageSectionSkeleton";
+import { DashboardSkeleton } from "@/components/layout/DashboardSkeleton";
 
 const FORBIDDEN_MONO_CLASS = ["font", "mono"].join("-");
 
@@ -120,6 +127,50 @@ describe("Frontend Phases F7–F18 & R1–R10 Component Suite", () => {
     expect(modalPanelHtml).toContain("Shell Super Full Tank");
     expect(modalPanelHtml).toContain("QRIS");
     expect(modalPanelHtml).not.toContain(FORBIDDEN_MONO_CLASS);
+
+    // Verifikasi perlindungan pos cicilan (pos terikat kontrak utang terkunci dari edit target)
+    const debtCatHtml = renderToString(
+      <BudgetCategoryCard
+        category={{
+          id: "cat-debt",
+          name: "Cicilan Laptop",
+          icon: "laptop",
+          group: "pos_wajib",
+          liabilityId: "l-debt-1",
+          target: 1000000,
+          spent: 0,
+          remaining: 1000000,
+          usagePercent: 0,
+          status: "Aman",
+          isLocked: true,
+          transactions: [],
+        }}
+      />
+    );
+    expect(debtCatHtml).not.toContain("Kontrak Utang");
+    expect(debtCatHtml).not.toContain(
+      'aria-label="Ubah target alokasi Cicilan Laptop"'
+    );
+
+    // Verifikasi status semantik "Target Terpenuhi" saat spent === target (100% pas)
+    const targetMetHtml = renderToString(
+      <BudgetCategoryCard
+        category={{
+          id: "cat-met",
+          name: "Cicilan Motor",
+          icon: "bike",
+          group: "pos_wajib",
+          target: 1000000,
+          spent: 1000000,
+          remaining: 0,
+          usagePercent: 100,
+          status: "healthy",
+          transactions: [],
+        }}
+      />
+    );
+    expect(targetMetHtml).toContain("Target Terpenuhi");
+    expect(targetMetHtml).not.toContain("Mendekati Limit");
   });
 
   it("Fase F8, F9 & R7: QuickTransactionDrawer & TransactionSubList render cleanly and pure helpers work", () => {
@@ -253,6 +304,8 @@ describe("Frontend Phases F7–F18 & R1–R10 Component Suite", () => {
     expect(html).toContain("Cicilan Kendaraan");
     expect(html).toContain("9 Bulan Tersisa");
     expect(html).toContain("100% LUNAS");
+    expect(html).toContain('aria-label="Ubah cicilan Cicilan Kendaraan"');
+    expect(html).toContain('aria-label="Hapus cicilan Cicilan Kendaraan"');
     expect(html).not.toContain(FORBIDDEN_MONO_CLASS);
   });
 
@@ -408,6 +461,32 @@ describe("Frontend Phases F7–F18 & R1–R10 Component Suite", () => {
 
     const skelHtml = renderToString(<PageSectionSkeleton />);
     expect(skelHtml).toContain('aria-busy="true"');
+
+    // Dedicated Page Skeletons (1 layout per halaman, zero monospace)
+    const dashSkelHtml = renderToString(<DashboardSkeleton />);
+    expect(dashSkelHtml).toContain('data-testid="dashboard-skeleton"');
+    expect(dashSkelHtml).toContain('aria-busy="true"');
+    expect(dashSkelHtml).not.toContain(FORBIDDEN_MONO_CLASS);
+
+    const vaultSkelHtml = renderToString(<VaultSkeleton />);
+    expect(vaultSkelHtml).toContain('data-testid="vault-skeleton"');
+    expect(vaultSkelHtml).toContain('aria-busy="true"');
+    expect(vaultSkelHtml).not.toContain(FORBIDDEN_MONO_CLASS);
+
+    const wishSkelHtml = renderToString(<WishlistsSkeleton />);
+    expect(wishSkelHtml).toContain('data-testid="wishlists-skeleton"');
+    expect(wishSkelHtml).toContain('aria-busy="true"');
+    expect(wishSkelHtml).not.toContain(FORBIDDEN_MONO_CLASS);
+
+    const analyticsSkelHtml = renderToString(<AnalyticsSkeleton />);
+    expect(analyticsSkelHtml).toContain('data-testid="analytics-skeleton"');
+    expect(analyticsSkelHtml).toContain('aria-busy="true"');
+    expect(analyticsSkelHtml).not.toContain(FORBIDDEN_MONO_CLASS);
+
+    const settingsSkelHtml = renderToString(<SettingsSkeleton />);
+    expect(settingsSkelHtml).toContain('data-testid="settings-skeleton"');
+    expect(settingsSkelHtml).toContain('aria-busy="true"');
+    expect(settingsSkelHtml).not.toContain(FORBIDDEN_MONO_CLASS);
 
     // Fase R7: MonthSelector showCreateButton={false} vs true
     const monthSelectorCleanHtml = renderToString(

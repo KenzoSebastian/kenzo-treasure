@@ -80,6 +80,7 @@ export async function updateCategoryTarget(
       .select({
         id: budgetCategories.id,
         monthId: budgetCategories.monthId,
+        liabilityId: budgetCategories.liabilityId,
         isClosed: months.isClosed,
       })
       .from(budgetCategories)
@@ -104,6 +105,14 @@ export async function updateCategoryTarget(
         success: false,
         error:
           "Tidak dapat mengubah target pos anggaran pada siklus bulan yang telah ditutup (arsip).",
+      };
+    }
+
+    if (catWithMonth.liabilityId) {
+      return {
+        success: false,
+        error:
+          "Pos anggaran ini terikat pada kontrak cicilan. Ubah nominal tagihan melalui menu Tracking Cicilan di bawah.",
       };
     }
 

@@ -1,5 +1,5 @@
-import { PageSectionSkeleton } from "@/components/layout/PageSectionSkeleton";
+import { VaultSkeleton } from "@/components/layout/VaultSkeleton";
 
 export default function VaultLoading() {
-  return <PageSectionSkeleton cardsCount={3} />;
+  return <VaultSkeleton />;
 }

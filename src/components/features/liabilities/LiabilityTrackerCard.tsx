@@ -24,6 +24,9 @@ import { useRouter } from "next/navigation";
 import {
   Trophy,
   Plus,
+  Pencil,
+  Trash2,
+  Info,
   CheckCircle2,
   Loader2,
   CalendarClock,
@@ -45,9 +48,16 @@ import {
 } from "@/components/ui/dialog";
 import { AppCategoryIcon } from "@/components/common/AppCategoryIcon";
 import { IconPicker } from "@/components/common/IconPicker";
-import { formatRupiah, parseRupiah } from "@/lib/financial-calculations";
+import {
+  formatRupiah,
+  parseRupiah,
+  calculateMonthlyInstallment,
+  calculateTenorFromMonthly,
+} from "@/lib/financial-calculations";
 import {
   createLiability,
+  updateLiability,
+  deleteLiability,
   recordInstallmentPayment,
 } from "@/actions/liabilities";
 import { cn } from "@/lib/utils";
@@ -77,12 +87,42 @@ export function LiabilityTrackerCard({
     Boolean(monthId && !isClosed)
   );
   const [formError, setFormError] = React.useState<string | null>(null);
+
+  // State Modal Edit Cicilan
+  const [editingItem, setEditingItem] =
+    React.useState<LiabilityWithProgress | null>(null);
+  const [editName, setEditName] = React.useState("");
+  const [editIcon, setEditIcon] = React.useState("credit-card");
+  const [editTotalRaw, setEditTotalRaw] = React.useState("");
+  const [editMonthlyRaw, setEditMonthlyRaw] = React.useState("");
+  const [editTenorMonths, setEditTenorMonths] = React.useState("12");
+  const [editFormError, setEditFormError] = React.useState<string | null>(null);
+
+  // State Modal Hapus Cicilan
+  const [deletingItem, setDeletingItem] =
+    React.useState<LiabilityWithProgress | null>(null);
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
+
   const [isPending, startTransition] = React.useTransition();
   const [payingId, setPayingId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     setAllocateToCurrentMonth(Boolean(monthId && !isClosed));
   }, [monthId, isClosed]);
+
+  const handleOpenEditModal = (item: LiabilityWithProgress) => {
+    setEditingItem(item);
+    setEditName(item.name);
+    setEditIcon(item.icon ?? "credit-card");
+    setEditTotalRaw(String(item.totalAmount));
+    setEditMonthlyRaw(String(item.monthlyPayment));
+    const fallbackTenor = Math.max(
+      1,
+      Math.ceil(item.totalAmount / Math.max(1, item.monthlyPayment))
+    );
+    setEditTenorMonths(String(item.totalMonths ?? fallbackTenor));
+    setEditFormError(null);
+  };
 
   const handlePayInstallment = (item: LiabilityWithProgress) => {
     if (item.isSettled || item.id.startsWith("preview-")) return;
@@ -168,6 +208,86 @@ export function LiabilityTrackerCard({
     });
   };
 
+  const handleUpdateLiability = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem) return;
+
+    const trimmedName = editName.trim();
+    const totalAmount = parseRupiah(editTotalRaw);
+    const monthlyPayment = parseRupiah(editMonthlyRaw);
+    const totalTenorMonths = Number(editTenorMonths) || 1;
+
+    if (trimmedName.length < 2) {
+      setEditFormError("Nama utang/cicilan minimal 2 karakter");
+      return;
+    }
+    if (totalAmount <= 0) {
+      setEditFormError("Total pokok utang harus lebih besar dari Rp 0");
+      return;
+    }
+    if (totalAmount < editingItem.paidAmount) {
+      setEditFormError(
+        `Total pokok tidak boleh lebih kecil dari yang sudah dibayar (${formatRupiah(
+          editingItem.paidAmount
+        )})`
+      );
+      return;
+    }
+    if (monthlyPayment <= 0 || monthlyPayment > totalAmount) {
+      setEditFormError("Cicilan per bulan harus > Rp 0 dan <= total utang");
+      return;
+    }
+
+    setEditFormError(null);
+    startTransition(async () => {
+      const res = await updateLiability({
+        liabilityId: editingItem.id,
+        name: trimmedName,
+        icon: editIcon.trim() || "credit-card",
+        totalAmount,
+        monthlyPayment,
+        totalMonths: totalTenorMonths,
+      });
+
+      if (!res.success) {
+        setEditFormError(res.error);
+        return;
+      }
+
+      toast.success(`Cicilan "${res.data.name}" berhasil diperbarui`, {
+        description: `Tagihan per bulan: ${formatRupiah(
+          res.data.monthlyPayment
+        )} (Tenor: ${totalTenorMonths} bulan)`,
+      });
+      setEditingItem(null);
+      router.refresh();
+    });
+  };
+
+  const handleDeleteLiability = () => {
+    if (!deletingItem) return;
+    setDeleteError(null);
+
+    startTransition(async () => {
+      const res = await deleteLiability(deletingItem.id);
+      if (!res.success) {
+        setDeleteError(res.error);
+        return;
+      }
+
+      toast.success(`Cicilan "${res.data.name}" berhasil dihapus`, {
+        description:
+          res.data.reallocatedAmount > 0
+            ? `Alokasi ${formatRupiah(
+                res.data.reallocatedAmount
+              )} dikembalikan ke Uang Bebas`
+            : undefined,
+      });
+      setDeletingItem(null);
+      router.refresh();
+    });
+  };
+
   return (
     <section className="space-y-4 pt-2">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -242,46 +362,83 @@ export function LiabilityTrackerCard({
                             ? parseRupiah(totalRaw).toLocaleString("id-ID")
                             : ""
                         }
-                        onChange={(e) =>
-                          setTotalRaw(String(parseRupiah(e.target.value)))
-                        }
+                        onChange={(e) => {
+                          const newTotal = parseRupiah(e.target.value);
+                          setTotalRaw(String(newTotal));
+                          setFormError(null);
+                          const tenor = Number(tenorMonths);
+                          if (newTotal > 0 && tenor > 0) {
+                            setMonthlyRaw(
+                              String(
+                                calculateMonthlyInstallment(newTotal, tenor)
+                              )
+                            );
+                          }
+                        }}
                         className="h-10 rounded-xl text-xs tabular-nums"
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <Label htmlFor="liab-monthly" className="text-xs">
-                        Cicilan / Bulan (Rp)
+                      <Label htmlFor="liab-tenor" className="text-xs">
+                        Tenor Pelunasan (Bulan)
                       </Label>
                       <Input
-                        id="liab-monthly"
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="1.000.000"
-                        value={
-                          parseRupiah(monthlyRaw) > 0
-                            ? parseRupiah(monthlyRaw).toLocaleString("id-ID")
-                            : ""
-                        }
-                        onChange={(e) =>
-                          setMonthlyRaw(String(parseRupiah(e.target.value)))
-                        }
+                        id="liab-tenor"
+                        type="number"
+                        min={1}
+                        max={360}
+                        placeholder="12"
+                        value={tenorMonths}
+                        onChange={(e) => {
+                          const newTenorStr = e.target.value;
+                          setTenorMonths(newTenorStr);
+                          setFormError(null);
+                          const tenor = Number(newTenorStr);
+                          const total = parseRupiah(totalRaw);
+                          if (total > 0 && tenor > 0) {
+                            setMonthlyRaw(
+                              String(
+                                calculateMonthlyInstallment(total, tenor)
+                              )
+                            );
+                          }
+                        }}
                         className="h-10 rounded-xl text-xs tabular-nums"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <Label htmlFor="liab-tenor" className="text-xs">
-                      Tenor Pelunasan (Bulan)
-                    </Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="liab-monthly" className="text-xs">
+                        Cicilan / Bulan (Rp)
+                      </Label>
+                      <span className="text-[10px] text-muted-foreground italic">
+                        Otomatis: Total ÷ Tenor
+                      </span>
+                    </div>
                     <Input
-                      id="liab-tenor"
-                      type="number"
-                      min={1}
-                      max={360}
-                      value={tenorMonths}
-                      onChange={(e) => setTenorMonths(e.target.value)}
+                      id="liab-monthly"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="1.000.000"
+                      value={
+                        parseRupiah(monthlyRaw) > 0
+                          ? parseRupiah(monthlyRaw).toLocaleString("id-ID")
+                          : ""
+                      }
+                      onChange={(e) => {
+                        const newMonthly = parseRupiah(e.target.value);
+                        setMonthlyRaw(String(newMonthly));
+                        setFormError(null);
+                        const total = parseRupiah(totalRaw);
+                        if (total > 0 && newMonthly > 0) {
+                          setTenorMonths(
+                            String(calculateTenorFromMonthly(total, newMonthly))
+                          );
+                        }
+                      }}
                       className="h-10 rounded-xl text-xs tabular-nums"
                     />
                   </div>
@@ -390,9 +547,36 @@ export function LiabilityTrackerCard({
                       />
                     )}
                     <div>
-                      <h3 className="text-sm font-bold text-foreground">
-                        {item.name}
-                      </h3>
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="text-sm font-bold text-foreground">
+                          {item.name}
+                        </h3>
+                        {!isClosed && !isPreview && !item.isSettled && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditModal(item)}
+                              className="inline-flex items-center justify-center size-5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                              title={`Ubah cicilan ${item.name}`}
+                              aria-label={`Ubah cicilan ${item.name}`}
+                            >
+                              <Pencil className="size-2.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDeletingItem(item);
+                                setDeleteError(null);
+                              }}
+                              className="inline-flex items-center justify-center size-5 rounded-md text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                              title={`Hapus cicilan ${item.name}`}
+                              aria-label={`Hapus cicilan ${item.name}`}
+                            >
+                              <Trash2 className="size-2.5" />
+                            </button>
+                          </>
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground tabular-nums">
                         Tagihan: {formatRupiah(item.monthlyPayment)} / bln
                       </p>
@@ -503,6 +687,264 @@ export function LiabilityTrackerCard({
           })}
         </div>
       )}
+
+      {/* Modal Edit Cicilan */}
+      <Dialog
+        open={Boolean(editingItem)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingItem(null);
+            setEditFormError(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md max-h-[90dvh]">
+          <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+            <DialogTitle className="text-base font-bold text-foreground">
+              Ubah Tracking Cicilan / Utang
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              Perbarui rincian utang pokok, tenor, cicilan per bulan, atau ikon.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={handleUpdateLiability}
+            className="flex flex-col flex-1 min-h-0 w-full m-0 p-0"
+            noValidate
+          >
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+              <div className="flex items-start gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-foreground/85 leading-relaxed">
+                <Info className="size-4 text-primary shrink-0 mt-0.5" />
+                <span>
+                  Perubahan tagihan per bulan otomatis menyinkronkan pos anggaran
+                  siklus berjalan (jika ada) dan menyesuaikan alokasi Uang Bebas
+                  secara atomik.
+                </span>
+              </div>
+
+              <div className="space-y-1">
+                <Label htmlFor="edit-liab-name" className="text-xs">
+                  Nama Kewajiban / Cicilan
+                </Label>
+                <Input
+                  id="edit-liab-name"
+                  placeholder="Contoh: Cicilan Kendaraan"
+                  value={editName}
+                  onChange={(e) => {
+                    setEditName(e.target.value);
+                    setEditFormError(null);
+                  }}
+                  className="h-10 rounded-xl text-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label htmlFor="edit-liab-total" className="text-xs">
+                    Total Pokok Utang (Rp)
+                  </Label>
+                  <Input
+                    id="edit-liab-total"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="12.000.000"
+                    value={
+                      parseRupiah(editTotalRaw) > 0
+                        ? parseRupiah(editTotalRaw).toLocaleString("id-ID")
+                        : ""
+                    }
+                    onChange={(e) => {
+                      const newTotal = parseRupiah(e.target.value);
+                      setEditTotalRaw(String(newTotal));
+                      setEditFormError(null);
+                      const tenor = Number(editTenorMonths);
+                      if (newTotal > 0 && tenor > 0) {
+                        setEditMonthlyRaw(
+                          String(
+                            calculateMonthlyInstallment(newTotal, tenor)
+                          )
+                        );
+                      }
+                    }}
+                    className="h-10 rounded-xl text-xs tabular-nums"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label htmlFor="edit-liab-tenor" className="text-xs">
+                    Tenor Pelunasan (Bulan)
+                  </Label>
+                  <Input
+                    id="edit-liab-tenor"
+                    type="number"
+                    min={1}
+                    max={360}
+                    placeholder="12"
+                    value={editTenorMonths}
+                    onChange={(e) => {
+                      const newTenorStr = e.target.value;
+                      setEditTenorMonths(newTenorStr);
+                      setEditFormError(null);
+                      const tenor = Number(newTenorStr);
+                      const total = parseRupiah(editTotalRaw);
+                      if (total > 0 && tenor > 0) {
+                        setEditMonthlyRaw(
+                          String(
+                            calculateMonthlyInstallment(total, tenor)
+                          )
+                        );
+                      }
+                    }}
+                    className="h-10 rounded-xl text-xs tabular-nums"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="edit-liab-monthly" className="text-xs">
+                    Cicilan / Bulan (Rp)
+                  </Label>
+                  <span className="text-[10px] text-muted-foreground italic">
+                    Otomatis: Total ÷ Tenor
+                  </span>
+                </div>
+                <Input
+                  id="edit-liab-monthly"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="1.000.000"
+                  value={
+                    parseRupiah(editMonthlyRaw) > 0
+                      ? parseRupiah(editMonthlyRaw).toLocaleString("id-ID")
+                      : ""
+                  }
+                  onChange={(e) => {
+                    const newMonthly = parseRupiah(e.target.value);
+                    setEditMonthlyRaw(String(newMonthly));
+                    setEditFormError(null);
+                    const total = parseRupiah(editTotalRaw);
+                    if (total > 0 && newMonthly > 0) {
+                      setEditTenorMonths(
+                        String(calculateTenorFromMonthly(total, newMonthly))
+                      );
+                    }
+                  }}
+                  className="h-10 rounded-xl text-xs tabular-nums"
+                />
+              </div>
+
+              <IconPicker
+                value={editIcon}
+                onChange={setEditIcon}
+                fallbackGroup="pos_wajib"
+                label="Pilih Ikon Cicilan"
+              />
+
+              {editFormError && (
+                <p className="text-xs font-medium text-destructive">
+                  {editFormError}
+                </p>
+              )}
+            </div>
+
+            <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setEditingItem(null)}
+                className="rounded-xl cursor-pointer"
+              >
+                Batal
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isPending}
+                className="rounded-xl gap-1.5 cursor-pointer font-semibold shadow-xs"
+              >
+                {isPending ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="size-3.5" />
+                )}
+                <span>Simpan Perubahan</span>
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Konfirmasi Hapus Cicilan */}
+      <Dialog
+        open={Boolean(deletingItem)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeletingItem(null);
+            setDeleteError(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md max-h-[90dvh]">
+          <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+            <DialogTitle className="text-base font-bold text-destructive">
+              Hapus Tracking Cicilan
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              Apakah Anda yakin ingin menghapus catatan cicilan &quot;{deletingItem?.name}&quot;? Tindakan ini tidak dapat dibatalkan.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+            <div className="flex items-start gap-2 rounded-xl border border-rose-500/20 bg-rose-500/5 p-3 text-xs text-foreground/85 leading-relaxed">
+              <Info className="size-4 text-rose-500 shrink-0 mt-0.5" />
+              <span>
+                Jika pos cicilan ini di bulan berjalan belum memiliki transaksi riil,
+                pos tersebut akan otomatis dihapus dan jatah anggarannya dikembalikan
+                ke <strong>Uang Bebas / Tabungan</strong>.
+              </span>
+            </div>
+
+            {deleteError && (
+              <p className="text-xs font-medium text-destructive">
+                {deleteError}
+              </p>
+            )}
+          </div>
+
+          <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setDeletingItem(null);
+                setDeleteError(null);
+              }}
+              className="rounded-xl cursor-pointer"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={isPending}
+              onClick={handleDeleteLiability}
+              className="rounded-xl gap-1.5 cursor-pointer font-semibold shadow-xs"
+            >
+              {isPending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="size-3.5" />
+              )}
+              <span>Hapus Cicilan</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

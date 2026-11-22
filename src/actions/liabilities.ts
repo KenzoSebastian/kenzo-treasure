@@ -17,7 +17,7 @@
  * 3. `updateLiability`: Memperbarui parameter cicilan & menyinkronkan pos bulan aktif.
  */
 
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, count } from "drizzle-orm";
 import { db } from "@/db";
 import {
   liabilities,
@@ -30,9 +30,11 @@ import {
   createLiabilitySchema,
   recordInstallmentSchema,
   updateLiabilitySchema,
+  deleteLiabilitySchema,
   type CreateLiabilityInput,
   type RecordInstallmentInput,
   type UpdateLiabilityInput,
+  type DeleteLiabilityInput,
 } from "@/schemas/liability.schema";
 import { resolveCategoryIconKey } from "@/lib/category-icons";
 import { executeCategoryTransactionTx } from "@/lib/category-transaction-tx";
@@ -737,6 +739,177 @@ export async function updateLiability(
     return {
       success: false,
       error: "Terjadi kesalahan saat memperbarui data cicilan.",
+    };
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   4. SERVER ACTION: deleteLiability
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+export interface DeleteLiabilityResult {
+  deletedLiabilityId: string;
+  name: string;
+  reallocatedAmount: number;
+  removedLinkedCategoriesCount: number;
+}
+
+export async function deleteLiability(
+  inputOrId: string | DeleteLiabilityInput,
+  explicitUserId?: string
+): Promise<ActionResponse<DeleteLiabilityResult>> {
+  try {
+    const rawPayload =
+      typeof inputOrId === "string" ? { liabilityId: inputOrId } : inputOrId;
+
+    const parsed = deleteLiabilitySchema.safeParse(rawPayload);
+    if (!parsed.success) {
+      return {
+        success: false,
+        error:
+          parsed.error.issues[0]?.message ??
+          "Validasi penghapusan cicilan gagal.",
+        fieldErrors: parsed.error.flatten().fieldErrors,
+      };
+    }
+
+    const userId = await resolveAuthenticatedUserId(explicitUserId);
+    if (!userId) {
+      return {
+        success: false,
+        error: "Pengguna tidak terautentikasi.",
+      };
+    }
+
+    const result = await db.transaction(async (tx) => {
+      const [existing] = await tx
+        .select()
+        .from(liabilities)
+        .where(
+          and(
+            eq(liabilities.id, parsed.data.liabilityId),
+            eq(liabilities.userId, userId)
+          )
+        )
+        .for("update");
+
+      if (!existing) {
+        throw new Error("NOT_FOUND");
+      }
+
+      // Ambil pos anggaran terkait pada siklus bulan yang masih terbuka
+      const openLinkedCategories = await tx
+        .select({
+          id: budgetCategories.id,
+          monthId: budgetCategories.monthId,
+          targetBudget: budgetCategories.targetBudget,
+        })
+        .from(budgetCategories)
+        .innerJoin(months, eq(budgetCategories.monthId, months.id))
+        .where(
+          and(
+            eq(budgetCategories.liabilityId, existing.id),
+            eq(months.userId, userId),
+            eq(months.isClosed, false)
+          )
+        );
+
+      let reallocatedAmount = 0;
+      let removedLinkedCategoriesCount = 0;
+
+      for (const linkedCat of openLinkedCategories) {
+        // Cek apakah pos ini memiliki transaksi aktif
+        const [txCountRow] = await tx
+          .select({ total: count() })
+          .from(transactions)
+          .where(
+            and(
+              eq(transactions.categoryId, linkedCat.id),
+              eq(transactions.isDeleted, false)
+            )
+          );
+
+        const activeTxCount = Number(txCountRow?.total ?? 0);
+
+        if (activeTxCount === 0) {
+          // Belum ada transaksi: kembalikan alokasi target ke Uang Bebas / Tabungan
+          const [freeCat] = await tx
+            .select()
+            .from(budgetCategories)
+            .where(
+              and(
+                eq(budgetCategories.monthId, linkedCat.monthId),
+                eq(budgetCategories.group, "uang_bebas_tabungan")
+              )
+            )
+            .for("update");
+
+          if (freeCat) {
+            await tx
+              .update(budgetCategories)
+              .set({
+                targetBudget: freeCat.targetBudget + linkedCat.targetBudget,
+                updatedAt: new Date(),
+              })
+              .where(eq(budgetCategories.id, freeCat.id));
+          }
+
+          // Hapus pos anggaran terkait
+          await tx
+            .delete(budgetCategories)
+            .where(eq(budgetCategories.id, linkedCat.id));
+
+          reallocatedAmount += linkedCat.targetBudget;
+          removedLinkedCategoriesCount++;
+        } else {
+          // Ada riwayat transaksi: lepas keterikatan liabilityId agar riwayat pengeluaran tetap utuh
+          await tx
+            .update(budgetCategories)
+            .set({
+              liabilityId: null,
+              isTemporary: false,
+              updatedAt: new Date(),
+            })
+            .where(eq(budgetCategories.id, linkedCat.id));
+        }
+      }
+
+      // Lepas keterikatan pada pos anggaran di bulan yang sudah tutup (arsip) jika ada
+      await tx
+        .update(budgetCategories)
+        .set({ liabilityId: null })
+        .where(eq(budgetCategories.liabilityId, existing.id));
+
+      // Hapus data cicilan dari liabilities
+      await tx
+        .delete(liabilities)
+        .where(eq(liabilities.id, existing.id));
+
+      return {
+        deletedLiabilityId: existing.id,
+        name: existing.name,
+        reallocatedAmount,
+        removedLinkedCategoriesCount,
+      };
+    });
+
+    revalidateDashboardRoutes();
+
+    return {
+      success: true,
+      data: result,
+    };
+  } catch (err) {
+    if (err instanceof Error && err.message === "NOT_FOUND") {
+      return {
+        success: false,
+        error: "Data cicilan tidak ditemukan.",
+      };
+    }
+    console.error("Gagal menghapus data cicilan:", err);
+    return {
+      success: false,
+      error: "Terjadi kesalahan saat menghapus data cicilan.",
     };
   }
 }

@@ -1,5 +1,5 @@
-import { PageSectionSkeleton } from "@/components/layout/PageSectionSkeleton";
+import { AnalyticsSkeleton } from "@/components/layout/AnalyticsSkeleton";
 
 export default function AnalyticsLoading() {
-  return <PageSectionSkeleton cardsCount={4} />;
+  return <AnalyticsSkeleton />;
 }

@@ -7,6 +7,7 @@ import {
   createIncomeSchema,
   createLiabilitySchema,
   recordInstallmentSchema,
+  deleteLiabilitySchema,
   createCategorySchema,
   deleteCategorySchema,
   reorderCategoriesSchema,
@@ -178,6 +179,18 @@ describe("Shared Zod Schemas Validation (Client-Server Contract)", () => {
           "550e8400-e29b-41d4-a716-446655440001"
         );
       }
+    });
+
+    it("should validate deleteLiabilitySchema with valid UUID", () => {
+      const valid = deleteLiabilitySchema.safeParse({
+        liabilityId: "550e8400-e29b-41d4-a716-446655440000",
+      });
+      expect(valid.success).toBe(true);
+
+      const invalid = deleteLiabilitySchema.safeParse({
+        liabilityId: "non-uuid",
+      });
+      expect(invalid.success).toBe(false);
     });
   });
 

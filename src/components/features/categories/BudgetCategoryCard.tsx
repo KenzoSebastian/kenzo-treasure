@@ -142,15 +142,18 @@ export function BudgetCategoryCard({
       ? 100
       : 0;
 
-  // Klasifikasi status semantik pos anggaran (Fase F7)
+  // Klasifikasi status semantik pos anggaran (Fase F7 & R-Revisi)
   const isOverbudget =
     category.spent > category.target && category.target > 0;
+  const isTargetMet =
+    category.spent === category.target && category.target > 0;
   const isWarning =
     !isOverbudget &&
+    !isTargetMet &&
     usageRatio >= 80 &&
     category.group !== "uang_bebas_tabungan";
 
-  let statusLabel = category.status;
+  let statusLabel = "Aman";
   let badgeClassName =
     "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/25";
   let barClassName = "bg-emerald-500";
@@ -160,19 +163,34 @@ export function BudgetCategoryCard({
     badgeClassName =
       "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/25";
     barClassName = "bg-rose-500";
+  } else if (isTargetMet) {
+    statusLabel = "Target Terpenuhi";
+    badgeClassName =
+      "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/25";
+    barClassName = "bg-emerald-500";
   } else if (isWarning || category.status === "Waspada") {
     statusLabel = "Mendekati Limit >80%";
     badgeClassName =
       "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/25";
     barClassName = "bg-amber-500";
   } else if (category.status === "Terkunci") {
+    statusLabel = "Terkunci";
     badgeClassName = "bg-muted text-muted-foreground border-border/60";
     barClassName = "bg-primary/70";
+  } else if (category.status && category.status !== "healthy") {
+    statusLabel = category.status;
   }
 
   const handleSaveTarget = (e: React.FormEvent) => {
     e.preventDefault();
     if (!category.id) return;
+
+    if (category.liabilityId) {
+      setTargetError(
+        "Pos cicilan terikat kontrak utang. Kelola nominal melalui Tracking Cicilan di bawah."
+      );
+      return;
+    }
 
     const numericTarget = parseRupiah(targetInput);
     if (numericTarget < 0) {
@@ -270,11 +288,11 @@ export function BudgetCategoryCard({
                 <span className="text-[11px] text-muted-foreground tabular-nums">
                   Target: {formatRupiah(category.target)}
                 </span>
-                {category.id && !isClosed && (
+                {category.id && !isClosed && !category.liabilityId && (
                   <button
                     type="button"
                     onClick={() => setIsEditingTarget(true)}
-                    className="inline-flex items-center justify-center size-5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    className="inline-flex items-center justify-center size-5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
                     title="Ubah target alokasi"
                     aria-label={`Ubah target alokasi ${category.name}`}
                   >
