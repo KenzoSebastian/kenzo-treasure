@@ -20,6 +20,14 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   softDeleteTransaction,
   restoreTransaction,
 } from "@/actions/transactions";
@@ -47,6 +55,9 @@ export function TransactionSubList({
     initialTransactions
   );
   const [pendingId, setPendingId] = React.useState<string | null>(null);
+  const [deleteItem, setDeleteItem] = React.useState<TransactionItem | null>(
+    null
+  );
 
   React.useEffect(() => {
     setItems(initialTransactions);
@@ -141,9 +152,9 @@ export function TransactionSubList({
                 variant="ghost"
                 size="icon"
                 disabled={pendingId === tx.id}
-                onClick={() => handleSoftDelete(tx)}
+                onClick={() => setDeleteItem(tx)}
                 aria-label={`Hapus transaksi ${tx.description}`}
-                className="size-7 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                className="size-7 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
               >
                 {pendingId === tx.id ? (
                   <Loader2 className="size-3.5 animate-spin" />
@@ -155,6 +166,90 @@ export function TransactionSubList({
           </div>
         </div>
       ))}
+
+      {/* Modal Dialog Konfirmasi Hapus Transaksi */}
+      <Dialog
+        open={Boolean(deleteItem)}
+        onOpenChange={(open) => !open && setDeleteItem(null)}
+      >
+        <DialogContent className="sm:max-w-md max-h-[90dvh]">
+          <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+            <DialogTitle className="text-base font-bold text-foreground">
+              Konfirmasi Hapus Transaksi
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              Apakah Anda yakin ingin menghapus catatan pengeluaran ini dari pos anggaran?
+            </DialogDescription>
+          </DialogHeader>
+
+          {deleteItem && (
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 min-h-0 text-xs">
+              <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Keterangan Transaksi</span>
+                  <span className="font-bold text-foreground truncate max-w-[200px]">
+                    {deleteItem.description}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Nominal</span>
+                  <span className="font-extrabold text-foreground tabular-nums text-sm">
+                    {formatRupiah(deleteItem.amount)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Tanggal</span>
+                  <span className="font-medium text-foreground tabular-nums">
+                    {deleteItem.date}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Metode Pembayaran</span>
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] px-1.5 py-0 h-4 rounded-md font-medium"
+                  >
+                    {METHOD_LABELS[deleteItem.method] ??
+                      deleteItem.method.toUpperCase()}
+                  </Badge>
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Realisasi terpakai pada pos ini akan berkurang otomatis. Anda tetap dapat membatalkan aksi ini melalui notifikasi Toast Undo (5 detik).
+              </p>
+            </div>
+          )}
+
+          <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setDeleteItem(null)}
+              className="rounded-xl cursor-pointer"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={!deleteItem || pendingId === deleteItem?.id}
+              onClick={() => {
+                if (deleteItem) {
+                  const target = deleteItem;
+                  setDeleteItem(null);
+                  void handleSoftDelete(target);
+                }
+              }}
+              className="rounded-xl gap-1.5 font-semibold cursor-pointer shadow-xs"
+            >
+              <Trash2 className="size-3.5" />
+              <span>Hapus Transaksi</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

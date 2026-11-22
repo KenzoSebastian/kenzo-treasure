@@ -64,6 +64,7 @@ export function WishlistCard({
 }: WishlistCardProps) {
   const router = useRouter();
   const [isMarking, startTransition] = React.useTransition();
+  const [showPurchaseConfirm, setShowPurchaseConfirm] = React.useState(false);
 
   const progressPct = wishlist.progress.percentage;
   const remainingAmt = wishlist.progress.remainingAmount;
@@ -208,8 +209,9 @@ export function WishlistCard({
                 size="sm"
                 variant="outline"
                 disabled={isMarking}
-                onClick={handleMarkPurchased}
-                className="h-9 px-3 rounded-xl gap-1 text-xs font-semibold border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10"
+                onClick={() => setShowPurchaseConfirm(true)}
+                aria-label={`Tandai terbeli ${wishlist.name}`}
+                className="h-9 px-3 rounded-xl gap-1 text-xs font-semibold border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 cursor-pointer"
               >
                 {isMarking ? (
                   <Loader2 className="size-3.5 animate-spin" />
@@ -227,6 +229,76 @@ export function WishlistCard({
           </div>
         )}
       </div>
+
+      {/* Modal Dialog Konfirmasi Tandai Terbeli */}
+      <Dialog
+        open={showPurchaseConfirm}
+        onOpenChange={setShowPurchaseConfirm}
+      >
+        <DialogContent className="sm:max-w-md max-h-[90dvh]">
+          <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+            <DialogTitle className="text-base font-bold text-foreground">
+              Konfirmasi Pembelian Barang Impian
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              Tandai barang impian ini sebagai sudah dibeli setelah tabungan mencukupi 100%.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 min-h-0 text-xs">
+            <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Barang Impian</span>
+                <span className="font-bold text-foreground">{wishlist.name}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Target Dana</span>
+                <span className="font-extrabold text-foreground tabular-nums text-sm">
+                  {formatRupiah(wishlist.targetAmount)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Dana Terkumpul</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                  {formatRupiah(wishlist.savedAmount)} (100%)
+                </span>
+              </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Setelah ditandai terbeli, barang ini akan mendapatkan lencana permanen &ldquo;Sudah Terbeli&rdquo;.
+            </p>
+          </div>
+
+          <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPurchaseConfirm(false)}
+              className="rounded-xl cursor-pointer"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={isMarking}
+              onClick={() => {
+                setShowPurchaseConfirm(false);
+                handleMarkPurchased();
+              }}
+              className="rounded-xl gap-1.5 font-semibold cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+            >
+              {isMarking ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <CheckCircle2 className="size-3.5" />
+              )}
+              <span>Konfirmasi Terbeli</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

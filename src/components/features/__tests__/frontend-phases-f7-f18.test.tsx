@@ -304,6 +304,7 @@ describe("Frontend Phases F7–F18 & R1–R10 Component Suite", () => {
     expect(html).toContain("Cicilan Kendaraan");
     expect(html).toContain("9 Bulan Tersisa");
     expect(html).toContain("100% LUNAS");
+    expect(html).toContain('aria-label="Bayar cicilan Cicilan Kendaraan"');
     expect(html).toContain('aria-label="Ubah cicilan Cicilan Kendaraan"');
     expect(html).toContain('aria-label="Hapus cicilan Cicilan Kendaraan"');
     expect(html).not.toContain(FORBIDDEN_MONO_CLASS);
@@ -454,9 +455,26 @@ describe("Frontend Phases F7–F18 & R1–R10 Component Suite", () => {
     expect(defaultsHtml).not.toContain(FORBIDDEN_MONO_CLASS);
 
     const tplHtml = renderToString(
-      <BudgetTemplateManager templates={[]} defaultBaseSalary={5000000} />
+      <BudgetTemplateManager
+        templates={[
+          {
+            id: "tpl-1",
+            userId: "u-1",
+            name: "Makan Siang",
+            icon: "utensils",
+            group: "kebutuhan",
+            targetBudget: 1500000,
+            isActive: true,
+            sortOrder: 1,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ]}
+        defaultBaseSalary={5000000}
+      />
     );
     expect(tplHtml).toContain("Manajemen Template Pos Anggaran Rutin");
+    expect(tplHtml).toContain('aria-label="Hapus template Makan Siang"');
     expect(tplHtml).not.toContain(FORBIDDEN_MONO_CLASS);
 
     const skelHtml = renderToString(<PageSectionSkeleton />);

@@ -103,6 +103,10 @@ export function LiabilityTrackerCard({
     React.useState<LiabilityWithProgress | null>(null);
   const [deleteError, setDeleteError] = React.useState<string | null>(null);
 
+  // State Modal Konfirmasi Bayar Cicilan
+  const [payItem, setPayItem] =
+    React.useState<LiabilityWithProgress | null>(null);
+
   const [isPending, startTransition] = React.useTransition();
   const [payingId, setPayingId] = React.useState<string | null>(null);
 
@@ -666,8 +670,9 @@ export function LiabilityTrackerCard({
                           size="sm"
                           variant="outline"
                           disabled={payingId === item.id || isPending}
-                          onClick={() => handlePayInstallment(item)}
-                          className="h-8 px-3 rounded-xl text-xs font-semibold gap-1.5"
+                          onClick={() => setPayItem(item)}
+                          aria-label={`Bayar cicilan ${item.name}`}
+                          className="h-8 px-3 rounded-xl text-xs font-semibold gap-1.5 cursor-pointer"
                         >
                           {payingId === item.id ? (
                             <Loader2 className="size-3.5 animate-spin" />
@@ -941,6 +946,93 @@ export function LiabilityTrackerCard({
                 <Trash2 className="size-3.5" />
               )}
               <span>Hapus Cicilan</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Dialog Konfirmasi Bayar Cicilan */}
+      <Dialog
+        open={Boolean(payItem)}
+        onOpenChange={(open) => !open && setPayItem(null)}
+      >
+        <DialogContent className="sm:max-w-md max-h-[90dvh]">
+          <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+            <DialogTitle className="text-base font-bold text-foreground">
+              Konfirmasi Pembayaran Cicilan
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              Pastikan rincian pembayaran cicilan ini sudah sesuai sebelum dicatat.
+            </DialogDescription>
+          </DialogHeader>
+
+          {payItem && (
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3.5 min-h-0 text-xs">
+              <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Kewajiban / Cicilan</span>
+                  <span className="font-bold text-foreground">{payItem.name}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Nominal Tagihan Bulan Ini</span>
+                  <span className="font-extrabold text-foreground tabular-nums text-sm">
+                    {formatRupiah(Math.min(payItem.monthlyPayment, payItem.remainingAmount))}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Sisa Pokok Saat Ini</span>
+                  <span className="font-semibold text-muted-foreground tabular-nums">
+                    {formatRupiah(payItem.remainingAmount)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between border-t border-border/40 pt-2">
+                  <span className="text-muted-foreground">Sisa Pokok Sesudah Bayar</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                    {formatRupiah(
+                      Math.max(
+                        0,
+                        payItem.remainingAmount -
+                          Math.min(payItem.monthlyPayment, payItem.remainingAmount)
+                      )
+                    )}
+                  </span>
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Pembayaran akan dicatat pada pos anggaran bulan ini dan memotong pokok utang secara atomik.
+              </p>
+            </div>
+          )}
+
+          <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setPayItem(null)}
+              className="rounded-xl cursor-pointer"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={!payItem || payingId === payItem?.id}
+              onClick={() => {
+                if (payItem) {
+                  const target = payItem;
+                  setPayItem(null);
+                  handlePayInstallment(target);
+                }
+              }}
+              className="rounded-xl gap-1.5 font-semibold cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+            >
+              {payingId === payItem?.id ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <CheckCircle2 className="size-3.5" />
+              )}
+              <span>Konfirmasi Bayar</span>
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -40,6 +40,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AppCategoryIcon } from "@/components/common/AppCategoryIcon";
+import { cn } from "@/lib/utils";
 import { formatRupiah } from "@/lib/financial-calculations";
 import { generateMonthlyReview } from "@/actions/ai-review";
 import { closeMonth, reopenMonth } from "@/actions/months";
@@ -76,6 +77,7 @@ export function AiMonthlyReviewModal({
     null
   );
   const [isClosing, startCloseTransition] = React.useTransition();
+  const [showCloseConfirm, setShowCloseConfirm] = React.useState(false);
 
   const runEvaluation = React.useCallback(async () => {
     setIsLoadingAi(true);
@@ -176,7 +178,8 @@ export function AiMonthlyReviewModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger || (
           <Button
@@ -343,7 +346,7 @@ export function AiMonthlyReviewModal({
                 variant="outline"
                 size="sm"
                 disabled={isClosing}
-                onClick={handleToggleMonthClose}
+                onClick={() => setShowCloseConfirm(true)}
                 className="rounded-xl gap-1.5 text-xs cursor-pointer"
               >
                 {isClosing ? (
@@ -384,5 +387,82 @@ export function AiMonthlyReviewModal({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal Dialog Konfirmasi Tutup Buku / Buka Kembali */}
+      <Dialog open={showCloseConfirm} onOpenChange={setShowCloseConfirm}>
+        <DialogContent className="sm:max-w-md max-h-[90dvh]">
+          <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+            <DialogTitle className="text-base font-bold text-foreground">
+              {isClosed
+                ? "Konfirmasi Buka Kembali Siklus"
+                : "Konfirmasi Tutup Buku & Sweep Tabungan"}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              {isClosed
+                ? `Apakah Anda yakin ingin membuka kembali siklus ${monthName}? Catatan dan alokasi anggaran akan dapat diedit kembali.`
+                : `Apakah Anda yakin ingin menutup buku siklus ${monthName}? Sisa surplus anggaran akan otomatis disapu ke Tabungan Bebas.`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 min-h-0 text-xs">
+            <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Siklus Bulan</span>
+                <span className="font-bold text-foreground">{monthName}</span>
+              </div>
+              {!isClosed && reviewData && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Surplus Disapu ke Tabungan</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                    {formatRupiah(Math.max(0, reviewData.netSavings))}
+                  </span>
+                </div>
+              )}
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              {isClosed
+                ? "Membuka kembali siklus memungkinkan pencatatan transaksi susulan pada bulan ini."
+                : "Setelah ditutup, pos anggaran bulan ini akan terkunci dari transaksi baru hingga dibuka kembali."}
+            </p>
+          </div>
+
+          <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowCloseConfirm(false)}
+              className="rounded-xl cursor-pointer"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={isClosing}
+              onClick={() => {
+                setShowCloseConfirm(false);
+                handleToggleMonthClose();
+              }}
+              className={cn(
+                "rounded-xl gap-1.5 font-semibold cursor-pointer shadow-xs",
+                isClosed
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "bg-emerald-600 hover:bg-emerald-700 text-white"
+              )}
+            >
+              {isClosing ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : isClosed ? (
+                <Unlock className="size-3.5" />
+              ) : (
+                <Lock className="size-3.5" />
+              )}
+              <span>{isClosed ? "Buka Kembali" : "Tutup Buku Sekarang"}</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
     );
   }

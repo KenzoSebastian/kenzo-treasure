@@ -84,6 +84,11 @@ export function IncomeSection({
   }>({});
   const [isPending, startTransition] = React.useTransition();
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
+  const [incomeToDelete, setIncomeToDelete] = React.useState<{
+    id: string;
+    source: string;
+    amount: number;
+  } | null>(null);
 
   const defaultDate = React.useMemo(
     () => resolveDefaultCycleDate(cycleYear, cycleMonthIndex),
@@ -430,8 +435,14 @@ export function IncomeSection({
                         variant="ghost"
                         size="icon"
                         disabled={deletingId === inc.id || isPending}
-                        onClick={() => handleDeleteIncome(inc.id, inc.source)}
-                        className="size-7 rounded-lg text-muted-foreground hover:text-destructive"
+                        onClick={() =>
+                          setIncomeToDelete({
+                            id: inc.id,
+                            source: inc.source,
+                            amount: inc.amount,
+                          })
+                        }
+                        className="size-7 rounded-lg text-muted-foreground hover:text-destructive cursor-pointer"
                         aria-label={`Hapus pemasukan ${inc.source}`}
                       >
                         {deletingId === inc.id ? (
@@ -448,6 +459,78 @@ export function IncomeSection({
           )}
         </Card>
       </div>
+
+      {/* Modal Dialog Konfirmasi Hapus Pemasukan */}
+      <Dialog
+        open={Boolean(incomeToDelete)}
+        onOpenChange={(open) => !open && setIncomeToDelete(null)}
+      >
+        <DialogContent className="sm:max-w-md max-h-[90dvh]">
+          <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+            <DialogTitle className="text-base font-bold text-foreground">
+              Konfirmasi Hapus Pemasukan
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              Apakah Anda yakin ingin menghapus pemasukan ini dari catatan bulan berjalan?
+            </DialogDescription>
+          </DialogHeader>
+
+          {incomeToDelete && (
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 min-h-0 text-xs">
+              <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Sumber Pemasukan</span>
+                  <span className="font-bold text-foreground">
+                    {incomeToDelete.source}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Nominal</span>
+                  <span className="font-extrabold text-foreground tabular-nums text-sm">
+                    {formatRupiah(incomeToDelete.amount)}
+                  </span>
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Menghapus pemasukan ini akan mengurangi total pendapatan bulan ini dan otomatis menyesuaikan kuota buffer Uang Bebas / Tabungan.
+              </p>
+            </div>
+          )}
+
+          <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIncomeToDelete(null)}
+              className="rounded-xl cursor-pointer"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={!incomeToDelete || deletingId === incomeToDelete?.id}
+              onClick={() => {
+                if (incomeToDelete) {
+                  const { id, source } = incomeToDelete;
+                  setIncomeToDelete(null);
+                  handleDeleteIncome(id, source);
+                }
+              }}
+              className="rounded-xl gap-1.5 font-semibold cursor-pointer shadow-xs"
+            >
+              {deletingId === incomeToDelete?.id ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="size-3.5" />
+              )}
+              <span>Hapus Pemasukan</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

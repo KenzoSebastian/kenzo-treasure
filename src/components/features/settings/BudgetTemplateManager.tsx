@@ -92,6 +92,8 @@ export function BudgetTemplateManager({
   const [formError, setFormError] = React.useState<string | null>(null);
   const [isPending, startTransition] = React.useTransition();
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
+  const [templateToDelete, setTemplateToDelete] =
+    React.useState<BudgetTemplateRow | null>(null);
 
   const totalActiveBudget = React.useMemo(
     () =>
@@ -299,8 +301,8 @@ export function BudgetTemplateManager({
                   variant="ghost"
                   size="icon"
                   disabled={deletingId === tpl.id || isPending}
-                  onClick={() => handleDelete(tpl)}
-                  className="size-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => setTemplateToDelete(tpl)}
+                  className="size-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
                   aria-label={`Hapus template ${tpl.name}`}
                 >
                   {deletingId === tpl.id ? (
@@ -581,6 +583,79 @@ export function BudgetTemplateManager({
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+      {/* Modal Dialog Konfirmasi Hapus Template Pos */}
+      <Dialog
+        open={Boolean(templateToDelete)}
+        onOpenChange={(open) => !open && setTemplateToDelete(null)}
+      >
+        <DialogContent className="sm:max-w-md max-h-[90dvh]">
+          <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+            <DialogTitle className="text-base font-bold text-foreground">
+              Konfirmasi Hapus Template Pos
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              Apakah Anda yakin ingin menghapus pos anggaran rutin ini dari template bulanan?
+            </DialogDescription>
+          </DialogHeader>
+
+          {templateToDelete && (
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 min-h-0 text-xs">
+              <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Nama Pos</span>
+                  <span className="font-bold text-foreground">
+                    {templateToDelete.name}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Target Standar</span>
+                  <span className="font-extrabold text-foreground tabular-nums text-sm">
+                    {formatRupiah(templateToDelete.targetBudget)}
+                  </span>
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Pos ini tidak akan diikutsertakan secara otomatis saat pembuatan siklus bulan baru berikutnya. Siklus bulan yang sudah berjalan tidak akan terpengaruh.
+              </p>
+            </div>
+          )}
+
+          <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setTemplateToDelete(null)}
+              className="rounded-xl cursor-pointer"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={
+                !templateToDelete || deletingId === templateToDelete?.id
+              }
+              onClick={() => {
+                if (templateToDelete) {
+                  const target = templateToDelete;
+                  setTemplateToDelete(null);
+                  handleDelete(target);
+                }
+              }}
+              className="rounded-xl gap-1.5 font-semibold cursor-pointer shadow-xs"
+            >
+              {deletingId === templateToDelete?.id ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="size-3.5" />
+              )}
+              <span>Hapus Template</span>
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </Card>
