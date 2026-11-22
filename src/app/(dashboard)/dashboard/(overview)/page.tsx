@@ -196,6 +196,12 @@ async function DashboardMonthContent({
     (cat) => cat.group === "uang_bebas_tabungan"
   );
 
+  const paidLiabilityIds = activeCategories
+    .filter(
+      (cat) => cat.liabilityId && cat.spent >= cat.target && cat.target > 0
+    )
+    .map((cat) => cat.liabilityId!);
+
   const activeLiabilities =
     liabilitiesRes.success && liabilitiesRes.data
       ? liabilitiesRes.data.items
@@ -551,6 +557,7 @@ async function DashboardMonthContent({
           liabilities={activeLiabilities}
           monthId={currentMonthDetail?.id}
           freeBudgetRemaining={freeBudgetCategory?.remaining}
+          paidLiabilityIds={paidLiabilityIds}
           isClosed={currentMonthDetail?.isClosed}
         />
 

@@ -166,7 +166,7 @@ describe("Shared Zod Schemas Validation (Client-Server Contract)", () => {
       expect(withMonthId.success).toBe(true);
     });
 
-    it("should validate installment recording with optional monthId", () => {
+    it("should validate installment recording with optional monthId and isExtraPayment", () => {
       const result = recordInstallmentSchema.safeParse({
         liabilityId: "550e8400-e29b-41d4-a716-446655440000",
         amount: "1000000",
@@ -178,6 +178,18 @@ describe("Shared Zod Schemas Validation (Client-Server Contract)", () => {
         expect(result.data.monthId).toBe(
           "550e8400-e29b-41d4-a716-446655440001"
         );
+        expect(result.data.isExtraPayment).toBe(false);
+      }
+
+      const extraResult = recordInstallmentSchema.safeParse({
+        liabilityId: "550e8400-e29b-41d4-a716-446655440000",
+        amount: 500000,
+        monthId: "550e8400-e29b-41d4-a716-446655440001",
+        isExtraPayment: true,
+      });
+      expect(extraResult.success).toBe(true);
+      if (extraResult.success) {
+        expect(extraResult.data.isExtraPayment).toBe(true);
       }
     });
 

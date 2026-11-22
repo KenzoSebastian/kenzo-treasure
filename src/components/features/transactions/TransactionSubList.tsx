@@ -41,6 +41,10 @@ const METHOD_LABELS: Record<TransactionMethod, string> = {
   transfer: "Transfer",
 };
 
+function formatDisplayDescription(desc: string): string {
+  return desc.replace(/\s*\[ref:liability:[0-9a-fA-F-]+\]/g, "");
+}
+
 export interface TransactionSubListProps {
   transactions: TransactionItem[];
   isClosed?: boolean;
@@ -83,7 +87,7 @@ export function TransactionSubList({
 
     router.refresh();
 
-    toast(`Transaksi "${item.description}" dihapus`, {
+    toast(`Transaksi "${formatDisplayDescription(item.description)}" dihapus`, {
       description: `${formatRupiah(item.amount)} • Klik Undo dalam 5 detik untuk membatalkan.`,
       duration: 5000,
       action: {
@@ -127,7 +131,7 @@ export function TransactionSubList({
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
               <span className="font-medium text-foreground truncate">
-                {tx.description}
+                {formatDisplayDescription(tx.description)}
               </span>
               <Badge
                 variant="outline"
@@ -153,7 +157,7 @@ export function TransactionSubList({
                 size="icon"
                 disabled={pendingId === tx.id}
                 onClick={() => setDeleteItem(tx)}
-                aria-label={`Hapus transaksi ${tx.description}`}
+                aria-label={`Hapus transaksi ${formatDisplayDescription(tx.description)}`}
                 className="size-7 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
               >
                 {pendingId === tx.id ? (
@@ -188,7 +192,7 @@ export function TransactionSubList({
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Keterangan Transaksi</span>
                   <span className="font-bold text-foreground truncate max-w-[200px]">
-                    {deleteItem.description}
+                    {formatDisplayDescription(deleteItem.description)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">

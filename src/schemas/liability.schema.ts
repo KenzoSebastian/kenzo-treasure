@@ -106,6 +106,7 @@ export const recordInstallmentSchema = z.object({
       message: "Format tanggal harus YYYY-MM-DD",
     })
     .optional(),
+  isExtraPayment: z.boolean().optional().default(false),
 });
 
 /**

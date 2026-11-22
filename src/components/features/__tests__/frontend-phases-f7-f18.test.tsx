@@ -198,6 +198,29 @@ describe("Frontend Phases F7–F18 & R1–R10 Component Suite", () => {
     expect(subListHtml).toContain("Rp 50.000");
     expect(subListHtml).not.toContain(FORBIDDEN_MONO_CLASS);
 
+    // Skenario 1: Verifikasi pembersihan tag ref internal pada deskripsi transaksi
+    const txWithTagHtml = renderToString(
+      <TransactionSubList
+        transactions={[
+          {
+            id: "tx-tag",
+            userId: "u-1",
+            categoryId: "c-1",
+            amount: 750000,
+            date: "2026-11-22",
+            description:
+              "Percepatan Cicilan Pinjaman Pendidikan [ref:liability:550e8400-e29b-41d4-a716-446655440000]",
+            method: "transfer",
+            isDeleted: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ]}
+      />
+    );
+    expect(txWithTagHtml).toContain("Percepatan Cicilan Pinjaman Pendidikan");
+    expect(txWithTagHtml).not.toContain("[ref:liability:");
+
     const categories = [
       {
         id: "cat-1",
@@ -308,6 +331,73 @@ describe("Frontend Phases F7–F18 & R1–R10 Component Suite", () => {
     expect(html).toContain('aria-label="Ubah cicilan Cicilan Kendaraan"');
     expect(html).toContain('aria-label="Hapus cicilan Cicilan Kendaraan"');
     expect(html).not.toContain(FORBIDDEN_MONO_CLASS);
+
+    // Skenario 1: Verifikasi tampilan ketika cicilan sudah dibayar bulan ini (paidLiabilityIds)
+    const paidHtml = renderToString(
+      <LiabilityTrackerCard
+        monthId="m-1"
+        freeBudgetRemaining={2000000}
+        paidLiabilityIds={["l-1"]}
+        liabilities={[
+          {
+            id: "l-1",
+            userId: "u-1",
+            name: "Cicilan Kendaraan",
+            icon: "car",
+            totalAmount: 12000000,
+            paidAmount: 3000000,
+            monthlyPayment: 1000000,
+            totalMonths: 12,
+            isSettled: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            remainingAmount: 9000000,
+            percentage: 25,
+            remainingMonths: 9,
+          },
+        ]}
+      />
+    );
+    expect(paidHtml).toContain("Sudah Dibayar Bulan Ini");
+    expect(paidHtml).toContain("Bayar Ekstra");
+    expect(paidHtml).toContain("Rp 1.000.000");
+    expect(paidHtml).toContain(
+      'aria-label="Bayar ekstra cicilan Cicilan Kendaraan"'
+    );
+
+    // Skenario 1 (Edge Case): Sisa Uang Bebas tidak mencukupi untuk bayar ekstra
+    const insufficientFreeBudgetHtml = renderToString(
+      <LiabilityTrackerCard
+        monthId="m-1"
+        freeBudgetRemaining={500000}
+        paidLiabilityIds={["l-1"]}
+        liabilities={[
+          {
+            id: "l-1",
+            userId: "u-1",
+            name: "Cicilan Kendaraan",
+            icon: "car",
+            totalAmount: 12000000,
+            paidAmount: 3000000,
+            monthlyPayment: 1000000,
+            totalMonths: 12,
+            isSettled: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            remainingAmount: 9000000,
+            percentage: 25,
+            remainingMonths: 9,
+          },
+        ]}
+      />
+    );
+    expect(insufficientFreeBudgetHtml).toContain("Sudah Dibayar Bulan Ini");
+    expect(insufficientFreeBudgetHtml).toContain("Sisa Uang Bebas (");
+    expect(insufficientFreeBudgetHtml).toContain("Rp 500.000");
+    expect(insufficientFreeBudgetHtml).toContain(
+      ") tidak cukup untuk bayar ekstra"
+    );
+    expect(insufficientFreeBudgetHtml).toContain("disabled");
   });
 
   it("Fase F12 & F13: WishlistCard renders milestone badge and sinking fund progress without emojis", () => {

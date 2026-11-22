@@ -30,6 +30,7 @@ import {
   CheckCircle2,
   Loader2,
   CalendarClock,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -67,6 +68,7 @@ interface LiabilityTrackerCardProps {
   liabilities: LiabilityWithProgress[];
   monthId?: string;
   freeBudgetRemaining?: number;
+  paidLiabilityIds?: string[];
   isClosed?: boolean;
 }
 
@@ -74,6 +76,7 @@ export function LiabilityTrackerCard({
   liabilities,
   monthId,
   freeBudgetRemaining,
+  paidLiabilityIds,
   isClosed = false,
 }: LiabilityTrackerCardProps) {
   const router = useRouter();
@@ -103,9 +106,11 @@ export function LiabilityTrackerCard({
     React.useState<LiabilityWithProgress | null>(null);
   const [deleteError, setDeleteError] = React.useState<string | null>(null);
 
-  // State Modal Konfirmasi Bayar Cicilan
-  const [payItem, setPayItem] =
-    React.useState<LiabilityWithProgress | null>(null);
+  // State Modal Konfirmasi Bayar Cicilan (Reguler / Ekstra)
+  const [payItem, setPayItem] = React.useState<{
+    item: LiabilityWithProgress;
+    isExtra: boolean;
+  } | null>(null);
 
   const [isPending, startTransition] = React.useTransition();
   const [payingId, setPayingId] = React.useState<string | null>(null);
@@ -128,7 +133,10 @@ export function LiabilityTrackerCard({
     setEditFormError(null);
   };
 
-  const handlePayInstallment = (item: LiabilityWithProgress) => {
+  const handlePayInstallment = (
+    item: LiabilityWithProgress,
+    isExtraPayment = false
+  ) => {
     if (item.isSettled || item.id.startsWith("preview-")) return;
     setPayingId(item.id);
 
@@ -138,6 +146,7 @@ export function LiabilityTrackerCard({
         amount: Math.min(item.monthlyPayment, item.remainingAmount),
         monthId: monthId && !isClosed ? monthId : undefined,
         method: "transfer",
+        isExtraPayment,
       });
       setPayingId(null);
 
@@ -150,6 +159,12 @@ export function LiabilityTrackerCard({
         toast.success(`Selamat! "${item.name}" 100% LUNAS!`, {
           description:
             "Pos cicilan ini otomatis pensiun di siklus bulan berikutnya.",
+        });
+      } else if (isExtraPayment) {
+        toast.success(`Pembayaran ekstra "${item.name}" tercatat`, {
+          description: `Dipotong dari Uang Bebas. Sisa pokok: ${formatRupiah(
+            res.data.remainingAmount
+          )}`,
         });
       } else {
         toast.success(`Cicilan "${item.name}" tercatat`, {
@@ -526,6 +541,11 @@ export function LiabilityTrackerCard({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {liabilities.map((item) => {
             const isPreview = item.id.startsWith("preview-");
+            const isPaidThisMonth = Boolean(paidLiabilityIds?.includes(item.id));
+            const payAmount = Math.min(item.monthlyPayment, item.remainingAmount);
+            const isFreeBudgetInsufficient =
+              isPaidThisMonth && (freeBudgetRemaining ?? 0) < payAmount;
+
             return (
               <Card
                 key={item.id}
@@ -593,13 +613,24 @@ export function LiabilityTrackerCard({
                       <span>100% LUNAS</span>
                     </Badge>
                   ) : (
-                    <Badge
-                      variant="outline"
-                      className="rounded-full text-[10px] font-semibold gap-1 px-2.5 py-0.5 tabular-nums"
-                    >
-                      <CalendarClock className="size-3 text-amber-500" />
-                      <span>{`${item.remainingMonths} Bulan Tersisa`}</span>
-                    </Badge>
+                    <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                      {isPaidThisMonth && (
+                        <Badge
+                          variant="outline"
+                          className="rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/25 text-[10px] font-semibold gap-1 px-2.5 py-0.5"
+                        >
+                          <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <span>Sudah Dibayar Bulan Ini</span>
+                        </Badge>
+                      )}
+                      <Badge
+                        variant="outline"
+                        className="rounded-full text-[10px] font-semibold gap-1 px-2.5 py-0.5 tabular-nums"
+                      >
+                        <CalendarClock className="size-3 text-amber-500" />
+                        <span>{`${item.remainingMonths} Bulan Tersisa`}</span>
+                      </Badge>
+                    </div>
                   )}
                 </div>
 
@@ -653,7 +684,7 @@ export function LiabilityTrackerCard({
                 </div>
 
                 {/* Footer Action / Settled Banner */}
-                <div className="pt-2 border-t border-border/50 flex items-center justify-between gap-2">
+                <div className="pt-2 border-t border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   {item.isSettled ? (
                     <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
                       Kewajiban ini telah lunas penuh dan tidak lagi memotong gaji
@@ -661,28 +692,61 @@ export function LiabilityTrackerCard({
                     </p>
                   ) : (
                     <>
-                      <span className="text-[11px] text-muted-foreground tabular-nums">
-                        Tenor: {item.totalMonths ?? Math.ceil(item.totalAmount / Math.max(1, item.monthlyPayment))} bln ({item.remainingMonths} bln tersisa)
-                      </span>
-                      {!isClosed && !isPreview && (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          disabled={payingId === item.id || isPending}
-                          onClick={() => setPayItem(item)}
-                          aria-label={`Bayar cicilan ${item.name}`}
-                          className="h-8 px-3 rounded-xl text-xs font-semibold gap-1.5 cursor-pointer"
-                        >
-                          {payingId === item.id ? (
-                            <Loader2 className="size-3.5 animate-spin" />
-                          ) : (
-                            <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
-                          )}
-                          <span>
-                            Bayar {formatRupiah(Math.min(item.monthlyPayment, item.remainingAmount))}
+                      <div className="flex flex-col">
+                        <span className="text-[11px] text-muted-foreground tabular-nums">
+                          Tenor: {item.totalMonths ?? Math.ceil(item.totalAmount / Math.max(1, item.monthlyPayment))} bln ({item.remainingMonths} bln tersisa)
+                        </span>
+                        {isPaidThisMonth && isFreeBudgetInsufficient && (
+                          <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400 tabular-nums">
+                            Sisa Uang Bebas ({formatRupiah(freeBudgetRemaining ?? 0)}) tidak cukup untuk bayar ekstra
                           </span>
-                        </Button>
+                        )}
+                      </div>
+                      {!isClosed && !isPreview && (
+                        isPaidThisMonth ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={isFreeBudgetInsufficient || payingId === item.id || isPending}
+                            onClick={() => setPayItem({ item, isExtra: true })}
+                            title={
+                              isFreeBudgetInsufficient
+                                ? `Sisa Uang Bebas (${formatRupiah(freeBudgetRemaining ?? 0)}) tidak mencukupi untuk bayar ekstra`
+                                : `Bayar ekstra ${formatRupiah(payAmount)} memotong Uang Bebas`
+                            }
+                            aria-label={`Bayar ekstra cicilan ${item.name}`}
+                            className="h-8 px-3 rounded-xl text-xs font-semibold gap-1.5 cursor-pointer border-primary/30 text-primary hover:bg-primary/5 disabled:cursor-not-allowed"
+                          >
+                            {payingId === item.id ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <Sparkles className="size-3.5 text-primary" />
+                            )}
+                            <span>
+                              Bayar Ekstra {formatRupiah(payAmount)}
+                            </span>
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={payingId === item.id || isPending}
+                            onClick={() => setPayItem({ item, isExtra: false })}
+                            aria-label={`Bayar cicilan ${item.name}`}
+                            className="h-8 px-3 rounded-xl text-xs font-semibold gap-1.5 cursor-pointer"
+                          >
+                            {payingId === item.id ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                            )}
+                            <span>
+                              Bayar {formatRupiah(payAmount)}
+                            </span>
+                          </Button>
+                        )
                       )}
                     </>
                   )}
@@ -951,7 +1015,7 @@ export function LiabilityTrackerCard({
         </DialogContent>
       </Dialog>
 
-      {/* Modal Dialog Konfirmasi Bayar Cicilan */}
+      {/* Modal Dialog Konfirmasi Bayar Cicilan (Reguler / Ekstra) */}
       <Dialog
         open={Boolean(payItem)}
         onOpenChange={(open) => !open && setPayItem(null)}
@@ -959,47 +1023,93 @@ export function LiabilityTrackerCard({
         <DialogContent className="sm:max-w-md max-h-[90dvh]">
           <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
             <DialogTitle className="text-base font-bold text-foreground">
-              Konfirmasi Pembayaran Cicilan
+              {payItem?.isExtra
+                ? "Konfirmasi Pembayaran Ekstra (Percepatan Pokok)"
+                : "Konfirmasi Pembayaran Cicilan"}
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
-              Pastikan rincian pembayaran cicilan ini sudah sesuai sebelum dicatat.
+              {payItem?.isExtra
+                ? "Pembayaran ekstra ini akan dipotong langsung dari saldo Uang Bebas / Tabungan."
+                : "Pastikan rincian pembayaran cicilan ini sudah sesuai sebelum dicatat."}
             </DialogDescription>
           </DialogHeader>
 
           {payItem && (
             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3.5 min-h-0 text-xs">
+              {payItem.isExtra && (
+                <div className="flex items-start gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-foreground/85 leading-relaxed">
+                  <Sparkles className="size-4 text-primary shrink-0 mt-0.5" />
+                  <span>
+                    Cicilan bulan ini sudah dibayar penuh. Pembayaran ekstra ini akan memotong saldo <strong>Uang Bebas / Tabungan</strong> dan mempercepat sisa pokok utang tanpa membuat pos cicilan overbudget.
+                  </span>
+                </div>
+              )}
+
               <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Kewajiban / Cicilan</span>
-                  <span className="font-bold text-foreground">{payItem.name}</span>
+                  <span className="font-bold text-foreground">{payItem.item.name}</span>
                 </div>
+                {payItem.isExtra && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Sumber Pemotongan</span>
+                    <span className="font-semibold text-primary">Uang Bebas / Tabungan</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Nominal Tagihan Bulan Ini</span>
+                  <span className="text-muted-foreground">
+                    {payItem.isExtra ? "Nominal Pembayaran Ekstra" : "Nominal Tagihan Bulan Ini"}
+                  </span>
                   <span className="font-extrabold text-foreground tabular-nums text-sm">
-                    {formatRupiah(Math.min(payItem.monthlyPayment, payItem.remainingAmount))}
+                    {formatRupiah(Math.min(payItem.item.monthlyPayment, payItem.item.remainingAmount))}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
+                {payItem.isExtra && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Sisa Uang Bebas Saat Ini</span>
+                      <span className="font-semibold text-foreground tabular-nums">
+                        {formatRupiah(freeBudgetRemaining ?? 0)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Sisa Uang Bebas Sesudah Bayar</span>
+                      <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                        {formatRupiah(
+                          Math.max(
+                            0,
+                            (freeBudgetRemaining ?? 0) -
+                              Math.min(payItem.item.monthlyPayment, payItem.item.remainingAmount)
+                          )
+                        )}
+                      </span>
+                    </div>
+                  </>
+                )}
+                <div className="flex items-center justify-between border-t border-border/40 pt-2">
                   <span className="text-muted-foreground">Sisa Pokok Saat Ini</span>
                   <span className="font-semibold text-muted-foreground tabular-nums">
-                    {formatRupiah(payItem.remainingAmount)}
+                    {formatRupiah(payItem.item.remainingAmount)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between border-t border-border/40 pt-2">
+                <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Sisa Pokok Sesudah Bayar</span>
                   <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
                     {formatRupiah(
                       Math.max(
                         0,
-                        payItem.remainingAmount -
-                          Math.min(payItem.monthlyPayment, payItem.remainingAmount)
+                        payItem.item.remainingAmount -
+                          Math.min(payItem.item.monthlyPayment, payItem.item.remainingAmount)
                       )
                     )}
                   </span>
                 </div>
               </div>
+
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Pembayaran akan dicatat pada pos anggaran bulan ini dan memotong pokok utang secara atomik.
+                {payItem.isExtra
+                  ? "Transaksi akan tercatat pada rincian pos Uang Bebas / Tabungan dan memotong pokok utang secara atomik."
+                  : "Pembayaran akan dicatat pada pos anggaran bulan ini dan memotong pokok utang secara atomik."}
               </p>
             </div>
           )}
@@ -1017,22 +1127,23 @@ export function LiabilityTrackerCard({
             <Button
               type="button"
               size="sm"
-              disabled={!payItem || payingId === payItem?.id}
+              disabled={!payItem || payingId === payItem?.item.id}
               onClick={() => {
                 if (payItem) {
-                  const target = payItem;
+                  const target = payItem.item;
+                  const isExtra = payItem.isExtra;
                   setPayItem(null);
-                  handlePayInstallment(target);
+                  handlePayInstallment(target, isExtra);
                 }
               }}
               className="rounded-xl gap-1.5 font-semibold cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
             >
-              {payingId === payItem?.id ? (
+              {payingId === payItem?.item.id ? (
                 <Loader2 className="size-3.5 animate-spin" />
               ) : (
                 <CheckCircle2 className="size-3.5" />
               )}
-              <span>Konfirmasi Bayar</span>
+              <span>{payItem?.isExtra ? "Konfirmasi Bayar Ekstra" : "Konfirmasi Bayar"}</span>
             </Button>
           </DialogFooter>
         </DialogContent>

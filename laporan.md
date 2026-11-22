@@ -13,6 +13,7 @@ Dokumen ini adalah rekapitulasi status pengerjaan proyek **Kenzo Treasury**, dip
   - **Penyelarasan Skeleton Tiap Halaman & Eliminasi Layout Ganda:** `Approved by Kenzo ✅ (2026-11-22 15:02 WIB)`.
   - **Penyelarasan Kontrak Cicilan (Auto-Calculate, Edit & Hapus Cicilan, Pos Lock, Status Target Terpenuhi):** `Approved by Kenzo ✅ (2026-11-22 15:02 WIB)`.
   - **Standardisasi Dialog Konfirmasi Seluruh Aksi Mutasi Finansial & Destruktif:** `Approved by Kenzo ✅ (2026-11-22 15:35 WIB)`.
+  - **Skenario 1: Penanda Status "Sudah Dibayar Bulan Ini" & Fitur Bayar Ekstra dari Uang Bebas:** `Approved by Kenzo ✅ (2026-11-22 20:28 WIB)`.
 - **Tech Stack Terkunci:**
   - Runtime & Package Manager: Bun (v1.4+)
   - Frontend: Next.js 16 (App Router, React 19, TypeScript)
@@ -39,7 +40,21 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
 
 ## 📝 Log Checkpoint Terbaru (Maksimal 5 Checkpoint Aktif)
 
-### Checkpoint 1: Standardisasi Dialog Konfirmasi untuk Seluruh Aksi Mutasi Finansial & Destruktif (2026-11-22 15:25 WIB • Approved 2026-11-22 15:35 WIB)
+### Checkpoint 1: Skenario 1 — Penanda Status "Sudah Dibayar Bulan Ini" & Fitur Bayar Ekstra dari Uang Bebas (2026-11-22 20:21 WIB • Approved 2026-11-22 20:28 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 20:28 WIB)`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. **Badge Status "Sudah Dibayar Bulan Ini" (`LiabilityTrackerCard.tsx`):** Mendeteksi cicilan yang telah terbayar lunas untuk siklus bulan ini (`spent >= target`), menampilkan badge hijau emerald dengan ikon `CheckCircle2` di header kartu cicilan.
+  2. **Fitur Bayar Ekstra (Percepatan Pokok) dari Uang Bebas:**
+     - Tombol berubah menjadi **`Bayar Ekstra <Nominal>`** dengan ikon `Sparkles`.
+     - Pembayaran ekstra tidak membuat pos cicilan overbudget, melainkan memotong saldo **`Uang Bebas / Tabungan`** dan tercatat di rincian transaksinya (`Percepatan Cicilan <Nama>`).
+     - Pokok utang pada tabel `liabilities` berkurang secara atomik (`paidAmount` bertambah dan otomatis lunas `isSettled = true` jika selesai).
+  3. **Validasi Anti-Defisit Uang Bebas:** Tombol bayar ekstra otomatis di-disable jika sisa kuota Uang Bebas tidak mencukupi, disertai teks penjelas. Server Action `recordInstallmentPayment` memvalidasi ketersediaan saldo dengan `FOR UPDATE`.
+  4. **Rekonsiliasi Hapus/Undo Transaksi Bayar Ekstra:** Jika transaksi pembayaran ekstra dihapus atau dipulihkan di pos Uang Bebas (`TransactionSubList.tsx`), sisa pokok cicilan otomatis direkonsiliasi secara atomik via penanda referensi internal yang bersih dari UI.
+  5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 89/89 PASS (396 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
+- **File Changelog:** [`2026-11-22_liability_extra_installment_and_paid_status.md`](.changelog/2026-11-22_liability_extra_installment_and_paid_status.md).
+
+### Checkpoint 2: Standardisasi Dialog Konfirmasi untuk Seluruh Aksi Mutasi Finansial & Destruktif (2026-11-22 15:25 WIB • Approved 2026-11-22 15:35 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 15:35 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -52,7 +67,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   7. **Kepatuhan Desain & Verifikasi:** Bebas `font-mono` (100% `tabular-nums`), bebas emoji literal, fixed header & edge-to-edge footer, lolos `tsc --noEmit`, 89/89 `bun test` PASS, dan Turbopack build PASS.
 - **File Changelog:** [`2026-11-22_action_confirmation_dialogs.md`](.changelog/2026-11-22_action_confirmation_dialogs.md).
 
-### Checkpoint 2: Penyelarasan Kontrak Cicilan — Smart Auto-Calculate, Penguncian Pos Cicilan & Modal Edit Terpusat (2026-11-22 14:24 WIB • Approved 2026-11-22 15:02 WIB)
+### Checkpoint 3: Penyelarasan Kontrak Cicilan — Smart Auto-Calculate, Penguncian Pos Cicilan & Modal Edit Terpusat (2026-11-22 14:24 WIB • Approved 2026-11-22 15:02 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 15:02 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -60,57 +75,28 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   2. **Smart Bidirectional Auto-Calculate (Kalkulasi Timbal Balik Otomatis & Pembulatan Ribuan):**
      - Total Pokok atau Tenor diubah $\rightarrow$ Cicilan per Bulan otomatis terhitung rapi dibulatkan ke atas ke kelipatan ribuan Rupiah terdekat: $\lceil (\text{totalAmount} / \text{tenorMonths}) / 1000 \rceil \times 1000$ (misal: pokok Rp 4.000.000 / 12 bulan menghasilkan **Rp 334.000**, bukan pecahan ganjil 333.334).
      - Cicilan per Bulan disesuaikan manual $\rightarrow$ Tenor otomatis dihitung ulang: $\text{tenorMonths} = \max(1, \lceil \text{totalAmount} / \text{monthlyPayment} \rceil)$.
-     - Mengeliminasi tuntas kontradiksi matematis (misal: pokok 17jt dengan tenor 12 bulan otomatis terisi Rp 1.417.000/bln dan sisa bulan tepat 12 bulan).
-  3. **Modal Edit Cicilan Terpusat di `LiabilityTrackerCard.tsx`:**
-     - Menambahkan tombol edit (ikon pensil kecil) di samping nama cicilan pada setiap kartu cicilan aktif.
-     - Menyediakan dialog modal edit dengan kalkulasi timbal balik otomatis dan sinkronisasi atomik via `updateLiability` (otomatis memperbarui `budgetCategories` siklus terbuka dan menyeimbangkan saldo Uang Bebas).
-  4. **Fitur Hapus Cicilan (Opsi B — Tombol di Header Kartu + Dialog Konfirmasi):**
-     - Tombol ikon tempat sampah merah (`Trash2`) langsung di samping tombol pensil edit kartu cicilan.
-     - Server action `deleteLiability` atomik: Jika pos cicilan di bulan berjalan belum ada transaksi, pos dihapus dan sisa plafon dikembalikan utuh ke `Uang Bebas / Tabungan`. Jika sudah ada transaksi, pos anggaran dilepas tautannya (`liabilityId = null`) agar catatan pengeluaran harian tidak hilang.
-  5. **Penyelarasan Status Semantik 'Target Terpenuhi' (Hijau Emerald) saat Penyerapan Pas 100%:**
-     - Pos anggaran dengan realisasi tepat 100% targetnya (`spent === target` dan `sisa === 0`) kini menampilkan status positif **`Target Terpenuhi`** dengan badge dan progress bar hijau emerald, bukan lagi peringatan waspada kuning *"Mendekati Limit >80%"*.
-  6. **Kepatuhan Standar Desain:** Bebas 100% dari emoji literal (menggunakan ikon semantik Lucide `Info`, `Lock`, `Pencil`, `Trash2`), fixed header & edge-to-edge footer, serta seluruh angka dan metrik menggunakan `tabular-nums` tanpa `font-mono`.
-  7. **Verifikasi Kualitas:** `tsc --noEmit` (PASS), `bun test` (89/89 PASS, 380 expect calls), `bun run build` (Turbopack 11/11 routes PASS).
+  3. **Modal Edit Cicilan Terpusat di `LiabilityTrackerCard.tsx`:** Menambahkan tombol edit di samping nama cicilan dan modal edit dengan kalkulasi timbal balik otomatis dan sinkronisasi atomik via `updateLiability`.
+  4. **Fitur Hapus Cicilan (Opsi B — Tombol di Header Kartu + Dialog Konfirmasi):** Server action `deleteLiability` atomik mengembalikan jatah ke Uang Bebas bila belum ada transaksi, atau melepas tautan bila sudah ada transaksi.
+  5. **Penyelarasan Status Semantik 'Target Terpenuhi' (Hijau Emerald) saat Penyerapan Pas 100%:** Pos anggaran dengan realisasi tepat 100% targetnya menampilkan status positif **`Target Terpenuhi`** dengan badge dan progress bar hijau emerald.
 - **File Changelog:** [`2026-11-22_liability_smart_auto_calculate_and_budget_lock.md`](.changelog/2026-11-22_liability_smart_auto_calculate_and_budget_lock.md).
 
-### Checkpoint 3: Rekonfigurasi Skeleton Tiap Halaman (Dashboard, Brankas, Wishlist, Analitik, Data & Backup) Menjadi 1 Layout Otentik (2026-11-22 13:50 WIB • Approved 2026-11-22 15:02 WIB)
+### Checkpoint 4: Rekonfigurasi Skeleton Tiap Halaman (Dashboard, Brankas, Wishlist, Analitik, Data & Backup) Menjadi 1 Layout Otentik (2026-11-22 13:50 WIB • Approved 2026-11-22 15:02 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 15:02 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
-  1. **Eliminasi Isu "2 Layout" Bertumpuk:** Menghapus perenderan ganda pada `PageSectionSkeleton.tsx` yang sebelumnya memunculkan grid kartu metrik bersamaan dengan kartu tabel/grafik besar bertumpuk vertikal. Komponen direfaktor menjadi modular dan bebas dari duplikasi layout.
-  2. **5 Skeleton Terdedikasi yang Presisi (1 Layout per Halaman):**
-     - `DashboardSkeleton.tsx`: Menyelaraskan baris kanan header dengan kontrol 2 baris aktual (Baris 1: Month Selector lebar penuh; Baris 2: Grid 3 action buttons simetris: Bulan Baru, Evaluasi AI, Transaksi), diikuti Executive Summary KPI Card, 3 Cashflow Pillar Cards, 6 Grid Pos Anggaran Bulanan, dan 2 Hub Cards di bawah.
-     - `VaultSkeleton.tsx`: 1 layout utuh mencerminkan `EmergencyVaultCard` (Header proteksi brankas & tombol mutasi, 3 Pilar Angka: Dana Darurat, Tabungan Bebas, Safety Months Meter, dan target progress bar).
-     - `WishlistsSkeleton.tsx`: 1 layout utuh mencerminkan `WishlistGrid` (Header halaman, Top Banner Sinking Fund + tombol tambah barang impian, dan katalog 6 kartu wishlist dengan thumbnail WebP, milestone badge, dan progress bar).
-     - `AnalyticsSkeleton.tsx`: 1 layout utuh mencerminkan `AnalyticsDashboard` (Header halaman, Control Strip toggle Bar vs Line, 2 kartu grafik lebar Recharts, serta 2 kartu bawah untuk perbandingan tahunan dan distribusi pos anggaran).
-     - `SettingsSkeleton.tsx`: 1 layout utuh mencerminkan `SettingsPage` (Header halaman, Panel 1 Form Gaji Pokok & Target Darurat, Panel 2 Manajemen Template Pos Rutin, dan Panel 3 Ekspor Data dengan 3 format unduhan: CSV, Excel, JSON).
-  3. **Wiring Seluruh Rute Loading & Isolasi Route Group `(overview)`:** Menghubungkan masing-masing `loading.tsx` langsung ke skeleton terdedikasinya. Memindahkan `page.tsx` & `loading.tsx` utama dashboard ke route group `dashboard/(overview)/` agar skeleton dashboard tidak membungkus sub-rute sebaya, mengeliminasi tuntas akar masalah flash skeleton dashboard saat berpindah sub-tab.
-  4. **Invarian Tipografi & A11y:** Seluruh komponen skeleton bebas 100% dari utility font monospace (`font-mono = 0`) dan mematuhi atribut aksesibilitas `aria-busy="true"`.
-  5. **Verifikasi Kualitas Lengkap:** `tsc --noEmit` (0 errors), `bun test` (87/87 PASS, 364 expect calls), `bun run build` (Turbopack Next.js 16.4.6 pass).
+  1. **Eliminasi Isu "2 Layout" Bertumpuk:** Menghapus perenderan ganda pada `PageSectionSkeleton.tsx` yang sebelumnya memunculkan grid kartu metrik bersamaan dengan kartu tabel/grafik besar bertumpuk vertikal.
+  2. **5 Skeleton Terdedikasi yang Presisi (1 Layout per Halaman):** `DashboardSkeleton.tsx`, `VaultSkeleton.tsx`, `WishlistsSkeleton.tsx`, `AnalyticsSkeleton.tsx`, `SettingsSkeleton.tsx`.
+  3. **Wiring Seluruh Rute Loading & Isolasi Route Group `(overview)`:** Menghubungkan masing-masing `loading.tsx` langsung ke skeleton terdedikasinya dan memindahkan dashboard utama ke `dashboard/(overview)/` guna mengeliminasi flash skeleton saat pindah tab.
 - **File Changelog:** [`2026-11-22_page_specific_skeletons_and_eliminate_double_layout.md`](.changelog/2026-11-22_page_specific_skeletons_and_eliminate_double_layout.md).
 
-### Checkpoint 4: Standarisasi Semua Modal Box & Sheet — Eliminasi Padding Dialog, Footer Solid Hitam Nempel Tepi, dan Tombol Close Lega (2026-11-15 22:15 WIB • Approved 2026-11-15 22:17 WIB)
+### Checkpoint 5: Standarisasi Semua Modal Box & Sheet — Eliminasi Padding Dialog, Footer Solid Hitam Nempel Tepi, dan Tombol Close Lega (2026-11-15 22:15 WIB • Approved 2026-11-15 22:17 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-15 22:17 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
-  1. **Eliminasi Padding Bawaan Dialog (`p-0 gap-0 overflow-hidden` di Akar):** Mengganti base class `DialogPrimitive.Content` pada `src/components/ui/dialog.tsx` dari `grid gap-4 p-4 rounded-xl` menjadi `flex flex-col rounded-2xl bg-popover p-0 gap-0 overflow-hidden`, serta beralih menggunakan utility resmi `@/lib/utils`. Menghilangkan akar masalah padding 16px yang sebelumnya membuat footer tampak melayang di dalam dialog.
-  2. **Footer Tombol Aksi Solid Hitam Menempel Tepi-ke-Tepi (`w-full border-t border-border/60 bg-background px-6 py-4 shrink-0 mt-auto`):** Footer kontainer tombol aksi di seluruh 11 modal dialog dan drawer kini menempel 100% rapat ke tepi kiri, kanan, dan bawah tanpa jeda padding samping maupun bawah. Garis `border-t border-border/60` membentang utuh dan sudut bawah dibulatkan rapi mengikuti kontainer modal.
-  3. **Formulir 100% Lebar (`w-full m-0 p-0 flex flex-col flex-1 min-h-0`):** Seluruh elemen `<form>` di dalam modal distandarisasi agar mengambil 100% lebar modal tanpa margin samping yang menggeser footer.
-  4. **Body Formulir Scrollable Mandiri (`flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0`):** Header dan footer terkunci di tempat (*fixed position*), sementara area tengah konten formulir menjadi satu-satunya area yang dapat di-scroll secara mulus.
-  5. **Tombol Close Nyaman & Tidak Dempet (`top-4 right-4 size-8 rounded-xl` + `pr-14`):** Tombol `X` diposisikan simetris 16px dari atas dan kanan, dengan safe right-padding `pr-12` default pada header sehingga tidak pernah bertabrakan dengan judul atau badge.
-  6. **Cakupan Lengkap 11 Dialog + 1 Drawer:** `CreateMonthDialog`, `QuickTransactionDrawer`, `BudgetTemplateManager`, `LiabilityTrackerCard`, `WishlistCard`, `AllocateWishlistDrawer`, `AiMonthlyReviewModal`, `BudgetCategoryList`, `BudgetCategoryCard` (Modal Hapus & Modal Rincian), `EmergencyVaultCard`, dan `IncomeSection`.
-  7. **Verifikasi Otomatis:** `bun test` (87/87 PASS), `bun run typecheck` (0 errors), `font-mono = 0`, dan `bun run build` (Turbopack compile PASS).
+  1. **Eliminasi Padding Bawaan Dialog (`p-0 gap-0 overflow-hidden` di Akar):** Mengganti base class `DialogPrimitive.Content` pada `src/components/ui/dialog.tsx` menjadi `flex flex-col rounded-2xl bg-popover p-0 gap-0 overflow-hidden`.
+  2. **Footer Tombol Aksi Solid Hitam Menempel Tepi-ke-Tepi:** Menempel 100% rapat ke tepi kiri, kanan, dan bawah tanpa jeda padding samping maupun bawah.
+  3. **Formulir 100% Lebar & Scrollable Mandiri:** Header dan footer terkunci di tempat (*fixed position*), area tengah konten formulir dapat di-scroll mandiri.
 - **File Changelog:** [`2026-11-15_standardize_all_modal_boxes_fixed_header_footer_and_scrollable_body.md`](.changelog/2026-11-15_standardize_all_modal_boxes_fixed_header_footer_and_scrollable_body.md).
-
-### Checkpoint 5: Layout Card Pos Ketat 2 Baris, Animasi Geser Tab Rp/%, Header Action Buttons Dashboard & 36 Ikon Finansial (2026-11-15 20:49 WIB • Approved 2026-11-15 20:52 WIB)
-- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-15 20:52 WIB)`
-- **Agent:** Antigravity
-- **Capaian Utama:**
-  1. **Rekonfigurasi Header Action Buttons Dashboard (Width Ringkas 360px & Dropdown Edge-to-Edge):** Baris 1 `MonthSelector` lebar penuh 360px, Baris 2 grid 3 tombol simetris (`Bulan Baru`, `Evaluasi AI`, `Transaksi`).
-  2. **Harmonisasi Warna Input Persen (`dark:bg-input/30`):** Selaras 100% dengan permukaan field form standar.
-  3. **Animasi Geser Horizontal Tab Rp/% (`Sliding Indicator`):** Transisi halus tactile dengan GPU acceleration.
-  4. **Ekspansi 36 Ikon Finansial (Grid 6x6):** Menambahkan 12 ikon keuangan baru untuk menyempurnakan kurasi Lucide.
-- **File Changelog:** [`2026-11-15_refine_onboarding_template_cards_and_full_width_button.md`](.changelog/2026-11-15_refine_onboarding_template_cards_and_full_width_button.md).
 
 ---
 
@@ -120,6 +106,7 @@ Seluruh rincian teknis, log kode, dan verifikasi fase terdahulu telah terdokumen
 
 | Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
 | :--- | :--- | :--- | :--- |
+| **Layout Card Pos 2 Baris, Animasi Tab Rp/% & 36 Ikon Finansial** | 2026-11-15 | MonthSelector 360px 2 baris, animasi geser sliding indicator, dan ekspansi 36 ikon finansial Lucide. | [`2026-11-15_refine_onboarding_template_cards_and_full_width_button.md`](.changelog/2026-11-15_refine_onboarding_template_cards_and_full_width_button.md) |
 | **Implementasi Penuh Fase R1–R10 (Pilihan A Batch)** | 2026-11-15 | 100% zero-emoji, onboarding wizard, single-source of truth database, dynamic categories, concurrency guard, caching & performa. | [`2026-11-15_implement_phases_r1_to_r10_batch.md`](.changelog/2026-11-15_implement_phases_r1_to_r10_batch.md) |
 | **Master Plan Revisi PLANREVISI.md (R1–R10)** | 2026-11-15 | Penyusunan backlog revisi 10 fase via /grill-me dan resolusi 17 temuan audit EGM. | [`2026-11-15_create_planrevisi_workflow.md`](.changelog/2026-11-15_create_planrevisi_workflow.md) |
 | **Backend B7–B13 & Frontend F7–F18** | 2026-11-15 | Penuntasan penuh seluruh roadmap backend dan frontend (100% tuntas & disetujui). | [`2026-11-14_complete_phases_b7_b13_and_f7_f18.md`](.changelog/2026-11-14_complete_phases_b7_b13_and_f7_f18.md) |

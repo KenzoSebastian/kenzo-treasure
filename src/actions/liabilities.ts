@@ -17,7 +17,7 @@
  * 3. `updateLiability`: Memperbarui parameter cicilan & menyinkronkan pos bulan aktif.
  */
 
-import { eq, and, desc, count } from "drizzle-orm";
+import { eq, and, desc, count, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   liabilities,
@@ -307,6 +307,7 @@ export async function recordInstallmentPayment(
       method,
       description,
       date,
+      isExtraPayment,
     } = parsed.data;
 
     const updatedRecord = await db.transaction(async (tx) => {
@@ -348,12 +349,106 @@ export async function recordInstallmentPayment(
               eq(liabilities.userId, userId)
             )
           )
-          .limit(1);
+          .for("update");
 
         if (!existingLiability) {
           throw new Error("NOT_FOUND");
         }
 
+        const remainingDebt = Math.max(
+          0,
+          existingLiability.totalAmount - existingLiability.paidAmount
+        );
+
+        if (existingLiability.isSettled || remainingDebt <= 0) {
+          throw new Error("LIABILITY_ALREADY_SETTLED");
+        }
+
+        if (amount > remainingDebt) {
+          throw new Error("LIABILITY_OVERPAYMENT");
+        }
+
+        // SKENARIO 1: PEMBAYARAN EKSTRA (PERCEPATAN POKOK) DARI UANG BEBAS
+        if (isExtraPayment) {
+          const [freeCategory] = await tx
+            .select()
+            .from(budgetCategories)
+            .where(
+              and(
+                eq(budgetCategories.monthId, targetMonth.id),
+                eq(budgetCategories.group, "uang_bebas_tabungan")
+              )
+            )
+            .for("update");
+
+          if (!freeCategory) {
+            throw new Error("FREE_CATEGORY_NOT_FOUND");
+          }
+
+          // Verifikasi sisa kuota uang bebas riil saat ini
+          const [spentAgg] = await tx
+            .select({
+              totalSpent: sql<number>`coalesce(sum(${transactions.amount}), 0)`,
+            })
+            .from(transactions)
+            .where(
+              and(
+                eq(transactions.categoryId, freeCategory.id),
+                eq(transactions.userId, userId),
+                eq(transactions.isDeleted, false)
+              )
+            );
+
+          const currentSpent = Number(spentAgg?.totalSpent ?? 0);
+          const currentRemaining = freeCategory.targetBudget - currentSpent;
+
+          if (currentRemaining < amount) {
+            throw new Error("INSUFFICIENT_FREE_BUDGET_EXTRA");
+          }
+
+          const txDesc =
+            description?.trim() ||
+            `Percepatan Cicilan ${existingLiability.name} [ref:liability:${existingLiability.id}]`;
+
+          // Catat transaksi di pos Uang Bebas / Tabungan
+          await tx.insert(transactions).values({
+            userId,
+            categoryId: freeCategory.id,
+            amount,
+            date: txDate,
+            description: txDesc,
+            method: method ?? "transfer",
+            isDeleted: false,
+          });
+
+          // Update data liability secara atomik
+          const nextPaid = existingLiability.paidAmount + amount;
+          const nextSettled = nextPaid >= existingLiability.totalAmount;
+
+          const [updatedLiability] = await tx
+            .update(liabilities)
+            .set({
+              paidAmount: nextPaid,
+              isSettled: nextSettled,
+              updatedAt: new Date(),
+            })
+            .where(eq(liabilities.id, existingLiability.id))
+            .returning();
+
+          if (nextSettled) {
+            await tx
+              .update(budgetCategories)
+              .set({
+                isTemporary: true,
+                updatedAt: new Date(),
+              })
+              .where(eq(budgetCategories.liabilityId, existingLiability.id));
+          }
+
+          return updatedLiability;
+        }
+
+        // JALUR REGULER: Pos anggaran cicilan bulanan
         // Cari pos anggaran yang terhubung ke liability ini pada bulan berjalan
         let [linkedCategory] = await tx
           .select()
@@ -416,6 +511,27 @@ export async function recordInstallmentPayment(
             .returning();
 
           linkedCategory = createdCat;
+        } else {
+          // Pos sudah ada: jika cicilan bulan ini sudah dibayar penuh (spent >= target), tolak double payment reguler
+          const [catSpentAgg] = await tx
+            .select({
+              totalSpent: sql<number>`coalesce(sum(${transactions.amount}), 0)`,
+            })
+            .from(transactions)
+            .where(
+              and(
+                eq(transactions.categoryId, linkedCategory.id),
+                eq(transactions.userId, userId),
+                eq(transactions.isDeleted, false)
+              )
+            );
+          const catSpent = Number(catSpentAgg?.totalSpent ?? 0);
+          if (
+            catSpent >= linkedCategory.targetBudget &&
+            linkedCategory.targetBudget > 0
+          ) {
+            throw new Error("INSTALLMENT_ALREADY_PAID_THIS_MONTH");
+          }
         }
 
         const txResult = await executeCategoryTransactionTx({
@@ -539,6 +655,20 @@ export async function recordInstallmentPayment(
           success: false,
           error:
             "Pos cicilan belum tersedia di bulan berjalan dan kuota Uang Bebas tidak mencukupi untuk membuat pos otomatis.",
+        };
+      }
+      if (err.message === "INSUFFICIENT_FREE_BUDGET_EXTRA") {
+        return {
+          success: false,
+          error:
+            "Sisa kuota Uang Bebas / Tabungan tidak mencukupi untuk melakukan pembayaran ekstra cicilan ini.",
+        };
+      }
+      if (err.message === "INSTALLMENT_ALREADY_PAID_THIS_MONTH") {
+        return {
+          success: false,
+          error:
+            "Cicilan bulan ini sudah dibayar penuh. Gunakan opsi Bayar Ekstra untuk percepatan pelunasan.",
         };
       }
     }

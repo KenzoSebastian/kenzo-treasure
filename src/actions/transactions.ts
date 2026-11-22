@@ -249,13 +249,23 @@ export async function softDeleteTransaction(
         .where(eq(transactions.id, parsed.data.transactionId))
         .returning();
 
-      if (existing.liabilityId) {
+      let targetLiabilityId = existing.liabilityId;
+      if (!targetLiabilityId && existing.txRow.description) {
+        const match = existing.txRow.description.match(
+          /\[ref:liability:([0-9a-fA-F-]{36})\]/
+        );
+        if (match) {
+          targetLiabilityId = match[1];
+        }
+      }
+
+      if (targetLiabilityId) {
         const [liabilityRow] = await tx
           .select()
           .from(liabilities)
           .where(
             and(
-              eq(liabilities.id, existing.liabilityId),
+              eq(liabilities.id, targetLiabilityId),
               eq(liabilities.userId, userId)
             )
           )
@@ -383,13 +393,23 @@ export async function restoreTransaction(
         .where(eq(transactions.id, parsed.data.transactionId))
         .returning();
 
-      if (existing.liabilityId) {
+      let targetLiabilityId = existing.liabilityId;
+      if (!targetLiabilityId && existing.txRow.description) {
+        const match = existing.txRow.description.match(
+          /\[ref:liability:([0-9a-fA-F-]{36})\]/
+        );
+        if (match) {
+          targetLiabilityId = match[1];
+        }
+      }
+
+      if (targetLiabilityId) {
         const [liabilityRow] = await tx
           .select()
           .from(liabilities)
           .where(
             and(
-              eq(liabilities.id, existing.liabilityId),
+              eq(liabilities.id, targetLiabilityId),
               eq(liabilities.userId, userId)
             )
           )
