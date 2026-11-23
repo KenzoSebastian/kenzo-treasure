@@ -143,6 +143,13 @@ export function AllocateWishlistDrawer({
       return;
     }
 
+    if (mode === "allocate" && remainingNeeded > 0 && numericAmount > remainingNeeded) {
+      setErrorMsg(
+        `Nominal melebihi sisa kebutuhan barang impian ini (${formatRupiah(remainingNeeded)})`
+      );
+      return;
+    }
+
     if (mode === "withdraw" && numericAmount > wishlist.savedAmount) {
       setErrorMsg(
         `Nominal tarik melebihi dana terkumpul (${formatRupiah(wishlist.savedAmount)})`

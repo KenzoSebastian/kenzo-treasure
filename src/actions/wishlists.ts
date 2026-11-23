@@ -26,7 +26,10 @@ import {
   type MarkWishlistPurchasedInput,
 } from "@/schemas/wishlist.schema";
 import { resolveCategoryIconKey } from "@/lib/category-icons";
-import { DEFAULT_EMERGENCY_FUND_TARGET } from "@/lib/financial-calculations";
+import {
+  DEFAULT_EMERGENCY_FUND_TARGET,
+  formatRupiah,
+} from "@/lib/financial-calculations";
 import { resolveAuthenticatedUserId } from "@/lib/queries/months";
 import { getWishlists, enrichWishlist } from "@/lib/queries/wishlists";
 import { revalidateDashboardRoutes } from "@/lib/revalidate";
@@ -161,6 +164,18 @@ export async function allocateSavings(
         throw new Error("WISHLIST_ALREADY_PURCHASED");
       }
 
+      // Invarian SC-10: Over-allocation guard (tidak boleh melebihi sisa kebutuhan)
+      const remainingNeeded = Math.max(
+        0,
+        targetWishlist.targetAmount - targetWishlist.savedAmount
+      );
+      if (remainingNeeded <= 0) {
+        throw new Error("WISHLIST_ALREADY_FULFILLED");
+      }
+      if (amount > remainingNeeded) {
+        throw new Error(`OVER_ALLOCATION:${remainingNeeded}`);
+      }
+
       const [savingsRow] = await tx
         .select()
         .from(savingsAccount)
@@ -226,6 +241,19 @@ export async function allocateSavings(
         success: false,
         error:
           "Barang impian ini sudah berstatus terbeli. Dana tidak dapat dialokasikan kembali.",
+      };
+    }
+    if (err instanceof Error && err.message === "WISHLIST_ALREADY_FULFILLED") {
+      return {
+        success: false,
+        error: "Target tabungan barang impian ini sudah terpenuhi 100%.",
+      };
+    }
+    if (err instanceof Error && err.message.startsWith("OVER_ALLOCATION:")) {
+      const remaining = Number(err.message.split(":")[1]) || 0;
+      return {
+        success: false,
+        error: `Nominal alokasi melebihi sisa kebutuhan barang impian ini (Sisa kebutuhan: Rp ${formatRupiah(remaining)}).`,
       };
     }
     if (err instanceof Error && err.message === "INSUFFICIENT_FUNDS") {

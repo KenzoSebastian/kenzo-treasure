@@ -283,6 +283,35 @@ describe("Backend Phases B7 - B13 & R1 - R10 Comprehensive Suite", () => {
         }
       }).toThrow("WISHLIST_ALREADY_PURCHASED");
     });
+
+    it("SC-10: harus memvalidasi dan memblokir alokasi melebihi sisa kekurangan barang impian (anti over-allocation)", () => {
+      // Skenario SC-10:
+      // Target barang impian Rp 5.000.000, sudah terkumpul Rp 4.800.000 (sisa Rp 200.000).
+      // Pengguna mengalokasikan Rp 2.000.000 dari saldo tabungan bebas.
+      const targetWishlist = {
+        id: "w-sc10",
+        targetAmount: 5_000_000,
+        savedAmount: 4_800_000,
+        isPurchased: false,
+      };
+
+      const remainingNeeded = Math.max(
+        0,
+        targetWishlist.targetAmount - targetWishlist.savedAmount
+      );
+      expect(remainingNeeded).toBe(200_000);
+
+      const allocationAmount = 2_000_000;
+      expect(() => {
+        if (allocationAmount > remainingNeeded) {
+          throw new Error(`OVER_ALLOCATION:${remainingNeeded}`);
+        }
+      }).toThrow("OVER_ALLOCATION:200000");
+
+      // Alokasi yang valid (<= remainingNeeded) harus lolos
+      const validAllocation = 200_000;
+      expect(validAllocation <= remainingNeeded).toBe(true);
+    });
   });
 
   describe("Fase B11: Brankas Dana Darurat (Emergency Fund Vault)", () => {

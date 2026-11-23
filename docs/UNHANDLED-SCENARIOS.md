@@ -17,7 +17,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 | **SC-07** | Wishlists | Alokasi / Penarikan Dana pada Barang yang Sudah Terbeli (*Magic Money*) | 🔴 Kritis | `src/actions/wishlists.ts` | **COMPLETED ✅** |
 | **SC-08** | Liabilities | Edit Total Pokok Utang < Total Sudah Dibayar (*Inkonsistensi Server*) | 🟡 Sedang | `src/actions/liabilities.ts` | **COMPLETED ✅** |
 | **SC-09** | Liabilities | Hapus Cicilan dengan Riwayat Transaksi Menghasilkan Pos Hantu Bulan Depan | 🟡 Sedang | `src/actions/liabilities.ts` | **COMPLETED ✅** |
-| **SC-10** | Wishlists | Alokasi Wishlist Melebihi Sisa Kebutuhan (*Over-Allocation*) | 🟡 Sedang | `src/actions/wishlists.ts` | ⚠️ Open |
+| **SC-10** | Wishlists | Alokasi Wishlist Melebihi Sisa Kebutuhan (*Over-Allocation*) | 🟡 Sedang | `src/actions/wishlists.ts` | **COMPLETED ✅** |
 | **SC-11** | Wishlists | Ketiadaan Fitur Edit / Hapus Wishlist & Penyelamatan Dana Tersimpan | 🟡 Sedang | `src/actions/wishlists.ts` | ⚠️ Open |
 | **SC-12** | Liabilities | Mengedit Cicilan Menjadi Lunas Tidak Mengembalikan Kuota Bulan Berjalan | 🟡 Sedang | `src/actions/liabilities.ts` | ⚠️ Open |
 | **SC-13** | Month Lifecycle | Pembuatan Bulan Baru Tanpa Tutup Buku Bulan Lama (*Lompat Bulan*) | 🟡 Sedang | `src/actions/months.ts` | ⚠️ Open |
@@ -188,6 +188,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 ---
 
 ### [SC-10] Alokasi Wishlist Melebihi Sisa Kebutuhan (*Over-Allocation*)
+- **Status:** **COMPLETED ✅** (Disetujui Kenzo pada 23 November 2026)
 - **Tingkat Keparahan:** 🟡 **Sedang (Pemborosan Likuiditas Bebas)**
 - **Modul Terdampak:** `src/actions/wishlists.ts` (`allocateSavings`)
 - **Kasus Riil:** Wishlist tinggal butuh Rp 200.000 untuk mencapai target Rp 5.000.000. Pengguna salah ketik menyetor Rp 2.000.000 dari tabungan bebas.
