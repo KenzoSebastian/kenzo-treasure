@@ -6,6 +6,7 @@ import {
   buildNeutralPresetTemplates,
   buildInheritedMonthCategories,
   buildInitialMonthCategories,
+  calculateAllocatedInstallmentTarget,
 } from "@/lib/month-generator";
 import {
   createMonthSchema,
@@ -175,6 +176,136 @@ describe("Month Lifecycle & Dynamic Category Generator (Fase B5 & R3)", () => {
       );
       // 5.000.000 - (1.500.000 + 400.000 + 600.000) = 2.500.000
       expect(freeCat?.targetBudget).toBe(2500000);
+    });
+  });
+
+  describe("SC-05: Dynamic Last Month Installment Allocation (Zero Idle Funds)", () => {
+    it("calculateAllocatedInstallmentTarget should allocate remaining principal if less than monthly payment", () => {
+      // Kasus 1: Sisa pokok Rp 250.000 < angsuran Rp 1.000.000
+      const lastMonthLiability = {
+        id: "liab-phone",
+        name: "Cicilan HP Kenzo",
+        monthlyPayment: 1_000_000,
+        totalAmount: 12_000_000,
+        paidAmount: 11_750_000, // sisa 250rb
+      };
+      expect(calculateAllocatedInstallmentTarget(lastMonthLiability)).toBe(250_000);
+
+      // Kasus 2: Sisa pokok Rp 7.000.000 > angsuran Rp 1.000.000
+      const ongoingLiability = {
+        id: "liab-laptop",
+        name: "Cicilan Laptop",
+        monthlyPayment: 1_000_000,
+        totalAmount: 12_000_000,
+        paidAmount: 5_000_000, // sisa 7jt
+      };
+      expect(calculateAllocatedInstallmentTarget(ongoingLiability)).toBe(1_000_000);
+
+      // Kasus 3: Sisa pokok 0 atau lunas
+      const settledLiability = {
+        id: "liab-paid",
+        name: "Cicilan Lunas",
+        monthlyPayment: 1_000_000,
+        totalAmount: 12_000_000,
+        paidAmount: 12_000_000,
+      };
+      expect(calculateAllocatedInstallmentTarget(settledLiability)).toBe(0);
+
+      // Kasus 4: Fallback graceful jika totalAmount/paidAmount undefined
+      const legacyLiability = {
+        id: "liab-legacy",
+        name: "Cicilan Legacy",
+        monthlyPayment: 500_000,
+      };
+      expect(calculateAllocatedInstallmentTarget(legacyLiability)).toBe(500_000);
+    });
+
+    it("buildInheritedMonthCategories should cap last month installment target and reallocate idle funds to Uang Bebas", () => {
+      // Kenzo memiliki:
+      // - Pos wajib cicilan HP bulan lalu: target Rp 1.000.000
+      // - Uang bebas bulan lalu: target Rp 3.000.000
+      // - Sisa pokok cicilan HP sekarang tinggal Rp 250.000 (dari total 12jt, sudah bayar 11.75jt)
+      const prevCategories = [
+        {
+          id: "c-phone",
+          monthId: "m-prev",
+          liabilityId: "liab-phone",
+          name: "Cicilan HP Kenzo",
+          icon: "smartphone",
+          group: "pos_wajib" as const,
+          targetBudget: 1_000_000,
+          isTemporary: true,
+          sortOrder: 1,
+        },
+        {
+          id: "c-free",
+          monthId: "m-prev",
+          liabilityId: null,
+          name: "Uang Bebas / Tabungan",
+          icon: "wallet",
+          group: "uang_bebas_tabungan" as const,
+          targetBudget: 3_000_000,
+          isTemporary: false,
+          sortOrder: 2,
+        },
+      ];
+
+      const activeLiabilities = [
+        {
+          id: "liab-phone",
+          name: "Cicilan HP Kenzo",
+          monthlyPayment: 1_000_000,
+          totalAmount: 12_000_000,
+          paidAmount: 11_750_000, // sisa pokok: 250.000
+          isSettled: false,
+        },
+      ];
+
+      const result = buildInheritedMonthCategories({
+        newMonthId: "m-new",
+        previousCategories: prevCategories,
+        activeLiabilities,
+      });
+
+      const phoneCategory = result.find((c) => c.liabilityId === "liab-phone");
+      const freeCategory = result.find((c) => c.group === "uang_bebas_tabungan");
+
+      // 1. Target pos cicilan HANYA sebesar sisa pokok Rp 250.000 (bukan Rp 1.000.000)
+      expect(phoneCategory?.targetBudget).toBe(250_000);
+
+      // 2. Selisih Rp 750.000 (1.000.000 - 250.000) otomatis dialihkan ke Uang Bebas:
+      // Rp 3.000.000 + Rp 750.000 = Rp 3.750.000
+      expect(freeCategory?.targetBudget).toBe(3_750_000);
+    });
+
+    it("buildInitialMonthCategories should allocate only remaining principal and boost residual free budget", () => {
+      // Bulan 1 pengguna: Gaji Rp 5.000.000
+      // Cicilan HP sisa Rp 250.000 (monthlyPayment 1.000.000)
+      const activeLiabilities = [
+        {
+          id: "liab-phone",
+          name: "Cicilan HP Kenzo",
+          monthlyPayment: 1_000_000,
+          totalAmount: 12_000_000,
+          paidAmount: 11_750_000,
+          isSettled: false,
+        },
+      ];
+
+      const result = buildInitialMonthCategories({
+        newMonthId: "m-new",
+        baseSalary: 5_000_000,
+        activeLiabilities,
+      });
+
+      const phoneCategory = result.find((c) => c.liabilityId === "liab-phone");
+      const freeCategory = result.find((c) => c.group === "uang_bebas_tabungan");
+
+      // Target cicilan hanya Rp 250.000
+      expect(phoneCategory?.targetBudget).toBe(250_000);
+
+      // Uang bebas: Rp 5.000.000 - Rp 250.000 = Rp 4.750.000 (bukan 4.000.000)
+      expect(freeCategory?.targetBudget).toBe(4_750_000);
     });
   });
 

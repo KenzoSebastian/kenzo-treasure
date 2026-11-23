@@ -12,7 +12,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 | **SC-02** | Month Lifecycle | Reopen Month Tidak Menarik Kembali Saldo Disapu (*Double-Counting*) | 🔴 Kritis | `src/actions/months.ts` | **COMPLETED ✅** |
 | **SC-03** | ZBB Budget | Edit Target Pos Reguler Tanpa Rebalancing Uang Bebas (*ZBB Drift*) | 🔴 Kritis | `src/actions/categories.ts` | **COMPLETED ✅** |
 | **SC-04** | ZBB Budget | Tambah Pos Anggaran Kustom Tanpa Kuota Uang Bebas (*ZBB Leak*) | 🔴 Kritis | `src/actions/categories.ts` | **COMPLETED ✅** |
-| **SC-05** | Liabilities | Bulan Terakhir Cicilan: Sisa Pokok < Cicilan Normal (*Dana Menganggur*) | 🔴 Kritis | `src/lib/month-generator.ts` | ⚠️ Open |
+| **SC-05** | Liabilities | Bulan Terakhir Cicilan: Sisa Pokok < Cicilan Normal (*Dana Menganggur*) | 🔴 Kritis | `src/lib/month-generator.ts` | **COMPLETED ✅** |
 | **SC-06** | Incomes | Hapus Pemasukan Freelance saat Kuotanya Sudah Dibelanjakan (*Shock Deficit*) | 🔴 Kritis | `src/actions/incomes.ts` | ⚠️ Open |
 | **SC-07** | Wishlists | Alokasi / Penarikan Dana pada Barang yang Sudah Terbeli (*Magic Money*) | 🔴 Kritis | `src/actions/wishlists.ts` | ⚠️ Open |
 | **SC-08** | Liabilities | Edit Total Pokok Utang < Total Sudah Dibayar (*Inkonsistensi Server*) | 🟡 Sedang | `src/actions/liabilities.ts` | ⚠️ Open |
@@ -103,6 +103,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 ---
 
 ### [SC-05] Bulan Terakhir Cicilan: Sisa Pokok < Cicilan Normal (*Dana Menganggur*)
+- **Status:** **COMPLETED ✅** (Disetujui Kenzo pada 23 November 2026)
 - **Tingkat Keparahan:** 🔴 **Kritis (Integritas Alokasi Kas & Over-Budgeting)**
 - **Modul Terdampak:** `src/lib/month-generator.ts` (`buildInheritedMonthCategories` & `buildInitialMonthCategories`)
 - **Kasus Riil:**

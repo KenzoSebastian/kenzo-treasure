@@ -139,7 +139,7 @@ kenzo-treasure/
 │   │   ├── category-icons.ts         # Fase R1: Registry 36 ikon kurasi Lucide & fallback emoji historis
 │   │   ├── category-transaction-tx.ts# Fase R8: Helper atomik transaksi pos + cicilan dengan FOR UPDATE
 │   │   ├── revalidate.ts             # Fase R10: revalidateDashboardRoutes terpusat 5 rute
-│   │   ├── month-generator.ts        # Generator pos anggaran bulanan dinamis dari DB & template
+│   │   ├── month-generator.ts        # Generator pos anggaran bulanan dinamis dari DB, inheritance ZBB & capping cicilan akhir (SC-05)
 │   │   ├── query-client.ts
 │   │   ├── financial-calculations.ts # Single Source of Truth rumus finansial murni
 │   │   ├── image-compressor.ts       # Fase F12: Kompresor foto HTML5 Canvas ke WebP <200KB

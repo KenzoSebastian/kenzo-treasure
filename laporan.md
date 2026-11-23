@@ -40,7 +40,19 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
 
 ## 📝 Log Checkpoint Terbaru (Maksimal 5 Checkpoint Aktif)
 
-### Checkpoint 1: Skenario SC-03 & SC-04 — Zero-Based Budgeting Rebalancing & Custom Category Leak Protection (2026-11-22 22:03 WIB • Approved 2026-11-22 22:05 WIB)
+### Checkpoint 1: Skenario SC-05 — Penyesuaian Plafon Bulan Terakhir Cicilan & Relokasi Dana Menganggur ke Uang Bebas (2026-11-23 19:30 WIB • Approved 2026-11-23 19:34 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-23 19:34 WIB)`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. **Audit & Penyelamatan Dana Menganggur (*Idle Funds*):** Menutup celah di mana pada bulan terakhir cicilan saat sisa pokok utang ($\text{totalAmount} - \text{paidAmount}$) lebih kecil dari angsuran normal ($\text{monthlyPayment}$, misal sisa Rp 250.000 vs angsuran Rp 1.000.000), sistem sebelumnya tetap men-generate pos cicilan sebesar Rp 1.000.000, menyandera Rp 750.000 di pos wajib.
+  2. **Formula Plafon Dinamis (`src/lib/month-generator.ts`):** Menambahkan fungsi murni `calculateAllocatedInstallmentTarget`:
+     $$\text{Target Anggaran} = \min(\text{monthlyPayment}, \max(0, \text{totalAmount} - \text{paidAmount}))$$
+  3. **Relokasi Surplus ke Uang Bebas (`buildInheritedMonthCategories`):** Selisih dana $(\text{prevCat.targetBudget} - \text{allocatedTarget})$ otomatis direlokasikan untuk memperbesar kuota `uang_bebas_tabungan` sejak hari pertama bulan baru.
+  4. **Perhitungan Kuota Awal Pengguna Baru (`buildInitialMonthCategories`):** Menggunakan `calculateAllocatedInstallmentTarget` untuk cicilan aktif awal sehingga tidak mengurangi kuota Uang Bebas secara berlebihan.
+  5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 95/95 PASS (433 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
+- **File Changelog:** [`2026-11-23_sc05_last_month_installment_remaining_principal.md`](.changelog/2026-11-23_sc05_last_month_installment_remaining_principal.md).
+
+### Checkpoint 2: Skenario SC-03 & SC-04 — Zero-Based Budgeting Rebalancing & Custom Category Leak Protection (2026-11-22 22:03 WIB • Approved 2026-11-22 22:05 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 22:05 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -53,7 +65,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 92/92 PASS (425 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-22_sc03_sc04_zbb_rebalancing_and_custom_category_leak_protection.md`](.changelog/2026-11-22_sc03_sc04_zbb_rebalancing_and_custom_category_leak_protection.md).
 
-### Checkpoint 2: Skenario SC-14 — Tutup Buku Menyapu Bersih Surplus Realisasi Kas (Total Pemasukan – Total Kas Keluar) (2026-11-22 21:38 WIB • Approved 2026-11-22 21:45 WIB)
+### Checkpoint 3: Skenario SC-14 — Tutup Buku Menyapu Bersih Surplus Realisasi Kas (Total Pemasukan – Total Kas Keluar) (2026-11-22 21:38 WIB • Approved 2026-11-22 21:45 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 21:45 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -67,7 +79,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   6. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 92/92 PASS (414 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-22_sc14_real_cashflow_surplus_sweep.md`](.changelog/2026-11-22_sc14_real_cashflow_surplus_sweep.md).
 
-### Checkpoint 3: Skenario 2 (SC-02) — Reopen Month Sweep Reversal & Anti-Double-Counting Tabungan Bebas (2026-11-22 20:58 WIB • Approved 2026-11-22 21:45 WIB)
+### Checkpoint 4: Skenario 2 (SC-02) — Reopen Month Sweep Reversal & Anti-Double-Counting Tabungan Bebas (2026-11-22 20:58 WIB • Approved 2026-11-22 21:45 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 21:45 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -79,7 +91,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   6. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 91/91 PASS (410 assertions across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-22_sc02_reopen_month_sweep_reversal_anti_double_counting.md`](.changelog/2026-11-22_sc02_reopen_month_sweep_reversal_anti_double_counting.md).
 
-### Checkpoint 4: Skenario 1 — Penanda Status "Sudah Dibayar Bulan Ini" & Fitur Bayar Ekstra dari Uang Bebas (2026-11-22 20:21 WIB • Approved 2026-11-22 20:28 WIB)
+### Checkpoint 5: Skenario 1 (SC-01) — Penanda Status "Sudah Dibayar Bulan Ini" & Fitur Bayar Ekstra dari Uang Bebas (2026-11-22 20:21 WIB • Approved 2026-11-22 20:28 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 20:28 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -93,30 +105,14 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 89/89 PASS (396 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-22_liability_extra_installment_and_paid_status.md`](.changelog/2026-11-22_liability_extra_installment_and_paid_status.md).
 
-### Checkpoint 5: Standardisasi Dialog Konfirmasi untuk Seluruh Aksi Mutasi Finansial & Destruktif (2026-11-22 15:25 WIB • Approved 2026-11-22 15:35 WIB)
-- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 15:35 WIB)`
-- **Agent:** Antigravity
-- **Capaian Utama:**
-  1. **Konfirmasi Bayar Cicilan (`LiabilityTrackerCard.tsx`):** Menampilkan modal konfirmasi dengan rincian nama cicilan, nominal tagihan bulan ini, sisa pokok saat ini, dan estimasi sisa pokok sesudah pembayaran sebelum eksekusi pembayaran cicilan.
-  2. **Konfirmasi Hapus Transaksi Rincian (`TransactionSubList.tsx`):** Menampilkan modal konfirmasi rincian transaksi (keterangan, nominal, tanggal, metode bayar) sebelum soft delete, tetap menjaga fitur Toast Undo (5 detik) sebagai jaring pengaman lapis kedua.
-  3. **Konfirmasi Hapus Pemasukan Freelance (`IncomeSection.tsx`):** Menampilkan modal konfirmasi sebelum menghapus pos pemasukan freelance beserta peringatan penyesuaian kuota Uang Bebas / Tabungan.
-  4. **Konfirmasi Hapus Template Pos Rutin (`BudgetTemplateManager.tsx`):** Menampilkan modal konfirmasi sebelum menghapus template pos rutin bulanan dari menu Settings.
-  5. **Konfirmasi Tutup Buku & Sweep Tabungan (`AiMonthlyReviewModal.tsx`):** Menampilkan modal konfirmasi sebelum mengeksekusi sweep saldo surplus ke Tabungan Bebas dan penguncian siklus bulan.
-  6. **Konfirmasi Tandai Terbeli Wishlist (`WishlistCard.tsx`):** Menampilkan modal konfirmasi rincian tabungan 100% sebelum menandai barang impian sebagai sudah terbeli permanen.
-  7. **Kepatuhan Desain & Verifikasi:** Bebas `font-mono` (100% `tabular-nums`), bebas emoji literal, fixed header & edge-to-edge footer, lolos `tsc --noEmit`, 89/89 `bun test` PASS, dan Turbopack build PASS.
-- **File Changelog:** [`2026-11-22_action_confirmation_dialogs.md`](.changelog/2026-11-22_action_confirmation_dialogs.md).
-
 ---
 
 ## 📚 Rekapitulasi Arsip Milestone Lengkap
 
 | Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
 | :--- | :--- | :--- | :--- |
+| **Standardisasi Dialog Konfirmasi Seluruh Aksi Mutasi Finansial & Destruktif** | 2026-11-22 | Modal konfirmasi bayar cicilan, hapus transaksi, hapus pemasukan, hapus template pos, tutup buku, dan wishlist terbeli. | [`2026-11-22_action_confirmation_dialogs.md`](.changelog/2026-11-22_action_confirmation_dialogs.md) |
 | **Penyelarasan Kontrak Cicilan** | 2026-11-22 | Smart auto-calculate pokok/tenor/angsuran, penguncian pos cicilan, dan modal edit cicilan terpusat. | [`2026-11-22_liability_smart_auto_calculate_and_budget_lock.md`](.changelog/2026-11-22_liability_smart_auto_calculate_and_budget_lock.md) |
-
----
-
-## 📚 Rekapitulasi Arsip Milestone Lengkap
 
 | Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
 | :--- | :--- | :--- | :--- |

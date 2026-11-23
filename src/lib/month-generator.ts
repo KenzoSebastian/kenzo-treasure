@@ -186,7 +186,30 @@ export interface InheritedLiabilitySource {
   name: string;
   icon?: string | null;
   monthlyPayment: number;
+  totalAmount?: number;
+  paidAmount?: number;
   isSettled?: boolean;
+}
+
+/**
+ * SC-05: Menghitung plafon cicilan yang dialokasikan untuk bulan baru:
+ * Jika sisa pokok utang (totalAmount - paidAmount) lebih kecil dari monthlyPayment normal,
+ * maka hanya alokasikan sisa pokok utang tersebut agar tidak ada dana menganggur tersandera.
+ */
+export function calculateAllocatedInstallmentTarget(
+  liability: InheritedLiabilitySource
+): number {
+  if (
+    liability.totalAmount !== undefined &&
+    liability.paidAmount !== undefined
+  ) {
+    const remainingPrincipal = Math.max(
+      0,
+      liability.totalAmount - liability.paidAmount
+    );
+    return Math.min(liability.monthlyPayment, remainingPrincipal);
+  }
+  return liability.monthlyPayment;
 }
 
 /**
@@ -210,7 +233,15 @@ export function buildInheritedMonthCategories(params: {
 
   const liabilityById = new Map(userLiabilities.map((l) => [l.id, l]));
   const activeLiabilitiesMap = new Map(
-    userLiabilities.filter((l) => !l.isSettled).map((l) => [l.id, l])
+    userLiabilities
+      .filter((l) => {
+        if (l.isSettled) return false;
+        if (l.totalAmount !== undefined && l.paidAmount !== undefined) {
+          return l.totalAmount > l.paidAmount;
+        }
+        return true;
+      })
+      .map((l) => [l.id, l])
   );
 
   const prevLiabilityIds = new Set<string>();
@@ -224,6 +255,15 @@ export function buildInheritedMonthCategories(params: {
         const settledRow = liabilityById.get(prevCat.liabilityId);
         reallocatedFromRetiredCategories +=
           settledRow?.monthlyPayment ?? prevCat.targetBudget;
+      } else {
+        // SC-05: Cicilan masih aktif, tapi jika sisa pokok < target sebelumnya, alihkan surplus ke Uang Bebas
+        const activeLiability = activeLiabilitiesMap.get(prevCat.liabilityId)!;
+        const allocatedTarget = calculateAllocatedInstallmentTarget(activeLiability);
+        if (prevCat.targetBudget > allocatedTarget) {
+          reallocatedFromRetiredCategories += (prevCat.targetBudget - allocatedTarget);
+        } else if (allocatedTarget > prevCat.targetBudget) {
+          reallocatedFromRetiredCategories -= (allocatedTarget - prevCat.targetBudget);
+        }
       }
     } else if (prevCat.isTemporary) {
       // Pos reguler yang ditandai "Hentikan Mulai Bulan Depan"
@@ -234,7 +274,7 @@ export function buildInheritedMonthCategories(params: {
   let newLiabilitiesMonthlySum = 0;
   for (const [id, activeLiability] of activeLiabilitiesMap) {
     if (!prevLiabilityIds.has(id)) {
-      newLiabilitiesMonthlySum += activeLiability.monthlyPayment;
+      newLiabilitiesMonthlySum += calculateAllocatedInstallmentTarget(activeLiability);
     }
   }
 
@@ -283,6 +323,11 @@ export function buildInheritedMonthCategories(params: {
     // 4. Pos yang terikat pada cicilan aktif
     if (prevCat.liabilityId && activeLiabilitiesMap.has(prevCat.liabilityId)) {
       const activeLiability = activeLiabilitiesMap.get(prevCat.liabilityId)!;
+      const targetBudget = calculateAllocatedInstallmentTarget(activeLiability);
+      activeLiabilitiesMap.delete(prevCat.liabilityId);
+      if (targetBudget <= 0) {
+        continue;
+      }
       categoriesToInsert.push({
         monthId: newMonthId,
         liabilityId: prevCat.liabilityId,
@@ -293,11 +338,10 @@ export function buildInheritedMonthCategories(params: {
           activeLiability.id
         ),
         group: "pos_wajib",
-        targetBudget: activeLiability.monthlyPayment,
+        targetBudget,
         isTemporary: true,
         sortOrder: currentSortOrder++,
       });
-      activeLiabilitiesMap.delete(prevCat.liabilityId);
       continue;
     }
 
@@ -316,6 +360,8 @@ export function buildInheritedMonthCategories(params: {
 
   // Tambahkan cicilan aktif baru yang belum ada di bulan sebelumnya
   for (const [, newActiveLiability] of activeLiabilitiesMap) {
+    const targetBudget = calculateAllocatedInstallmentTarget(newActiveLiability);
+    if (targetBudget <= 0) continue;
     categoriesToInsert.push({
       monthId: newMonthId,
       liabilityId: newActiveLiability.id,
@@ -326,7 +372,7 @@ export function buildInheritedMonthCategories(params: {
         newActiveLiability.id
       ),
       group: "pos_wajib",
-      targetBudget: newActiveLiability.monthlyPayment,
+      targetBudget,
       isTemporary: true,
       sortOrder: currentSortOrder++,
     });
@@ -375,9 +421,15 @@ export function buildInitialMonthCategories(params: {
   const rawTemplates = params.templates ?? params.userTemplates ?? [];
   const templates = rawTemplates.filter((t) => t.isActive !== false);
 
-  const unpaidLiabilities = activeLiabilities.filter((l) => !l.isSettled);
+  const unpaidLiabilities = activeLiabilities.filter((l) => {
+    if (l.isSettled) return false;
+    if (l.totalAmount !== undefined && l.paidAmount !== undefined) {
+      return l.totalAmount > l.paidAmount;
+    }
+    return true;
+  });
   const activeLiabilitiesSum = unpaidLiabilities.reduce(
-    (sum, item) => sum + item.monthlyPayment,
+    (sum, item) => sum + calculateAllocatedInstallmentTarget(item),
     0
   );
 
@@ -451,13 +503,15 @@ export function buildInitialMonthCategories(params: {
   }
 
   for (const liability of unpaidLiabilities) {
+    const targetBudget = calculateAllocatedInstallmentTarget(liability);
+    if (targetBudget <= 0) continue;
     categoriesToInsert.push({
       monthId: newMonthId,
       liabilityId: liability.id,
       name: liability.name,
       icon: resolveCategoryIconKey(liability.icon, "pos_wajib", liability.id),
       group: "pos_wajib",
-      targetBudget: liability.monthlyPayment,
+      targetBudget,
       isTemporary: true,
       sortOrder: currentSortOrder++,
     });
