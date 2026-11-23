@@ -13,7 +13,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 | **SC-03** | ZBB Budget | Edit Target Pos Reguler Tanpa Rebalancing Uang Bebas (*ZBB Drift*) | 🔴 Kritis | `src/actions/categories.ts` | **COMPLETED ✅** |
 | **SC-04** | ZBB Budget | Tambah Pos Anggaran Kustom Tanpa Kuota Uang Bebas (*ZBB Leak*) | 🔴 Kritis | `src/actions/categories.ts` | **COMPLETED ✅** |
 | **SC-05** | Liabilities | Bulan Terakhir Cicilan: Sisa Pokok < Cicilan Normal (*Dana Menganggur*) | 🔴 Kritis | `src/lib/month-generator.ts` | **COMPLETED ✅** |
-| **SC-06** | Incomes | Hapus Pemasukan Freelance saat Kuotanya Sudah Dibelanjakan (*Shock Deficit*) | 🔴 Kritis | `src/actions/incomes.ts` | ⚠️ Open |
+| **SC-06** | Incomes | Hapus Pemasukan Freelance saat Kuotanya Sudah Dibelanjakan (*Shock Deficit*) | 🔴 Kritis | `src/actions/incomes.ts` | **COMPLETED ✅** |
 | **SC-07** | Wishlists | Alokasi / Penarikan Dana pada Barang yang Sudah Terbeli (*Magic Money*) | 🔴 Kritis | `src/actions/wishlists.ts` | ⚠️ Open |
 | **SC-08** | Liabilities | Edit Total Pokok Utang < Total Sudah Dibayar (*Inkonsistensi Server*) | 🟡 Sedang | `src/actions/liabilities.ts` | ⚠️ Open |
 | **SC-09** | Liabilities | Hapus Cicilan dengan Riwayat Transaksi Menghasilkan Pos Hantu Bulan Depan | 🟡 Sedang | `src/actions/liabilities.ts` | ⚠️ Open |
@@ -122,6 +122,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 ---
 
 ### [SC-06] Hapus Pemasukan Freelance saat Kuotanya Sudah Dibelanjakan (*Shock Deficit*)
+- **Status:** **COMPLETED ✅** (Disetujui Kenzo pada 23 November 2026)
 - **Tingkat Keparahan:** 🔴 **Kritis (Defisit Anggaran Mendadak Tanpa Warning)**
 - **Modul Terdampak:** `src/actions/incomes.ts` (`deleteIncome` & `updateIncome`)
 - **Kasus Riil:**

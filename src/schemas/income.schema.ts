@@ -62,6 +62,7 @@ export const updateIncomeSchema = z.object({
     })
     .optional(),
   isBaseSalary: z.boolean().optional(),
+  allowDeficit: z.boolean().optional().default(false),
 });
 
 /**
@@ -71,6 +72,7 @@ export const deleteIncomeSchema = z.object({
   incomeId: z
     .string({ message: "ID pemasukan wajib diisi" })
     .uuid({ message: "Format ID pemasukan tidak valid" }),
+  allowDeficit: z.boolean().optional().default(false),
 });
 
 export type CreateIncomeInput = z.infer<typeof createIncomeSchema>;

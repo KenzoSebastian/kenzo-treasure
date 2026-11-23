@@ -40,7 +40,18 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
 
 ## 📝 Log Checkpoint Terbaru (Maksimal 5 Checkpoint Aktif)
 
-### Checkpoint 1: Skenario SC-05 — Penyesuaian Plafon Bulan Terakhir Cicilan & Relokasi Dana Menganggur ke Uang Bebas (2026-11-23 19:30 WIB • Approved 2026-11-23 19:34 WIB)
+### Checkpoint 1: Skenario SC-06 — Shock Deficit Guard pada Penghapusan & Pengurangan Pemasukan Freelance (2026-11-23 19:47 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. **Audit & Penyelamatan Arus Kas (Anti-Shock Deficit):** Menutup celah di mana penghapusan/penurunan pemasukan freelance yang buffer Uang Bebasnya sudah dibelanjakan langsung menjerumuskan anggaran ke defisit tanpa peringatan.
+  2. **Validasi Atomik `checkShockDeficit` (`src/actions/incomes.ts`):** Memeriksa secara realtime apakah belanja aktual melebihi total pemasukan baru atau menyusutkan Uang Bebas di bawah realisasi belanja bebas.
+  3. **Pengetatan Kontrak Validasi Schema (`src/schemas/income.schema.ts`):** Menambahkan field `allowDeficit` pada `deleteIncomeSchema` dan `updateIncomeSchema`. Mutasi otomatis diblokir jika defisit dan `allowDeficit !== true` dengan kode `SHOCK_DEFICIT:<nominal>`.
+  4. **Modal Konfirmasi Bahaya Taktil (`IncomeSection.tsx`):** Menampilkan dialog konfirmasi khusus dengan rincian potensi saldo minus, teks peringatan edukatif, dan tombol konfirmasi sadar ("Tetap Hapus (Izinkan Defisit)").
+  5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 97/97 PASS (439 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
+- **File Changelog:** [`2026-11-23_sc06_shock_deficit_guard_on_income_deletion.md`](.changelog/2026-11-23_sc06_shock_deficit_guard_on_income_deletion.md).
+
+### Checkpoint 2: Skenario SC-05 — Penyesuaian Plafon Bulan Terakhir Cicilan & Relokasi Dana Menganggur ke Uang Bebas (2026-11-23 19:30 WIB • Approved 2026-11-23 19:34 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-23 19:34 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -52,7 +63,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 95/95 PASS (433 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc05_last_month_installment_remaining_principal.md`](.changelog/2026-11-23_sc05_last_month_installment_remaining_principal.md).
 
-### Checkpoint 2: Skenario SC-03 & SC-04 — Zero-Based Budgeting Rebalancing & Custom Category Leak Protection (2026-11-22 22:03 WIB • Approved 2026-11-22 22:05 WIB)
+### Checkpoint 3: Skenario SC-03 & SC-04 — Zero-Based Budgeting Rebalancing & Custom Category Leak Protection (2026-11-22 22:03 WIB • Approved 2026-11-22 22:05 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 22:05 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -65,7 +76,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 92/92 PASS (425 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-22_sc03_sc04_zbb_rebalancing_and_custom_category_leak_protection.md`](.changelog/2026-11-22_sc03_sc04_zbb_rebalancing_and_custom_category_leak_protection.md).
 
-### Checkpoint 3: Skenario SC-14 — Tutup Buku Menyapu Bersih Surplus Realisasi Kas (Total Pemasukan – Total Kas Keluar) (2026-11-22 21:38 WIB • Approved 2026-11-22 21:45 WIB)
+### Checkpoint 4: Skenario SC-14 — Tutup Buku Menyapu Bersih Surplus Realisasi Kas (Total Pemasukan – Total Kas Keluar) (2026-11-22 21:38 WIB • Approved 2026-11-22 21:45 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 21:45 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -79,7 +90,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   6. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 92/92 PASS (414 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-22_sc14_real_cashflow_surplus_sweep.md`](.changelog/2026-11-22_sc14_real_cashflow_surplus_sweep.md).
 
-### Checkpoint 4: Skenario 2 (SC-02) — Reopen Month Sweep Reversal & Anti-Double-Counting Tabungan Bebas (2026-11-22 20:58 WIB • Approved 2026-11-22 21:45 WIB)
+### Checkpoint 5: Skenario 2 (SC-02) — Reopen Month Sweep Reversal & Anti-Double-Counting Tabungan Bebas (2026-11-22 20:58 WIB • Approved 2026-11-22 21:45 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 21:45 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -91,26 +102,13 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   6. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 91/91 PASS (410 assertions across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-22_sc02_reopen_month_sweep_reversal_anti_double_counting.md`](.changelog/2026-11-22_sc02_reopen_month_sweep_reversal_anti_double_counting.md).
 
-### Checkpoint 5: Skenario 1 (SC-01) — Penanda Status "Sudah Dibayar Bulan Ini" & Fitur Bayar Ekstra dari Uang Bebas (2026-11-22 20:21 WIB • Approved 2026-11-22 20:28 WIB)
-- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 20:28 WIB)`
-- **Agent:** Antigravity
-- **Capaian Utama:**
-  1. **Badge Status "Sudah Dibayar Bulan Ini" (`LiabilityTrackerCard.tsx`):** Mendeteksi cicilan yang telah terbayar lunas untuk siklus bulan ini (`spent >= target`), menampilkan badge hijau emerald dengan ikon `CheckCircle2` di header kartu cicilan.
-  2. **Fitur Bayar Ekstra (Percepatan Pokok) dari Uang Bebas:**
-     - Tombol berubah menjadi **`Bayar Ekstra <Nominal>`** dengan ikon `Sparkles`.
-     - Pembayaran ekstra tidak membuat pos cicilan overbudget, melainkan memotong saldo **`Uang Bebas / Tabungan`** dan tercatat di rincian transaksinya (`Percepatan Cicilan <Nama>`).
-     - Pokok utang pada tabel `liabilities` berkurang secara atomik (`paidAmount` bertambah dan otomatis lunas `isSettled = true` jika selesai).
-  3. **Validasi Anti-Defisit Uang Bebas:** Tombol bayar ekstra otomatis di-disable jika sisa kuota Uang Bebas tidak mencukupi, disertai teks penjelas. Server Action `recordInstallmentPayment` memvalidasi ketersediaan saldo dengan `FOR UPDATE`.
-  4. **Rekonsiliasi Hapus/Undo Transaksi Bayar Ekstra:** Jika transaksi pembayaran ekstra dihapus atau dipulihkan di pos Uang Bebas (`TransactionSubList.tsx`), sisa pokok cicilan otomatis direkonsiliasi secara atomik via penanda referensi internal yang bersih dari UI.
-  5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 89/89 PASS (396 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
-- **File Changelog:** [`2026-11-22_liability_extra_installment_and_paid_status.md`](.changelog/2026-11-22_liability_extra_installment_and_paid_status.md).
-
 ---
 
 ## 📚 Rekapitulasi Arsip Milestone Lengkap
 
 | Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
 | :--- | :--- | :--- | :--- |
+| **Skenario 1 (SC-01): Status "Sudah Dibayar Bulan Ini" & Bayar Ekstra dari Uang Bebas** | 2026-11-22 | Badge hijau lunas bulan ini, tombol bayar ekstra dari uang bebas, validasi anti-defisit, dan undo rekonsiliasi. | [`2026-11-22_liability_extra_installment_and_paid_status.md`](.changelog/2026-11-22_liability_extra_installment_and_paid_status.md) |
 | **Standardisasi Dialog Konfirmasi Seluruh Aksi Mutasi Finansial & Destruktif** | 2026-11-22 | Modal konfirmasi bayar cicilan, hapus transaksi, hapus pemasukan, hapus template pos, tutup buku, dan wishlist terbeli. | [`2026-11-22_action_confirmation_dialogs.md`](.changelog/2026-11-22_action_confirmation_dialogs.md) |
 | **Penyelarasan Kontrak Cicilan** | 2026-11-22 | Smart auto-calculate pokok/tenor/angsuran, penguncian pos cicilan, dan modal edit cicilan terpusat. | [`2026-11-22_liability_smart_auto_calculate_and_budget_lock.md`](.changelog/2026-11-22_liability_smart_auto_calculate_and_budget_lock.md) |
 

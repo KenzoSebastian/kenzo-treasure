@@ -25,6 +25,7 @@ import {
   Loader2,
   ArrowUpRight,
   ShieldCheck,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -88,6 +89,13 @@ export function IncomeSection({
     id: string;
     source: string;
     amount: number;
+  } | null>(null);
+  const [deficitWarning, setDeficitWarning] = React.useState<{
+    id: string;
+    source: string;
+    amount: number;
+    shockDeficit: number;
+    errorMessage: string;
   } | null>(null);
 
   const defaultDate = React.useMemo(
@@ -159,15 +167,34 @@ export function IncomeSection({
     });
   };
 
-  const handleDeleteIncome = (id: string, label: string) => {
+  const handleDeleteIncome = (
+    id: string,
+    label: string,
+    amount: number = 0,
+    allowDeficit = false
+  ) => {
     setDeletingId(id);
     startTransition(async () => {
-      const res = await deleteIncome(id);
+      const res = await deleteIncome({ incomeId: id, allowDeficit });
       setDeletingId(null);
       if (!res.success) {
+        if (res.fieldErrors?.allowDeficit) {
+          const raw = res.fieldErrors.allowDeficit[0] ?? "";
+          const match = raw.match(/SHOCK_DEFICIT:(\d+)/);
+          const shockDeficit = match ? Number(match[1]) : 0;
+          setDeficitWarning({
+            id,
+            source: label,
+            amount,
+            shockDeficit,
+            errorMessage: res.error,
+          });
+          return;
+        }
         toast.error(res.error);
         return;
       }
+      setDeficitWarning(null);
       toast.success(`Pemasukan "${label}" dihapus`);
       router.refresh();
     });
@@ -514,9 +541,9 @@ export function IncomeSection({
               disabled={!incomeToDelete || deletingId === incomeToDelete?.id}
               onClick={() => {
                 if (incomeToDelete) {
-                  const { id, source } = incomeToDelete;
+                  const { id, source, amount } = incomeToDelete;
                   setIncomeToDelete(null);
-                  handleDeleteIncome(id, source);
+                  handleDeleteIncome(id, source, amount);
                 }
               }}
               className="rounded-xl gap-1.5 font-semibold cursor-pointer shadow-xs"
@@ -527,6 +554,89 @@ export function IncomeSection({
                 <Trash2 className="size-3.5" />
               )}
               <span>Hapus Pemasukan</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Dialog Peringatan Shock Deficit (SC-06) */}
+      <Dialog
+        open={Boolean(deficitWarning)}
+        onOpenChange={(open) => !open && setDeficitWarning(null)}
+      >
+        <DialogContent className="sm:max-w-md max-h-[90dvh]">
+          <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
+              <AlertTriangle className="size-5 shrink-0" />
+              <DialogTitle className="text-base font-bold text-foreground">
+                Peringatan Defisit Anggaran!
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed mt-1">
+              Pemasukan ini telah terpakai untuk belanja. Menghapusnya akan menyebabkan anggaran defisit.
+            </DialogDescription>
+          </DialogHeader>
+
+          {deficitWarning && (
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3.5 min-h-0 text-xs">
+              <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3.5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Pemasukan Dihapus</span>
+                  <span className="font-bold text-foreground">
+                    {deficitWarning.source}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Nominal</span>
+                  <span className="font-extrabold text-foreground tabular-nums text-sm">
+                    {formatRupiah(deficitWarning.amount)}
+                  </span>
+                </div>
+                <div className="pt-1.5 border-t border-rose-500/20 flex items-center justify-between text-rose-600 dark:text-rose-400">
+                  <span className="font-semibold">Potensi Defisit Anggaran</span>
+                  <span className="font-black tabular-nums text-sm">
+                    {`-${formatRupiah(deficitWarning.shockDeficit)}`}
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border/60 bg-muted/20 p-3 text-[11px] text-muted-foreground leading-relaxed">
+                <p>
+                  Kuotanya sudah terlanjur Anda belanjakan di bulan berjalan. Jika tetap dihapus, Uang Bebas / Saldo bulan ini akan menjadi <strong>minus (defisit)</strong>.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setDeficitWarning(null)}
+              className="rounded-xl cursor-pointer"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={!deficitWarning || deletingId === deficitWarning?.id}
+              onClick={() => {
+                if (deficitWarning) {
+                  const { id, source, amount } = deficitWarning;
+                  handleDeleteIncome(id, source, amount, true);
+                }
+              }}
+              className="rounded-xl gap-1.5 font-semibold cursor-pointer shadow-xs bg-rose-600 hover:bg-rose-700 text-white"
+            >
+              {deletingId === deficitWarning?.id ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="size-3.5" />
+              )}
+              <span>Tetap Hapus (Izinkan Defisit)</span>
             </Button>
           </DialogFooter>
         </DialogContent>

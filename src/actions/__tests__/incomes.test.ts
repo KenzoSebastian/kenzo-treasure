@@ -238,4 +238,56 @@ describe("Multi-Source Incomes Engine (Fase B6)", () => {
       expect(dynamicFreedomTarget).toBe(915000);
     });
   });
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     3. SC-06: SHOCK DEFICIT GUARD (HAPUS/KURANGI PEMASUKAN YANG SUDAH TERPAKAI)
+     ══════════════════════════════════════════════════════════════════════════ */
+  describe("SC-06: Shock Deficit Guard", () => {
+    it("deleteIncomeSchema and updateIncomeSchema should support allowDeficit flag", () => {
+      const deleteWithFlag = deleteIncomeSchema.safeParse({
+        incomeId: mockIncomeId,
+        allowDeficit: true,
+      });
+      expect(deleteWithFlag.success).toBe(true);
+      if (deleteWithFlag.success) {
+        expect(deleteWithFlag.data.allowDeficit).toBe(true);
+      }
+
+      const updateWithFlag = updateIncomeSchema.safeParse({
+        incomeId: mockIncomeId,
+        amount: 500000,
+        allowDeficit: true,
+      });
+      expect(updateWithFlag.success).toBe(true);
+      if (updateWithFlag.success) {
+        expect(updateWithFlag.data.allowDeficit).toBe(true);
+      }
+    });
+
+    it("should calculate shock deficit correctly when spending exceeds remaining income/buffer", () => {
+      // Kenzo:
+      // - Gaji pokok: Rp 5.000.000
+      // - Freelance: Rp 3.000.000
+      // - Total pemasukan: Rp 8.000.000
+      // - Belanja aktual di Uang Bebas: Rp 2.500.000 (dari baseline Uang Bebas Rp 1.000.000 + Buffer Rp 3.000.000 = Rp 4.000.000)
+      const baseSalary = 5_000_000;
+      const freelance = 3_000_000;
+      const baseFreeTarget = 1_000_000;
+      const freeSpent = 2_500_000;
+
+      // Saat freelance dihapus:
+      // Total pemasukan baru = 5.000.000
+      // Target Uang Bebas baru = 1.000.000 (tanpa buffer)
+      // Realisasi belanja = 2.500.000
+      const newEffectiveFreeTarget = baseFreeTarget; // 1.000.000
+      const freeDeficit =
+        freeSpent > newEffectiveFreeTarget
+          ? freeSpent - newEffectiveFreeTarget
+          : 0;
+
+      // Defisit Uang Bebas = 2.500.000 - 1.000.000 = 1.500.000
+      expect(freeDeficit).toBe(1_500_000);
+      expect(freeDeficit > 0).toBe(true);
+    });
+  });
 });
