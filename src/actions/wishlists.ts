@@ -19,9 +19,13 @@ import { db } from "@/db";
 import { wishlists, wishlistAllocations, savingsAccount } from "@/db/schema";
 import {
   createWishlistSchema,
+  updateWishlistSchema,
+  deleteWishlistSchema,
   allocateWishlistSchema,
   markWishlistPurchasedSchema,
   type CreateWishlistInput,
+  type UpdateWishlistInput,
+  type DeleteWishlistInput,
   type AllocateWishlistInput,
   type MarkWishlistPurchasedInput,
 } from "@/schemas/wishlist.schema";
@@ -511,6 +515,217 @@ export async function markWishlistAsPurchased(
     return {
       success: false,
       error: "Gagal memperbarui status pembelian barang impian.",
+    };
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   5. SERVER ACTION: updateWishlist (Fase R1 & SC-11)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+export async function updateWishlist(
+  input: UpdateWishlistInput,
+  explicitUserId?: string
+): Promise<ActionResponse<WishlistWithProgress>> {
+  try {
+    const parsed = updateWishlistSchema.safeParse(input);
+    if (!parsed.success) {
+      return {
+        success: false,
+        error:
+          parsed.error.issues[0]?.message ??
+          "Validasi data pembaruan barang impian gagal.",
+        fieldErrors: parsed.error.flatten().fieldErrors,
+      };
+    }
+
+    const userId = await resolveAuthenticatedUserId(explicitUserId);
+    if (!userId) {
+      return {
+        success: false,
+        error: "Pengguna tidak terautentikasi.",
+      };
+    }
+
+    const { wishlistId, name, targetAmount, icon, imageUrl } = parsed.data;
+
+    const result = await db.transaction(async (tx) => {
+      const [existing] = await tx
+        .select()
+        .from(wishlists)
+        .where(and(eq(wishlists.id, wishlistId), eq(wishlists.userId, userId)))
+        .limit(1);
+
+      if (!existing) {
+        throw new Error("WISHLIST_NOT_FOUND");
+      }
+
+      if (existing.isPurchased) {
+        throw new Error("WISHLIST_ALREADY_PURCHASED");
+      }
+
+      // Validasi SC-11: Target baru tidak boleh lebih kecil dari dana yang sudah terkumpul
+      if (targetAmount !== undefined && targetAmount < existing.savedAmount) {
+        throw new Error(`TARGET_LESS_THAN_SAVED:${existing.savedAmount}`);
+      }
+
+      const updatePayload: Record<string, unknown> = {
+        updatedAt: new Date(),
+      };
+      if (name !== undefined) updatePayload.name = name;
+      if (targetAmount !== undefined) updatePayload.targetAmount = targetAmount;
+      if (icon !== undefined)
+        updatePayload.icon = resolveCategoryIconKey(icon, "kebutuhan");
+      if (imageUrl !== undefined) updatePayload.imageUrl = imageUrl || null;
+
+      const [updated] = await tx
+        .update(wishlists)
+        .set(updatePayload)
+        .where(eq(wishlists.id, wishlistId))
+        .returning();
+
+      const allocations = await tx
+        .select()
+        .from(wishlistAllocations)
+        .where(eq(wishlistAllocations.wishlistId, wishlistId))
+        .orderBy(desc(wishlistAllocations.createdAt));
+
+      return enrichWishlist(updated, allocations);
+    });
+
+    revalidateDashboardRoutes();
+
+    return {
+      success: true,
+      data: result,
+    };
+  } catch (err) {
+    if (err instanceof Error && err.message === "WISHLIST_NOT_FOUND") {
+      return {
+        success: false,
+        error: "Barang impian tidak ditemukan.",
+      };
+    }
+    if (err instanceof Error && err.message === "WISHLIST_ALREADY_PURCHASED") {
+      return {
+        success: false,
+        error: "Barang impian yang sudah terbeli tidak dapat diubah.",
+      };
+    }
+    if (
+      err instanceof Error &&
+      err.message.startsWith("TARGET_LESS_THAN_SAVED:")
+    ) {
+      const saved = Number(err.message.split(":")[1]) || 0;
+      return {
+        success: false,
+        error: `Target harga baru tidak boleh lebih kecil dari dana yang sudah terkumpul (Rp ${formatRupiah(
+          saved
+        )}).`,
+      };
+    }
+    console.error("Gagal memperbarui wishlist:", err);
+    return {
+      success: false,
+      error: "Terjadi kesalahan saat memperbarui barang impian.",
+    };
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   6. SERVER ACTION: deleteWishlist (SC-11 Auto-Refund)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+export async function deleteWishlist(
+  inputOrId: string | DeleteWishlistInput,
+  explicitUserId?: string
+): Promise<ActionResponse<{ id: string; refundedAmount: number }>> {
+  try {
+    const rawPayload =
+      typeof inputOrId === "string" ? { wishlistId: inputOrId } : inputOrId;
+
+    const parsed = deleteWishlistSchema.safeParse(rawPayload);
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: parsed.error.issues[0]?.message ?? "ID wishlist tidak valid.",
+      };
+    }
+
+    const userId = await resolveAuthenticatedUserId(explicitUserId);
+    if (!userId) {
+      return {
+        success: false,
+        error: "Pengguna tidak terautentikasi.",
+      };
+    }
+
+    const { wishlistId } = parsed.data;
+
+    const result = await db.transaction(async (tx) => {
+      const [targetWishlist] = await tx
+        .select()
+        .from(wishlists)
+        .where(and(eq(wishlists.id, wishlistId), eq(wishlists.userId, userId)))
+        .limit(1);
+
+      if (!targetWishlist) {
+        throw new Error("WISHLIST_NOT_FOUND");
+      }
+
+      let refundedAmount = 0;
+
+      // Invarian SC-11: Auto-refund dana tersimpan kembali ke savings_account.balance jika belum dibeli
+      if (!targetWishlist.isPurchased && targetWishlist.savedAmount > 0) {
+        refundedAmount = targetWishlist.savedAmount;
+
+        const [savingsRow] = await tx
+          .select()
+          .from(savingsAccount)
+          .where(eq(savingsAccount.userId, userId))
+          .limit(1);
+
+        const currentBal = savingsRow?.balance ?? 0;
+        await tx
+          .update(savingsAccount)
+          .set({
+            balance: currentBal + refundedAmount,
+            updatedAt: new Date(),
+          })
+          .where(eq(savingsAccount.userId, userId));
+      }
+
+      // Hapus riwayat mutasi alokasi terkait
+      await tx
+        .delete(wishlistAllocations)
+        .where(eq(wishlistAllocations.wishlistId, wishlistId));
+
+      // Hapus baris wishlist
+      await tx.delete(wishlists).where(eq(wishlists.id, wishlistId));
+
+      return {
+        id: wishlistId,
+        refundedAmount,
+      };
+    });
+
+    revalidateDashboardRoutes();
+
+    return {
+      success: true,
+      data: result,
+    };
+  } catch (err) {
+    if (err instanceof Error && err.message === "WISHLIST_NOT_FOUND") {
+      return {
+        success: false,
+        error: "Barang impian tidak ditemukan.",
+      };
+    }
+    console.error("Gagal menghapus wishlist:", err);
+    return {
+      success: false,
+      error: "Terjadi kesalahan saat menghapus barang impian.",
     };
   }
 }

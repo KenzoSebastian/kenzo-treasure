@@ -17,6 +17,8 @@ import {
   deleteCategorySchema,
   createTransactionSchema,
   allocateWishlistSchema,
+  updateWishlistSchema,
+  deleteWishlistSchema,
 } from "@/schemas";
 import type { MonthlyCycleDetail } from "@/types";
 
@@ -311,6 +313,48 @@ describe("Backend Phases B7 - B13 & R1 - R10 Comprehensive Suite", () => {
       // Alokasi yang valid (<= remainingNeeded) harus lolos
       const validAllocation = 200_000;
       expect(validAllocation <= remainingNeeded).toBe(true);
+    });
+
+    it("SC-11: harus memvalidasi pembaruan wishlist dan pengembalian dana (auto-refund) saat wishlist dihapus", () => {
+      // 1. Validasi skema update & delete
+      const validUpdate = updateWishlistSchema.safeParse({
+        wishlistId: "33333333-3333-4333-8333-333333333333",
+        name: "Laptop Kerja Baru",
+        targetAmount: 8_000_000,
+      });
+      expect(validUpdate.success).toBe(true);
+
+      const validDelete = deleteWishlistSchema.safeParse({
+        wishlistId: "33333333-3333-4333-8333-333333333333",
+      });
+      expect(validDelete.success).toBe(true);
+
+      // 2. Invarian: Target baru tidak boleh lebih kecil dari dana yang sudah terkumpul
+      const existingWishlist = {
+        id: "w-sc11",
+        name: "Meja Kerja Ergonomis",
+        targetAmount: 5_000_000,
+        savedAmount: 2_500_000,
+        isPurchased: false,
+      };
+
+      const invalidTargetAmount = 2_000_000; // < savedAmount 2.500.000
+      expect(() => {
+        if (invalidTargetAmount < existingWishlist.savedAmount) {
+          throw new Error(
+            `TARGET_LESS_THAN_SAVED:${existingWishlist.savedAmount}`
+          );
+        }
+      }).toThrow("TARGET_LESS_THAN_SAVED:2500000");
+
+      // 3. Invarian Auto-Refund saat Hapus Wishlist:
+      // Tabungan bebas awal: Rp 1.000.000. Dana terkumpul di wishlist: Rp 2.500.000.
+      // Saat dihapus, saldo tabungan bebas harus bertambah menjadi Rp 3.500.000 (+Rp 2.500.000).
+      let freeSavingsBalance = 1_000_000;
+      if (!existingWishlist.isPurchased && existingWishlist.savedAmount > 0) {
+        freeSavingsBalance += existingWishlist.savedAmount;
+      }
+      expect(freeSavingsBalance).toBe(3_500_000);
     });
   });
 

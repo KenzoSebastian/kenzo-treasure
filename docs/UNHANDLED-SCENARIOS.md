@@ -18,7 +18,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 | **SC-08** | Liabilities | Edit Total Pokok Utang < Total Sudah Dibayar (*Inkonsistensi Server*) | 🟡 Sedang | `src/actions/liabilities.ts` | **COMPLETED ✅** |
 | **SC-09** | Liabilities | Hapus Cicilan dengan Riwayat Transaksi Menghasilkan Pos Hantu Bulan Depan | 🟡 Sedang | `src/actions/liabilities.ts` | **COMPLETED ✅** |
 | **SC-10** | Wishlists | Alokasi Wishlist Melebihi Sisa Kebutuhan (*Over-Allocation*) | 🟡 Sedang | `src/actions/wishlists.ts` | **COMPLETED ✅** |
-| **SC-11** | Wishlists | Ketiadaan Fitur Edit / Hapus Wishlist & Penyelamatan Dana Tersimpan | 🟡 Sedang | `src/actions/wishlists.ts` | ⚠️ Open |
+| **SC-11** | Wishlists | Ketiadaan Fitur Edit / Hapus Wishlist & Penyelamatan Dana Tersimpan | 🟡 Sedang | `src/actions/wishlists.ts` | **COMPLETED ✅** |
 | **SC-12** | Liabilities | Mengedit Cicilan Menjadi Lunas Tidak Mengembalikan Kuota Bulan Berjalan | 🟡 Sedang | `src/actions/liabilities.ts` | ⚠️ Open |
 | **SC-13** | Month Lifecycle | Pembuatan Bulan Baru Tanpa Tutup Buku Bulan Lama (*Lompat Bulan*) | 🟡 Sedang | `src/actions/months.ts` | ⚠️ Open |
 | **SC-14** | Month Lifecycle | Tutup Buku Tidak Menyapu Sisa Kuota Pos yang Belum Terpakai (*Uang Menguap*) | 🔴 Kritis | `src/actions/months.ts` | **COMPLETED ✅** |
@@ -199,6 +199,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 ---
 
 ### [SC-11] Ketiadaan Fitur Edit / Hapus Wishlist & Penyelamatan Dana Tersimpan
+- **Status:** **COMPLETED ✅** (Disetujui Kenzo pada 23 November 2026)
 - **Tingkat Keparahan:** 🟡 **Sedang (Dana Tersangkut / Orphaned Funds)**
 - **Modul Terdampak:** `src/actions/wishlists.ts`
 - **Kasus Riil:** Pengguna batal membeli barang impian yang sudah terkumpul tabungan Rp 1.500.000 dan ingin menghapus wishlist tersebut.

@@ -27,6 +27,8 @@ import {
   Image as ImageIcon,
   Loader2,
   Trophy,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -48,7 +50,12 @@ import { IconPicker } from "@/components/common/IconPicker";
 import { getWishlistMilestoneIconComponent } from "@/lib/category-icons";
 import { formatRupiah, parseRupiah } from "@/lib/financial-calculations";
 import { compressImageToWebP } from "@/lib/image-compressor";
-import { createWishlist, markWishlistAsPurchased } from "@/actions/wishlists";
+import {
+  createWishlist,
+  markWishlistAsPurchased,
+  updateWishlist,
+  deleteWishlist,
+} from "@/actions/wishlists";
 import { AllocateWishlistDrawer } from "./AllocateWishlistDrawer";
 import { cn } from "@/lib/utils";
 import type { WishlistWithProgress } from "@/types/wishlist";
@@ -66,6 +73,16 @@ export function WishlistCard({
   const [isMarking, startTransition] = React.useTransition();
   const [showPurchaseConfirm, setShowPurchaseConfirm] = React.useState(false);
 
+  // SC-11: State Modal Edit & Hapus Wishlist
+  const [showEditModal, setShowEditModal] = React.useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+  const [editName, setEditName] = React.useState("");
+  const [editTargetRaw, setEditTargetRaw] = React.useState("");
+  const [editIcon, setEditIcon] = React.useState("target");
+  const [editImageUrl, setEditImageUrl] = React.useState<string | null>(null);
+  const [editFormError, setEditFormError] = React.useState<string | null>(null);
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
+
   const progressPct = wishlist.progress.percentage;
   const remainingAmt = wishlist.progress.remainingAmount;
   const MilestoneIcon = getWishlistMilestoneIconComponent(
@@ -81,6 +98,82 @@ export function WishlistCard({
         return;
       }
       toast.success(`Selamat! "${wishlist.name}" ditandai Terbeli!`);
+      router.refresh();
+    });
+  };
+
+  const handleOpenEdit = () => {
+    setEditName(wishlist.name);
+    setEditTargetRaw(String(wishlist.targetAmount));
+    setEditIcon(wishlist.icon ?? "target");
+    setEditImageUrl(wishlist.imageUrl);
+    setEditFormError(null);
+    setShowEditModal(true);
+  };
+
+  const handleUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedName = editName.trim();
+    const targetAmount = parseRupiah(editTargetRaw);
+
+    if (trimmedName.length < 2) {
+      setEditFormError("Nama barang impian minimal 2 karakter");
+      return;
+    }
+    if (targetAmount <= 0) {
+      setEditFormError("Target harga harus lebih besar dari Rp 0");
+      return;
+    }
+    if (targetAmount < wishlist.savedAmount) {
+      setEditFormError(
+        `Target harga tidak boleh lebih kecil dari dana yang sudah terkumpul (${formatRupiah(
+          wishlist.savedAmount
+        )})`
+      );
+      return;
+    }
+
+    setEditFormError(null);
+    startTransition(async () => {
+      const res = await updateWishlist({
+        wishlistId: wishlist.id,
+        name: trimmedName,
+        targetAmount,
+        icon: editIcon,
+        imageUrl: editImageUrl,
+      });
+
+      if (!res.success) {
+        setEditFormError(res.error);
+        return;
+      }
+
+      toast.success(`Barang impian "${res.data.name}" berhasil diperbarui`);
+      setShowEditModal(false);
+      router.refresh();
+    });
+  };
+
+  const handleDelete = () => {
+    setDeleteError(null);
+    startTransition(async () => {
+      const res = await deleteWishlist(wishlist.id);
+      if (!res.success) {
+        setDeleteError(res.error);
+        return;
+      }
+
+      if (res.data.refundedAmount > 0) {
+        toast.success(
+          `Barang impian dihapus. ${formatRupiah(
+            res.data.refundedAmount
+          )} otomatis dikembalikan ke Tabungan Bebas!`
+        );
+      } else {
+        toast.success(`Barang impian "${wishlist.name}" berhasil dihapus`);
+      }
+
+      setShowDeleteConfirm(false);
       router.refresh();
     });
   };
@@ -132,6 +225,33 @@ export function WishlistCard({
                 <ImageIcon className="size-3.5 opacity-60" />
                 <span>Sinking Fund Impian</span>
               </span>
+            </div>
+          )}
+
+          {/* Action buttons (Edit & Delete - SC-11) */}
+          {!wishlist.isPurchased && !wishlist.id.startsWith("preview-") && (
+            <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
+              <button
+                type="button"
+                onClick={handleOpenEdit}
+                className="inline-flex items-center justify-center size-7 rounded-full bg-background/85 backdrop-blur-md text-muted-foreground hover:text-foreground hover:bg-background transition-colors cursor-pointer border border-border/60 shadow-xs"
+                title={`Ubah ${wishlist.name}`}
+                aria-label={`Ubah ${wishlist.name}`}
+              >
+                <Pencil className="size-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteError(null);
+                  setShowDeleteConfirm(true);
+                }}
+                className="inline-flex items-center justify-center size-7 rounded-full bg-background/85 backdrop-blur-md text-muted-foreground hover:text-destructive hover:bg-background transition-colors cursor-pointer border border-border/60 shadow-xs"
+                title={`Hapus ${wishlist.name}`}
+                aria-label={`Hapus ${wishlist.name}`}
+              >
+                <Trash2 className="size-3.5" />
+              </button>
             </div>
           )}
 
@@ -295,6 +415,205 @@ export function WishlistCard({
                 <CheckCircle2 className="size-3.5" />
               )}
               <span>Konfirmasi Terbeli</span>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Dialog Edit Barang Impian (SC-11) */}
+      <Dialog
+        open={showEditModal}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowEditModal(false);
+            setEditFormError(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md max-h-[90dvh]">
+          <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+            <DialogTitle className="text-base font-bold text-foreground">
+              Ubah Barang Impian
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              Perbarui rincian target harga, nama barang, atau ikon barang impian Anda.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={handleUpdate}
+            className="flex flex-col flex-1 min-h-0 w-full m-0 p-0"
+            noValidate
+          >
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0 text-xs">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-wishlist-name" className="text-xs font-semibold">
+                  Nama Barang Impian
+                </Label>
+                <Input
+                  id="edit-wishlist-name"
+                  placeholder="Contoh: Laptop Kerja Baru"
+                  value={editName}
+                  onChange={(e) => {
+                    setEditName(e.target.value);
+                    setEditFormError(null);
+                  }}
+                  className="h-10 rounded-xl text-xs"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="edit-wishlist-target" className="text-xs font-semibold">
+                    Target Harga (Rp)
+                  </Label>
+                  {wishlist.savedAmount > 0 && (
+                    <span className="text-[11px] text-muted-foreground tabular-nums">
+                      Terkumpul: {formatRupiah(wishlist.savedAmount)}
+                    </span>
+                  )}
+                </div>
+                <Input
+                  id="edit-wishlist-target"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={
+                    parseRupiah(editTargetRaw) > 0
+                      ? parseRupiah(editTargetRaw).toLocaleString("id-ID")
+                      : ""
+                  }
+                  onChange={(e) => {
+                    setEditTargetRaw(String(parseRupiah(e.target.value)));
+                    setEditFormError(null);
+                  }}
+                  className="h-10 rounded-xl text-xs tabular-nums"
+                />
+              </div>
+
+              <IconPicker
+                value={editIcon}
+                onChange={setEditIcon}
+                fallbackGroup="kebutuhan"
+                label="Pilih Ikon Barang Impian"
+              />
+
+              {editFormError && (
+                <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive leading-relaxed">
+                  {editFormError}
+                </div>
+              )}
+            </div>
+
+            <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowEditModal(false)}
+                className="rounded-xl cursor-pointer"
+              >
+                Batal
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isMarking}
+                className="rounded-xl gap-1.5 font-semibold cursor-pointer shadow-xs"
+              >
+                {isMarking ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="size-3.5" />
+                )}
+                <span>Simpan Perubahan</span>
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Dialog Hapus Wishlist & Auto-Refund (SC-11) */}
+      <Dialog
+        open={showDeleteConfirm}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowDeleteConfirm(false);
+            setDeleteError(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md max-h-[90dvh]">
+          <DialogHeader className="px-6 pt-5 pb-3.5 border-b border-border/40 shrink-0 text-left pr-14">
+            <DialogTitle className="text-base font-bold text-destructive">
+              Hapus Barang Impian
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
+              Apakah Anda yakin ingin menghapus barang impian ini? Tindakan ini tidak dapat dibatalkan.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3 min-h-0 text-xs">
+            <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Barang Impian</span>
+                <span className="font-bold text-foreground">{wishlist.name}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Target Dana</span>
+                <span className="font-extrabold text-foreground tabular-nums text-sm">
+                  {formatRupiah(wishlist.targetAmount)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Dana Terkumpul</span>
+                <span className="font-bold text-foreground tabular-nums">
+                  {formatRupiah(wishlist.savedAmount)} ({progressPct}%)
+                </span>
+              </div>
+            </div>
+
+            {wishlist.savedAmount > 0 && !wishlist.isPurchased && (
+              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed">
+                <strong>Penyelamatan Dana Otomatis:</strong> Dana sebesar{" "}
+                <span className="font-bold tabular-nums">
+                  {formatRupiah(wishlist.savedAmount)}
+                </span>{" "}
+                yang telah terkumpul akan langsung dikembalikan ke Saldo Tabungan Bebas Anda.
+              </div>
+            )}
+
+            {deleteError && (
+              <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive leading-relaxed">
+                {deleteError}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="w-full border-t border-border/60 bg-background px-6 py-4 flex flex-row items-center justify-end gap-2.5 shrink-0 mt-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDeleteConfirm(false)}
+              className="rounded-xl cursor-pointer"
+            >
+              Batal
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={isMarking}
+              onClick={handleDelete}
+              className="rounded-xl gap-1.5 font-semibold cursor-pointer shadow-xs"
+            >
+              {isMarking ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="size-3.5" />
+              )}
+              <span>Hapus Barang Impian</span>
             </Button>
           </DialogFooter>
         </DialogContent>

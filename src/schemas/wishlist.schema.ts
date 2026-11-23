@@ -100,7 +100,17 @@ export const markWishlistPurchasedSchema = z.object({
     .uuid({ message: "Format ID wishlist tidak valid" }),
 });
 
+/**
+ * Validasi penghapusan wishlist (Fase R1 & SC-11).
+ */
+export const deleteWishlistSchema = z.object({
+  wishlistId: z
+    .string({ message: "ID wishlist wajib diisi" })
+    .uuid({ message: "Format ID wishlist tidak valid" }),
+});
+
 export type CreateWishlistInput = z.infer<typeof createWishlistSchema>;
 export type UpdateWishlistInput = z.infer<typeof updateWishlistSchema>;
 export type AllocateWishlistInput = z.infer<typeof allocateWishlistSchema>;
 export type MarkWishlistPurchasedInput = z.infer<typeof markWishlistPurchasedSchema>;
+export type DeleteWishlistInput = z.infer<typeof deleteWishlistSchema>;
