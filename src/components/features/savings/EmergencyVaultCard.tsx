@@ -77,6 +77,7 @@ export function EmergencyVaultCard({ vault }: EmergencyVaultCardProps) {
     React.useState<VaultMutationMode>("deposit_emergency");
   const [amountRaw, setAmountRaw] = React.useState("");
   const [doubleConfirmed, setDoubleConfirmed] = React.useState(false);
+  const [allowOverTarget, setAllowOverTarget] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const [isPending, startTransition] = React.useTransition();
 
@@ -100,11 +101,31 @@ export function EmergencyVaultCard({ vault }: EmergencyVaultCardProps) {
       return;
     }
 
+    if (mode === "deposit_emergency") {
+      if (vault.emergencyFundTarget <= 0) {
+        setErrorMsg(
+          "Target Dana Darurat belum ditentukan (Rp 0). Tentukan target nominal dana darurat Anda terlebih dahulu."
+        );
+        return;
+      }
+
+      if (
+        vault.emergencyFundBalance >= vault.emergencyFundTarget &&
+        !allowOverTarget
+      ) {
+        setErrorMsg(
+          "Target Dana Darurat sudah tercapai 100%. Centang konfirmasi untuk tetap menambahkan cadangan ekstra."
+        );
+        return;
+      }
+    }
+
     setErrorMsg(null);
     startTransition(async () => {
       if (mode === "deposit_emergency") {
         const res = await transferToEmergencyFund({
           amount: numericAmount,
+          allowOverTarget,
         });
         if (!res.success) {
           setErrorMsg(res.error);
@@ -265,6 +286,43 @@ export function EmergencyVaultCard({ vault }: EmergencyVaultCardProps) {
                   )}
                 />
               </div>
+
+              {/* SC-15: Proteksi jika target sudah tercapai atau masih 0 */}
+              {mode === "deposit_emergency" && vault.emergencyFundTarget <= 0 && (
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                  <AlertTriangle className="size-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                  <p className="leading-relaxed">
+                    <strong>Target Belum Diatur:</strong> Tentukan target dana darurat terlebih dahulu agar sistem dapat menghitung tingkat ketahanan finansial Anda secara akurat.
+                  </p>
+                </div>
+              )}
+
+              {mode === "deposit_emergency" &&
+                vault.emergencyFundTarget > 0 &&
+                vault.emergencyFundBalance >= vault.emergencyFundTarget && (
+                  <div className="space-y-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-xs">
+                    <div className="flex items-start gap-2 text-emerald-800 dark:text-emerald-300">
+                      <ShieldCheck className="size-4 shrink-0 mt-0.5 text-emerald-600 dark:text-emerald-400" />
+                      <p className="leading-relaxed">
+                        <strong>Target 100% Tercapai:</strong> Brankas Dana Darurat Anda sudah memenuhi target ideal ({formatRupiah(vault.emergencyFundTarget)}).
+                      </p>
+                    </div>
+                    <label className="flex items-center gap-2 pt-1 cursor-pointer select-none font-semibold text-foreground">
+                      <input
+                        type="checkbox"
+                        checked={allowOverTarget}
+                        onChange={(e) => {
+                          setAllowOverTarget(e.target.checked);
+                          setErrorMsg(null);
+                        }}
+                        className="size-4 rounded accent-emerald-600"
+                      />
+                      <span>
+                        Saya ingin tetap menambah cadangan ekstra di atas 100%
+                      </span>
+                    </label>
+                  </div>
+                )}
 
               {/* Proteksi Konfirmasi Ganda saat Penarikan Dana Darurat */}
               {mode === "withdraw_emergency" && (

@@ -22,7 +22,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 | **SC-12** | Liabilities | Mengedit Cicilan Menjadi Lunas Tidak Mengembalikan Kuota Bulan Berjalan | 🟡 Sedang | `src/actions/liabilities.ts` | **COMPLETED ✅** |
 | **SC-13** | Month Lifecycle | Pembuatan Bulan Baru Tanpa Tutup Buku Bulan Lama (*Lompat Bulan*) | 🟡 Sedang | `src/actions/months.ts` | **COMPLETED ✅** |
 | **SC-14** | Month Lifecycle | Tutup Buku Tidak Menyapu Sisa Kuota Pos yang Belum Terpakai (*Uang Menguap*) | 🔴 Kritis | `src/actions/months.ts` | **COMPLETED ✅** |
-| **SC-15** | Savings | Transfer Dana Darurat saat Target Rp 0 atau Sudah 100% Tercapai | 🟢 Rendah | `src/actions/savings.ts` | ⚠️ Open |
+| **SC-15** | Savings | Transfer Dana Darurat saat Target Rp 0 atau Sudah 100% Tercapai | 🟢 Rendah | `src/actions/savings.ts` | **COMPLETED ✅** |
 | **SC-16** | Transactions | Hard Delete Permanen Menghilangkan Riwayat Jejak Audit Finansial | 🟢 Rendah | `src/actions/transactions.ts` | ⚠️ Open |
 
 ---
@@ -243,6 +243,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 ---
 
 ### [SC-15] Transfer ke Brankas Dana Darurat saat Target Rp 0 atau Sudah 100% Tercapai
+- **Status:** **COMPLETED ✅** (Disetujui Kenzo pada 23 November 2026)
 - **Tingkat Keparahan:** 🟢 **Rendah (UX Guard)**
 - **Modul Terdampak:** `src/actions/savings.ts` (`transferToEmergencyFund`)
 - **Kasus Riil:** Pengguna belum mengisi target dana darurat (`target = 0`) atau sudah mencapai 100%, tetapi tidak sengaja mentransfer saldo tabungan bebas ke dana darurat.

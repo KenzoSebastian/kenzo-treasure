@@ -40,7 +40,17 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
 
 ## 📝 Log Checkpoint Terbaru (Maksimal 5 Checkpoint Aktif)
 
-### Checkpoint 1: Skenario SC-13 — Proteksi Pembuatan Siklus Bulan Baru saat Bulan Aktif Belum Ditutup Buku (2026-11-23 20:15 WIB)
+### Checkpoint 1: Skenario SC-15 — Proteksi Transfer Brankas Dana Darurat saat Target Rp 0 atau Sudah 100% Tercapai (2026-11-23 20:19 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. **Audit & Penyelamatan Likuiditas Tabungan Bebas (*Emergency Vault Guard*):** Menutup celah di mana pengguna yang belum menentukan target dana darurat atau sudah mencapai 100% target ideal tidak sengaja mengunci tabungan bebas ke dana darurat.
+  2. **Validasi Server-Side Atomik (`src/actions/savings.ts`):** Mencegah transfer jika target masih Rp 0 (`TARGET_ZERO`) dan meminta konfirmasi sadar (`allowOverTarget`) jika target sudah 100% terpenuhi (`TARGET_ALREADY_REACHED`).
+  3. **Antarmuka Konfirmasi Sadar (`EmergencyVaultCard.tsx`):** Menampilkan banner edukatif ketika target Rp 0 dan checkbox konfirmasi sadar *"Saya ingin tetap menambah cadangan ekstra di atas 100%"* saat target sudah tercapai.
+  4. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 105/105 PASS (471 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
+- **File Changelog:** [`2026-11-23_sc15_guard_emergency_fund_transfer_zero_or_full_target.md`](.changelog/2026-11-23_sc15_guard_emergency_fund_transfer_zero_or_full_target.md).
+
+### Checkpoint 2: Skenario SC-13 — Proteksi Pembuatan Siklus Bulan Baru saat Bulan Aktif Belum Ditutup Buku (2026-11-23 20:15 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -50,7 +60,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   4. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 104/104 PASS (464 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc13_guard_month_creation_unclosed_previous_cycle.md`](.changelog/2026-11-23_sc13_guard_month_creation_unclosed_previous_cycle.md).
 
-### Checkpoint 2: Skenario SC-12 — Realokasi Kuota Belanja saat Cicilan Dilunasi di Bulan Berjalan (2026-11-23 20:11 WIB)
+### Checkpoint 3: Skenario SC-12 — Realokasi Kuota Belanja saat Cicilan Dilunasi di Bulan Berjalan (2026-11-23 20:11 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -60,7 +70,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   4. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 103/103 PASS (458 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc12_reallocate_unspent_quota_when_liability_settled.md`](.changelog/2026-11-23_sc12_reallocate_unspent_quota_when_liability_settled.md).
 
-### Checkpoint 3: Skenario SC-11 — Fitur Edit & Hapus Wishlist dengan Penyelamatan Dana Otomatis (Auto-Refund) (2026-11-23 20:07 WIB)
+### Checkpoint 4: Skenario SC-11 — Fitur Edit & Hapus Wishlist dengan Penyelamatan Dana Otomatis (Auto-Refund) (2026-11-23 20:07 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -70,7 +80,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   4. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 102/102 PASS (451 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc11_wishlist_edit_delete_and_auto_refund.md`](.changelog/2026-11-23_sc11_wishlist_edit_delete_and_auto_refund.md).
 
-### Checkpoint 4: Skenario SC-10 — Proteksi Alokasi Wishlist Melebihi Sisa Kebutuhan (Over-Allocation Guard) (2026-11-23 20:01 WIB)
+### Checkpoint 5: Skenario SC-10 — Proteksi Alokasi Wishlist Melebihi Sisa Kebutuhan (Over-Allocation Guard) (2026-11-23 20:01 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -80,22 +90,13 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   4. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 101/101 PASS (447 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc10_prevent_wishlist_over_allocation.md`](.changelog/2026-11-23_sc10_prevent_wishlist_over_allocation.md).
 
-### Checkpoint 5: Skenario SC-09 — Pencegahan Pos Hantu (Ghost Categories) pada Siklus Bulan Depan saat Menghapus Cicilan (2026-11-23 19:56 WIB)
-- **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
-- **Agent:** Antigravity
-- **Capaian Utama:**
-  1. **Audit & Penyelamatan Struktur Anggaran:** Menutup celah di mana saat cicilan dihapus setelah memiliki transaksi belanja di bulan berjalan, relasi dilepas dengan `liabilityId = null` namun `isTemporary` sebelumnya diubah ke `false`. Hal ini menyebabkan generator bulan depan menganggap pos tersebut sebagai pos permanen dan terus memunculkannya berulang kali (*ghost categories loop*).
-  2. **Penetapan Invarian Pos Sementara (`src/actions/liabilities.ts`):** Mempertahankan `isTemporary = true` pada pos yang dilepas keterikatannya dari cicilan yang dihapus.
-  3. **Pembersihan Bersih Siklus Baru:** Dengan `isTemporary: true` tanpa `liabilityId`, generator siklus bulan baru (`month-generator.ts`) secara otomatis melewati pos tersebut dan merelokasikan anggarannya ke `uang_bebas_tabungan` tanpa meninggalkan pos hantu.
-  4. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 100/100 PASS (444 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
-- **File Changelog:** [`2026-11-23_sc09_prevent_ghost_categories_on_liability_deletion.md`](.changelog/2026-11-23_sc09_prevent_ghost_categories_on_liability_deletion.md).
-
 ---
 
 ## 📚 Rekapitulasi Arsip Milestone Lengkap
 
 | Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
 | :--- | :--- | :--- | :--- |
+| **Skenario SC-09: Pencegahan Pos Hantu saat Menghapus Cicilan** | 2026-11-23 | Menjaga flag isTemporary: true pada pos yang dilepas keterikatannya agar tidak diwariskan ke siklus baru. | [`2026-11-23_sc09_prevent_ghost_categories_on_liability_deletion.md`](.changelog/2026-11-23_sc09_prevent_ghost_categories_on_liability_deletion.md) |
 | **Skenario SC-08: Validasi Pokok Utang Tidak Boleh < Total Terbayar** | 2026-11-23 | Server-side FOR UPDATE row lock mencegah pokok utang diedit lebih kecil dari yang sudah dibayar. | [`2026-11-23_sc08_prevent_total_debt_smaller_than_paid.md`](.changelog/2026-11-23_sc08_prevent_total_debt_smaller_than_paid.md) |
 | **Skenario SC-07: Hard Freeze Mutasi Tabungan pada Barang Impian Terbeli** | 2026-11-23 | Anti-magic money: mutasi alokasi & penarikan dikunci permanen saat isPurchased = true. | [`2026-11-23_sc07_freeze_mutations_on_purchased_wishlists.md`](.changelog/2026-11-23_sc07_freeze_mutations_on_purchased_wishlists.md) |
 | **Skenario SC-06: Shock Deficit Guard pada Freelance Income Deletion** | 2026-11-23 | Pencegahan defisit mendadak saat pemasukan sampingan dihapus/dikurangi, dialog bahaya sadar. | [`2026-11-23_sc06_shock_deficit_guard_on_income_deletion.md`](.changelog/2026-11-23_sc06_shock_deficit_guard_on_income_deletion.md) |

@@ -33,14 +33,15 @@ export { getSavingsAccount };
  * Helper internal: resolves `(userId, amount)` or `(amount)` or `({ amount })`
  */
 function parseAmountAndUserArgs(
-  arg1: string | number | { amount: number },
-  arg2?: number
-): { rawAmount: unknown; explicitUserId?: string } {
+  arg1: string | number | { amount: number; allowOverTarget?: boolean },
+  arg2?: number,
+  arg3?: boolean
+): { rawAmount: unknown; allowOverTarget?: boolean; explicitUserId?: string } {
   if (typeof arg1 === "string" && arg2 !== undefined) {
-    return { rawAmount: arg2, explicitUserId: arg1 };
+    return { rawAmount: arg2, allowOverTarget: arg3, explicitUserId: arg1 };
   }
   if (typeof arg1 === "object" && arg1 !== null && "amount" in arg1) {
-    return { rawAmount: arg1.amount };
+    return { rawAmount: arg1.amount, allowOverTarget: arg1.allowOverTarget };
   }
   return { rawAmount: arg1 };
 }
@@ -50,16 +51,21 @@ function parseAmountAndUserArgs(
    ══════════════════════════════════════════════════════════════════════════════ */
 
 export async function transferToEmergencyFund(
-  userIdOrAmount: string | number | { amount: number },
-  amountArg?: number
+  userIdOrAmount: string | number | { amount: number; allowOverTarget?: boolean },
+  amountArg?: number,
+  allowOverTargetArg?: boolean
 ): Promise<ActionResponse<SavingsVaultSummary>> {
   try {
-    const { rawAmount, explicitUserId } = parseAmountAndUserArgs(
+    const { rawAmount, allowOverTarget, explicitUserId } = parseAmountAndUserArgs(
       userIdOrAmount,
-      amountArg
+      amountArg,
+      allowOverTargetArg
     );
 
-    const parsed = transferEmergencyFundSchema.safeParse({ amount: rawAmount });
+    const parsed = transferEmergencyFundSchema.safeParse({
+      amount: rawAmount,
+      allowOverTarget,
+    });
     if (!parsed.success) {
       return {
         success: false,
@@ -99,6 +105,18 @@ export async function transferToEmergencyFund(
         account = created;
       }
 
+      // Invarian SC-15: Guard saat target Rp 0 atau sudah 100% tercapai
+      if (account.emergencyFundTarget <= 0) {
+        throw new Error("TARGET_ZERO");
+      }
+
+      if (
+        account.emergencyFundBalance >= account.emergencyFundTarget &&
+        !parsed.data.allowOverTarget
+      ) {
+        throw new Error("TARGET_ALREADY_REACHED");
+      }
+
       if (account.balance < amount) {
         throw new Error("INSUFFICIENT_FREE_SAVINGS");
       }
@@ -117,6 +135,20 @@ export async function transferToEmergencyFund(
 
     return getSavingsAccount(userId);
   } catch (err) {
+    if (err instanceof Error && err.message === "TARGET_ZERO") {
+      return {
+        success: false,
+        error:
+          "Target Dana Darurat belum ditentukan (Rp 0). Tentukan target nominal dana darurat Anda terlebih dahulu.",
+      };
+    }
+    if (err instanceof Error && err.message === "TARGET_ALREADY_REACHED") {
+      return {
+        success: false,
+        error:
+          "Target Dana Darurat sudah tercapai 100%. Naikkan target dana darurat atau konfirmasi untuk tetap menambahkan cadangan ekstra.",
+      };
+    }
     if (err instanceof Error && err.message === "INSUFFICIENT_FREE_SAVINGS") {
       return {
         success: false,

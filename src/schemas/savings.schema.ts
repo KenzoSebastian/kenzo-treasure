@@ -16,6 +16,7 @@ export const transferEmergencyFundSchema = z.object({
     .number({ message: "Nominal transfer wajib diisi" })
     .int({ message: "Nominal transfer harus berupa integer bulat tanpa desimal" })
     .positive({ message: "Nominal transfer harus lebih besar dari Rp 0" }),
+  allowOverTarget: z.boolean().optional().default(false),
 });
 
 export const updateEmergencyTargetSchema = z.object({

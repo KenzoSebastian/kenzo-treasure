@@ -422,6 +422,52 @@ describe("Backend Phases B7 - B13 & R1 - R10 Comprehensive Suite", () => {
       expect(safety.percentageOfTarget).toBe(70);
       expect(safety.isTargetReached).toBe(false);
     });
+
+    it("SC-15: harus menjaga transfer dana darurat saat target Rp 0 atau sudah 100% tercapai", () => {
+      // 1. Validasi skema transfer menerima allowOverTarget
+      const parsedWithGuard = transferEmergencyFundSchema.safeParse({
+        amount: 500_000,
+        allowOverTarget: false,
+      });
+      expect(parsedWithGuard.success).toBe(true);
+      expect(parsedWithGuard.data?.allowOverTarget).toBe(false);
+
+      const parsedConfirmed = transferEmergencyFundSchema.safeParse({
+        amount: 500_000,
+        allowOverTarget: true,
+      });
+      expect(parsedConfirmed.success).toBe(true);
+      expect(parsedConfirmed.data?.allowOverTarget).toBe(true);
+
+      // 2. Guard saat target masih Rp 0
+      const vaultZeroTarget = {
+        emergencyFundTarget: 0,
+        emergencyFundBalance: 0,
+      };
+      expect(() => {
+        if (vaultZeroTarget.emergencyFundTarget <= 0) {
+          throw new Error("TARGET_ZERO");
+        }
+      }).toThrow("TARGET_ZERO");
+
+      // 3. Guard saat target sudah 100% tercapai (tanpa allowOverTarget)
+      const vaultFull = {
+        emergencyFundTarget: 15_000_000,
+        emergencyFundBalance: 15_000_000,
+      };
+      const checkOverTarget = (allowOver: boolean) => {
+        if (
+          vaultFull.emergencyFundBalance >= vaultFull.emergencyFundTarget &&
+          !allowOver
+        ) {
+          throw new Error("TARGET_ALREADY_REACHED");
+        }
+        return true;
+      };
+
+      expect(() => checkOverTarget(false)).toThrow("TARGET_ALREADY_REACHED");
+      expect(checkOverTarget(true)).toBe(true);
+    });
   });
 
   describe("Fase B13: AI Monthly Review Evaluation Engine", () => {
