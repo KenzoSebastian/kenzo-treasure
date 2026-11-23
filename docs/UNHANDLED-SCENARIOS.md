@@ -16,7 +16,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 | **SC-06** | Incomes | Hapus Pemasukan Freelance saat Kuotanya Sudah Dibelanjakan (*Shock Deficit*) | 🔴 Kritis | `src/actions/incomes.ts` | **COMPLETED ✅** |
 | **SC-07** | Wishlists | Alokasi / Penarikan Dana pada Barang yang Sudah Terbeli (*Magic Money*) | 🔴 Kritis | `src/actions/wishlists.ts` | **COMPLETED ✅** |
 | **SC-08** | Liabilities | Edit Total Pokok Utang < Total Sudah Dibayar (*Inkonsistensi Server*) | 🟡 Sedang | `src/actions/liabilities.ts` | **COMPLETED ✅** |
-| **SC-09** | Liabilities | Hapus Cicilan dengan Riwayat Transaksi Menghasilkan Pos Hantu Bulan Depan | 🟡 Sedang | `src/actions/liabilities.ts` | ⚠️ Open |
+| **SC-09** | Liabilities | Hapus Cicilan dengan Riwayat Transaksi Menghasilkan Pos Hantu Bulan Depan | 🟡 Sedang | `src/actions/liabilities.ts` | **COMPLETED ✅** |
 | **SC-10** | Wishlists | Alokasi Wishlist Melebihi Sisa Kebutuhan (*Over-Allocation*) | 🟡 Sedang | `src/actions/wishlists.ts` | ⚠️ Open |
 | **SC-11** | Wishlists | Ketiadaan Fitur Edit / Hapus Wishlist & Penyelamatan Dana Tersimpan | 🟡 Sedang | `src/actions/wishlists.ts` | ⚠️ Open |
 | **SC-12** | Liabilities | Mengedit Cicilan Menjadi Lunas Tidak Mengembalikan Kuota Bulan Berjalan | 🟡 Sedang | `src/actions/liabilities.ts` | ⚠️ Open |
@@ -177,6 +177,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 ---
 
 ### [SC-09] Hapus Cicilan dengan Riwayat Transaksi Menghasilkan Pos Hantu Bulan Depan
+- **Status:** **COMPLETED ✅** (Disetujui Kenzo pada 23 November 2026)
 - **Tingkat Keparahan:** 🟡 **Sedang (Loop Pos Hantu / Ghost Categories)**
 - **Modul Terdampak:** `src/actions/liabilities.ts` (`deleteLiability`)
 - **Kasus Riil:** Pengguna menghapus komitmen cicilan di tengah bulan setelah membayar 1 kali angsuran di bulan tersebut.

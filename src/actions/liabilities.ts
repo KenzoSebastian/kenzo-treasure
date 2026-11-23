@@ -1007,11 +1007,13 @@ export async function deleteLiability(
           removedLinkedCategoriesCount++;
         } else {
           // Ada riwayat transaksi: lepas keterikatan liabilityId agar riwayat pengeluaran tetap utuh
+          // Invarian SC-09: Tetap pertahankan isTemporary = true agar generator bulan depan
+          // menghentikan pos ini dan tidak memunculkan pos hantu berulang ke siklus baru.
           await tx
             .update(budgetCategories)
             .set({
               liabilityId: null,
-              isTemporary: false,
+              isTemporary: true,
               updatedAt: new Date(),
             })
             .where(eq(budgetCategories.id, linkedCat.id));

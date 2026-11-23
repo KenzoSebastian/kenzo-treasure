@@ -40,7 +40,17 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
 
 ## 📝 Log Checkpoint Terbaru (Maksimal 5 Checkpoint Aktif)
 
-### Checkpoint 1: Skenario SC-08 — Validasi Server-Side Total Pokok Utang Tidak Boleh Lebih Kecil dari yang Sudah Dibayar (2026-11-23 19:54 WIB)
+### Checkpoint 1: Skenario SC-09 — Pencegahan Pos Hantu (Ghost Categories) pada Siklus Bulan Depan saat Menghapus Cicilan (2026-11-23 19:56 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. **Audit & Penyelamatan Struktur Anggaran:** Menutup celah di mana saat cicilan dihapus setelah memiliki transaksi belanja di bulan berjalan, relasi dilepas dengan `liabilityId = null` namun `isTemporary` sebelumnya diubah ke `false`. Hal ini menyebabkan generator bulan depan menganggap pos tersebut sebagai pos permanen dan terus memunculkannya berulang kali (*ghost categories loop*).
+  2. **Penetapan Invarian Pos Sementara (`src/actions/liabilities.ts`):** Mempertahankan `isTemporary = true` pada pos yang dilepas keterikatannya dari cicilan yang dihapus.
+  3. **Pembersihan Bersih Siklus Baru:** Dengan `isTemporary: true` tanpa `liabilityId`, generator siklus bulan baru (`month-generator.ts`) secara otomatis melewati pos tersebut dan merelokasikan anggarannya ke `uang_bebas_tabungan` tanpa meninggalkan pos hantu.
+  4. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 100/100 PASS (444 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
+- **File Changelog:** [`2026-11-23_sc09_prevent_ghost_categories_on_liability_deletion.md`](.changelog/2026-11-23_sc09_prevent_ghost_categories_on_liability_deletion.md).
+
+### Checkpoint 2: Skenario SC-08 — Validasi Server-Side Total Pokok Utang Tidak Boleh Lebih Kecil dari yang Sudah Dibayar (2026-11-23 19:54 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -50,7 +60,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   4. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 99/99 PASS (443 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc08_prevent_total_debt_smaller_than_paid.md`](.changelog/2026-11-23_sc08_prevent_total_debt_smaller_than_paid.md).
 
-### Checkpoint 2: Skenario SC-07 — Hard Freeze Mutasi Tabungan pada Barang Impian Berstatus Terbeli (2026-11-23 19:51 WIB)
+### Checkpoint 3: Skenario SC-07 — Hard Freeze Mutasi Tabungan pada Barang Impian Berstatus Terbeli (2026-11-23 19:51 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -59,7 +69,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   3. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 98/98 PASS (441 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc07_freeze_mutations_on_purchased_wishlists.md`](.changelog/2026-11-23_sc07_freeze_mutations_on_purchased_wishlists.md).
 
-### Checkpoint 3: Skenario SC-06 — Shock Deficit Guard pada Penghapusan & Pengurangan Pemasukan Freelance (2026-11-23 19:47 WIB)
+### Checkpoint 4: Skenario SC-06 — Shock Deficit Guard pada Penghapusan & Pengurangan Pemasukan Freelance (2026-11-23 19:47 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -70,7 +80,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 97/97 PASS (439 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc06_shock_deficit_guard_on_income_deletion.md`](.changelog/2026-11-23_sc06_shock_deficit_guard_on_income_deletion.md).
 
-### Checkpoint 4: Skenario SC-05 — Penyesuaian Plafon Bulan Terakhir Cicilan & Relokasi Dana Menganggur ke Uang Bebas (2026-11-23 19:30 WIB • Approved 2026-11-23 19:34 WIB)
+### Checkpoint 5: Skenario SC-05 — Penyesuaian Plafon Bulan Terakhir Cicilan & Relokasi Dana Menganggur ke Uang Bebas (2026-11-23 19:30 WIB • Approved 2026-11-23 19:34 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-23 19:34 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -82,18 +92,13 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 95/95 PASS (433 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc05_last_month_installment_remaining_principal.md`](.changelog/2026-11-23_sc05_last_month_installment_remaining_principal.md).
 
-### Checkpoint 5: Skenario SC-03 & SC-04 — Zero-Based Budgeting Rebalancing & Custom Category Leak Protection (2026-11-22 22:03 WIB • Approved 2026-11-22 22:05 WIB)
-- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 22:05 WIB)`
-- **Agent:** Antigravity
-- **Capaian Utama:**
-  1. **Konservasi Zero-Sum pada Edit Target Pos (`updateCategoryTarget`):** Menutup celah *ZBB drift* di mana pengeditan target pos reguler sebelumnya tidak menyentuh pos `uang_bebas_tabungan`. Sekarang mutasi berjalan di dalam transaksi atomik dengan *row-level locking* (`FOR UPDATE`):
-     - Kenaikan target pos ($\Delta > 0$) memotong kuota `uang_bebas_tabungan` secara atomik setelah validasi ketersediaan sisa dana bebas yang belum terpakai.
-     - Penurunan target pos ($\Delta < 0$) memvalidasi batas realisasi belanja saat ini dan mengembalikan surplus $|\Delta|$ ke `uang_bebas_tabungan`.
-  2. **Proteksi Pos Penyeimbang Bebas:** Memblokir pengeditan langsung pada target pos `uang_bebas_tabungan` via `updateCategoryTarget` karena pos ini bertindak sebagai penyeimbang matematis ZBB.
-  3. **Proteksi Kebocoran Plafon pada Penambahan Pos Kustom (`addCustomCategory`):** Menutup celah *ZBB leak* dengan memotong kuota dari `uang_bebas_tabungan` saat pos kustom baru dibuat dengan `targetBudget > 0`. Menolak pembuatan pos jika kuota Uang Bebas tidak mencukupi.
-  4. **Pesan Kesalahan Edukatif:** Menampilkan rincian nominal tersedia vs dibutuhkan saat kuota Uang Bebas tidak mencukupi, atau saat target diturunkan di bawah realisasi belanja.
-  5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 92/92 PASS (425 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
-- **File Changelog:** [`2026-11-22_sc03_sc04_zbb_rebalancing_and_custom_category_leak_protection.md`](.changelog/2026-11-22_sc03_sc04_zbb_rebalancing_and_custom_category_leak_protection.md).
+---
+
+## 📚 Rekapitulasi Arsip Milestone Lengkap
+
+| Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
+| :--- | :--- | :--- | :--- |
+| **Skenario SC-03 & SC-04: Zero-Based Budgeting Rebalancing & Custom Category Leak Protection** | 2026-11-22 | Konservasi zero-sum saat edit target pos dan penyerapan kuota uang bebas saat tambah pos kustom. | [`2026-11-22_sc03_sc04_zbb_rebalancing_and_custom_category_leak_protection.md`](.changelog/2026-11-22_sc03_sc04_zbb_rebalancing_and_custom_category_leak_protection.md) |
 
 ---
 

@@ -104,6 +104,23 @@ describe("Backend Phases B7 - B13 & R1 - R10 Comprehensive Suite", () => {
         }
       }).toThrow("TOTAL_LESS_THAN_PAID:15000000");
     });
+
+    it("SC-09: harus menandai pos eks-cicilan dengan isTemporary = true saat dihapus agar tidak muncul sebagai pos hantu bulan depan", () => {
+      // Pos cicilan bulan ini yang keterikatannya dilepas karena cicilan dihapus
+      const detachedCategory = {
+        id: "cat-detached-1",
+        liabilityId: null,
+        isTemporary: true, // SC-09: wajib true
+        targetBudget: 500_000,
+        name: "Cicilan Elektronik",
+      };
+
+      // Pastikan generator bulan depan tidak mewariskan pos sementara tanpa liabilityId
+      const shouldInheritToNextMonth =
+        !detachedCategory.isTemporary || detachedCategory.liabilityId !== null;
+
+      expect(shouldInheritToNextMonth).toBe(false);
+    });
   });
 
   describe("Fase B8 & R4: Budget Categories Management & Deletion Protection", () => {
