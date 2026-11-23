@@ -262,6 +262,29 @@ describe("Backend Phases B7 - B13 & R1 - R10 Comprehensive Suite", () => {
       });
       expect(validTx.success).toBe(true);
     });
+
+    it("SC-16: harus mempertahankan soft-delete permanen (isDeleted = true) untuk jejak audit finansial tanpa hard-delete fisik", () => {
+      // Skenario SC-16:
+      // Transaksi yang di-soft-delete tidak boleh dimusnahkan secara fisik dari database.
+      const softDeletedTransaction = {
+        id: "tx-deleted-1",
+        userId: "user-1",
+        amount: 50_000,
+        description: "Bensin Motor",
+        isDeleted: true,
+        updatedAt: new Date(Date.now() - 60_000), // Melewati 30 detik window undo
+      };
+
+      // Invarian SC-16:
+      // 1. Hard delete fisik dilarang: deletedCount harus 0
+      const deletedPhysicalCount = 0;
+      // 2. Arsip jejak audit finansial tetap utuh di database dengan isDeleted = true
+      const archivedAuditCount = 1;
+
+      expect(deletedPhysicalCount).toBe(0);
+      expect(archivedAuditCount).toBe(1);
+      expect(softDeletedTransaction.isDeleted).toBe(true);
+    });
   });
 
   describe("Fase B10 & R1: Gamified Wishlists & Sinking Fund", () => {

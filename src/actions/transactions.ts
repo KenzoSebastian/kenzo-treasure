@@ -462,13 +462,19 @@ export async function restoreTransaction(
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   4. SERVER ACTION: hardDeleteExpiredTransactions
+   4. SERVER ACTION: hardDeleteExpiredTransactions (SC-16 Permanent Audit Trail)
    ══════════════════════════════════════════════════════════════════════════════ */
 
+/**
+ * Invarian SC-16: Pertahankan soft-delete permanen (`isDeleted = true`) untuk kebutuhan
+ * analitik dan jejak riwayat audit finansial tahunan (Zero Hard-Delete Invariant).
+ * Record transaksi yang dihapus tidak dimusnahkan secara fisik dari database, melainkan
+ * diarsipkan dengan status isDeleted = true secara permanen.
+ */
 export async function hardDeleteExpiredTransactions(
   retentionSeconds = 30,
   explicitUserId?: string
-): Promise<ActionResponse<{ deletedCount: number }>> {
+): Promise<ActionResponse<{ deletedCount: number; archivedCount: number }>> {
   try {
     const userId = await resolveAuthenticatedUserId(explicitUserId);
     if (!userId) {
@@ -480,26 +486,31 @@ export async function hardDeleteExpiredTransactions(
 
     const cutoffDate = new Date(Date.now() - retentionSeconds * 1000);
 
-    const deletedRows = await db
-      .delete(transactions)
+    // Hitung record yang telah melewati window undo dan diarsipkan permanen
+    const archivedRows = await db
+      .select({ id: transactions.id })
+      .from(transactions)
       .where(
         and(
           eq(transactions.userId, userId),
           eq(transactions.isDeleted, true),
           lt(transactions.updatedAt, cutoffDate)
         )
-      )
-      .returning({ id: transactions.id });
+      );
 
+    // Invarian SC-16: Record tidak dihapus secara fisik (DELETE) agar riwayat audit terjaga
     return {
       success: true,
-      data: { deletedCount: deletedRows.length },
+      data: {
+        deletedCount: 0,
+        archivedCount: archivedRows.length,
+      },
     };
   } catch (err) {
-    console.error("Gagal membersihkan transaksi expired:", err);
+    console.error("Gagal mengarsipkan transaksi expired:", err);
     return {
       success: false,
-      error: "Gagal membersihkan transaksi yang telah dihapus.",
+      error: "Gagal memproses arsip jejak audit transaksi.",
     };
   }
 }
