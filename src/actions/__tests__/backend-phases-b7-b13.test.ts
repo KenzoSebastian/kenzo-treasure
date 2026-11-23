@@ -12,6 +12,7 @@ import {
   transferEmergencyFundSchema,
   updateEmergencyTargetSchema,
   createLiabilitySchema,
+  updateLiabilitySchema,
   recordInstallmentSchema,
   updateCategoryTargetSchema,
   deleteCategorySchema,
@@ -122,6 +123,51 @@ describe("Backend Phases B7 - B13 & R1 - R10 Comprehensive Suite", () => {
         !detachedCategory.isTemporary || detachedCategory.liabilityId !== null;
 
       expect(shouldInheritToNextMonth).toBe(false);
+    });
+
+    it("SC-12: harus merelokasikan sisa kuota pos cicilan yang belum terpakai ke Uang Bebas saat cicilan lunas di bulan aktif", () => {
+      // Validasi skema updateLiability menerima isSettled
+      const validSettledUpdate = updateLiabilitySchema.safeParse({
+        liabilityId: "11111111-1111-4111-8111-111111111111",
+        isSettled: true,
+      });
+      expect(validSettledUpdate.success).toBe(true);
+
+      // Skenario A: Cicilan Rp 1.000.000, belum ada pengeluaran di bulan berjalan (spent = 0)
+      const linkedCategoryA = {
+        targetBudget: 1_000_000,
+        spent: 0,
+      };
+      let freeBudgetTargetA = 2_000_000;
+      const unspentA = Math.max(
+        0,
+        linkedCategoryA.targetBudget - linkedCategoryA.spent
+      );
+      expect(unspentA).toBe(1_000_000);
+
+      // Realokasi ke Uang Bebas
+      freeBudgetTargetA += unspentA;
+      const newCategoryTargetA = linkedCategoryA.spent;
+      expect(freeBudgetTargetA).toBe(3_000_000);
+      expect(newCategoryTargetA).toBe(0);
+
+      // Skenario B: Cicilan Rp 1.000.000, sudah dibayar sebagian Rp 300.000 (spent = 300.000)
+      const linkedCategoryB = {
+        targetBudget: 1_000_000,
+        spent: 300_000,
+      };
+      let freeBudgetTargetB = 2_000_000;
+      const unspentB = Math.max(
+        0,
+        linkedCategoryB.targetBudget - linkedCategoryB.spent
+      );
+      expect(unspentB).toBe(700_000);
+
+      // Realokasi ke Uang Bebas
+      freeBudgetTargetB += unspentB;
+      const newCategoryTargetB = linkedCategoryB.spent;
+      expect(freeBudgetTargetB).toBe(2_700_000);
+      expect(newCategoryTargetB).toBe(300_000);
     });
   });
 

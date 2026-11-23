@@ -741,7 +741,14 @@ export async function updateLiability(
         throw new Error(`TOTAL_LESS_THAN_PAID:${existing.paidAmount}`);
       }
 
-      const nextIsSettled = existing.paidAmount >= nextTotal;
+      const nextIsSettled =
+        parsed.data.isSettled !== undefined
+          ? parsed.data.isSettled
+          : existing.paidAmount >= nextTotal;
+      const nextPaid =
+        parsed.data.isSettled === true
+          ? Math.max(existing.paidAmount, nextTotal)
+          : existing.paidAmount;
       const nextName = parsed.data.name ?? existing.name;
       const nextIcon = parsed.data.icon
         ? resolveCategoryIconKey(parsed.data.icon, "pos_wajib", existing.id)
@@ -753,6 +760,7 @@ export async function updateLiability(
           name: nextName,
           icon: nextIcon,
           totalAmount: nextTotal,
+          paidAmount: nextPaid,
           monthlyPayment: nextMonthly,
           totalMonths:
             parsed.data.totalMonths !== undefined
@@ -787,54 +795,105 @@ export async function updateLiability(
         );
 
       for (const linkedCat of openLinkedCategories) {
-        const delta = nextMonthly - linkedCat.targetBudget;
-        if (delta > 0) {
-          const freeCat = await verifyAndLockFreeBudgetForLiability(
-            tx,
-            linkedCat.monthId,
-            userId,
-            delta
-          );
+        if (nextIsSettled) {
+          // Invarian SC-12: Jika cicilan lunas di bulan aktif, realokasi kuota yang belum terpakai ke Uang Bebas
+          const [spentRes] = await tx
+            .select({
+              totalSpent: sql<number>`coalesce(sum(${transactions.amount}), 0)`,
+            })
+            .from(transactions)
+            .where(
+              and(
+                eq(transactions.categoryId, linkedCat.id),
+                eq(transactions.isDeleted, false)
+              )
+            );
+          const spent = Number(spentRes?.totalSpent ?? 0);
+          const unspent = Math.max(0, linkedCat.targetBudget - spent);
+
+          if (unspent > 0) {
+            const [freeCat] = await tx
+              .select()
+              .from(budgetCategories)
+              .where(
+                and(
+                  eq(budgetCategories.monthId, linkedCat.monthId),
+                  eq(budgetCategories.group, "uang_bebas_tabungan")
+                )
+              )
+              .for("update");
+
+            if (freeCat) {
+              await tx
+                .update(budgetCategories)
+                .set({
+                  targetBudget: freeCat.targetBudget + unspent,
+                  updatedAt: new Date(),
+                })
+                .where(eq(budgetCategories.id, freeCat.id));
+            }
+          }
+
           await tx
             .update(budgetCategories)
             .set({
-              targetBudget: freeCat.targetBudget - delta,
+              name: nextName,
+              icon: nextIcon,
+              targetBudget: spent,
+              isTemporary: true,
               updatedAt: new Date(),
             })
-            .where(eq(budgetCategories.id, freeCat.id));
-        } else if (delta < 0) {
-          const [freeCat] = await tx
-            .select()
-            .from(budgetCategories)
-            .where(
-              and(
-                eq(budgetCategories.monthId, linkedCat.monthId),
-                eq(budgetCategories.group, "uang_bebas_tabungan")
-              )
-            )
-            .for("update");
-
-          if (freeCat) {
+            .where(eq(budgetCategories.id, linkedCat.id));
+        } else {
+          const delta = nextMonthly - linkedCat.targetBudget;
+          if (delta > 0) {
+            const freeCat = await verifyAndLockFreeBudgetForLiability(
+              tx,
+              linkedCat.monthId,
+              userId,
+              delta
+            );
             await tx
               .update(budgetCategories)
               .set({
-                targetBudget: freeCat.targetBudget + Math.abs(delta),
+                targetBudget: freeCat.targetBudget - delta,
                 updatedAt: new Date(),
               })
               .where(eq(budgetCategories.id, freeCat.id));
-          }
-        }
+          } else if (delta < 0) {
+            const [freeCat] = await tx
+              .select()
+              .from(budgetCategories)
+              .where(
+                and(
+                  eq(budgetCategories.monthId, linkedCat.monthId),
+                  eq(budgetCategories.group, "uang_bebas_tabungan")
+                )
+              )
+              .for("update");
 
-        await tx
-          .update(budgetCategories)
-          .set({
-            name: nextName,
-            icon: nextIcon,
-            targetBudget: nextMonthly,
-            isTemporary: true,
-            updatedAt: new Date(),
-          })
-          .where(eq(budgetCategories.id, linkedCat.id));
+            if (freeCat) {
+              await tx
+                .update(budgetCategories)
+                .set({
+                  targetBudget: freeCat.targetBudget + Math.abs(delta),
+                  updatedAt: new Date(),
+                })
+                .where(eq(budgetCategories.id, freeCat.id));
+            }
+          }
+
+          await tx
+            .update(budgetCategories)
+            .set({
+              name: nextName,
+              icon: nextIcon,
+              targetBudget: nextMonthly,
+              isTemporary: true,
+              updatedAt: new Date(),
+            })
+            .where(eq(budgetCategories.id, linkedCat.id));
+        }
       }
 
       return updatedRow;

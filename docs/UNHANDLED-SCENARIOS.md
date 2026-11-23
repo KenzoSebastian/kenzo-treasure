@@ -19,7 +19,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 | **SC-09** | Liabilities | Hapus Cicilan dengan Riwayat Transaksi Menghasilkan Pos Hantu Bulan Depan | 🟡 Sedang | `src/actions/liabilities.ts` | **COMPLETED ✅** |
 | **SC-10** | Wishlists | Alokasi Wishlist Melebihi Sisa Kebutuhan (*Over-Allocation*) | 🟡 Sedang | `src/actions/wishlists.ts` | **COMPLETED ✅** |
 | **SC-11** | Wishlists | Ketiadaan Fitur Edit / Hapus Wishlist & Penyelamatan Dana Tersimpan | 🟡 Sedang | `src/actions/wishlists.ts` | **COMPLETED ✅** |
-| **SC-12** | Liabilities | Mengedit Cicilan Menjadi Lunas Tidak Mengembalikan Kuota Bulan Berjalan | 🟡 Sedang | `src/actions/liabilities.ts` | ⚠️ Open |
+| **SC-12** | Liabilities | Mengedit Cicilan Menjadi Lunas Tidak Mengembalikan Kuota Bulan Berjalan | 🟡 Sedang | `src/actions/liabilities.ts` | **COMPLETED ✅** |
 | **SC-13** | Month Lifecycle | Pembuatan Bulan Baru Tanpa Tutup Buku Bulan Lama (*Lompat Bulan*) | 🟡 Sedang | `src/actions/months.ts` | ⚠️ Open |
 | **SC-14** | Month Lifecycle | Tutup Buku Tidak Menyapu Sisa Kuota Pos yang Belum Terpakai (*Uang Menguap*) | 🔴 Kritis | `src/actions/months.ts` | **COMPLETED ✅** |
 | **SC-15** | Savings | Transfer Dana Darurat saat Target Rp 0 atau Sudah 100% Tercapai | 🟢 Rendah | `src/actions/savings.ts` | ⚠️ Open |
@@ -209,6 +209,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 ---
 
 ### [SC-12] Mengedit Cicilan Menjadi Lunas Tidak Mengembalikan Kuota Bulan Berjalan
+- **Status:** **COMPLETED ✅** (Disetujui Kenzo pada 23 November 2026)
 - **Tingkat Keparahan:** 🟡 **Sedang (Dana Terkunci)**
 - **Modul Terdampak:** `src/actions/liabilities.ts` (`updateLiability`)
 - **Kasus Riil:** Pengguna mengedit cicilan di modal Tracking Cicilan menjadi lunas (`isSettled = true`).

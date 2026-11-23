@@ -99,6 +99,7 @@ export function LiabilityTrackerCard({
   const [editTotalRaw, setEditTotalRaw] = React.useState("");
   const [editMonthlyRaw, setEditMonthlyRaw] = React.useState("");
   const [editTenorMonths, setEditTenorMonths] = React.useState("12");
+  const [editIsSettled, setEditIsSettled] = React.useState(false);
   const [editFormError, setEditFormError] = React.useState<string | null>(null);
 
   // State Modal Hapus Cicilan
@@ -130,6 +131,7 @@ export function LiabilityTrackerCard({
       Math.ceil(item.totalAmount / Math.max(1, item.monthlyPayment))
     );
     setEditTenorMonths(String(item.totalMonths ?? fallbackTenor));
+    setEditIsSettled(Boolean(item.isSettled));
     setEditFormError(null);
   };
 
@@ -266,6 +268,7 @@ export function LiabilityTrackerCard({
         totalAmount,
         monthlyPayment,
         totalMonths: totalTenorMonths,
+        isSettled: editIsSettled,
       });
 
       if (!res.success) {
@@ -910,6 +913,25 @@ export function LiabilityTrackerCard({
                 fallbackGroup="pos_wajib"
                 label="Pilih Ikon Cicilan"
               />
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  id="edit-liab-settled"
+                  type="checkbox"
+                  checked={editIsSettled}
+                  onChange={(e) => setEditIsSettled(e.target.checked)}
+                  className="size-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                />
+                <Label
+                  htmlFor="edit-liab-settled"
+                  className="text-xs font-semibold cursor-pointer text-foreground flex flex-col gap-0.5"
+                >
+                  <span>Tandai cicilan ini lunas sekarang</span>
+                  <span className="text-[10px] text-muted-foreground font-normal">
+                    Sisa kuota bulan berjalan akan otomatis kembali ke Uang Bebas
+                  </span>
+                </Label>
+              </div>
 
               {editFormError && (
                 <p className="text-xs font-medium text-destructive">

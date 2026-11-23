@@ -139,6 +139,7 @@ export const updateLiabilitySchema = z.object({
     .positive()
     .optional()
     .nullable(),
+  isSettled: z.boolean().optional(),
 });
 
 /**
