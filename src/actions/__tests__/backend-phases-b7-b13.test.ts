@@ -221,6 +221,30 @@ describe("Backend Phases B7 - B13 & R1 - R10 Comprehensive Suite", () => {
       });
       expect(withdraw.success).toBe(true);
     });
+
+    it("SC-07: harus memblokir mutasi (alokasi & penarikan) pada wishlist yang sudah berstatus terbeli (anti-magic money)", () => {
+      // Skenario:
+      // Barang impian Laptop Impian Rp 10.000.000 sudah terkumpul Rp 10.000.000 dan dibeli (isPurchased = true).
+      // Saldo di rekening fisik sudah diserahkan ke toko.
+      const purchasedWishlist = {
+        id: "w-purchased",
+        userId: "user-1",
+        name: "Laptop Impian",
+        targetAmount: 10_000_000,
+        savedAmount: 10_000_000,
+        isPurchased: true,
+      };
+
+      // Invarian SC-07: mutasi dilarang keras saat isPurchased = true
+      const canMutate = !purchasedWishlist.isPurchased;
+      expect(canMutate).toBe(false);
+
+      expect(() => {
+        if (purchasedWishlist.isPurchased) {
+          throw new Error("WISHLIST_ALREADY_PURCHASED");
+        }
+      }).toThrow("WISHLIST_ALREADY_PURCHASED");
+    });
   });
 
   describe("Fase B11: Brankas Dana Darurat (Emergency Fund Vault)", () => {

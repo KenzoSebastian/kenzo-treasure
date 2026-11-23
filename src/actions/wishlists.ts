@@ -156,6 +156,11 @@ export async function allocateSavings(
         throw new Error("WISHLIST_NOT_FOUND");
       }
 
+      // Invarian SC-07: Hard freeze barang impian yang sudah terbeli
+      if (targetWishlist.isPurchased) {
+        throw new Error("WISHLIST_ALREADY_PURCHASED");
+      }
+
       const [savingsRow] = await tx
         .select()
         .from(savingsAccount)
@@ -214,6 +219,13 @@ export async function allocateSavings(
       return {
         success: false,
         error: "Barang impian tidak ditemukan.",
+      };
+    }
+    if (err instanceof Error && err.message === "WISHLIST_ALREADY_PURCHASED") {
+      return {
+        success: false,
+        error:
+          "Barang impian ini sudah berstatus terbeli. Dana tidak dapat dialokasikan kembali.",
       };
     }
     if (err instanceof Error && err.message === "INSUFFICIENT_FUNDS") {
@@ -284,6 +296,11 @@ export async function withdrawFromWishlist(
 
       if (!targetWishlist) {
         throw new Error("WISHLIST_NOT_FOUND");
+      }
+
+      // Invarian SC-07: Hard freeze barang impian yang sudah terbeli (anti-penciptaan uang fiktif)
+      if (targetWishlist.isPurchased) {
+        throw new Error("WISHLIST_ALREADY_PURCHASED");
       }
 
       if (targetWishlist.savedAmount < parsed.data.amount) {
@@ -357,6 +374,13 @@ export async function withdrawFromWishlist(
       return {
         success: false,
         error: "Barang impian tidak ditemukan.",
+      };
+    }
+    if (err instanceof Error && err.message === "WISHLIST_ALREADY_PURCHASED") {
+      return {
+        success: false,
+        error:
+          "Barang impian ini sudah berstatus terbeli. Dana yang sudah dibelanjakan di dunia nyata tidak dapat ditarik kembali ke tabungan bebas.",
       };
     }
     if (

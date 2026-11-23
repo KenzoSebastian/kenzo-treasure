@@ -40,7 +40,16 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
 
 ## 📝 Log Checkpoint Terbaru (Maksimal 5 Checkpoint Aktif)
 
-### Checkpoint 1: Skenario SC-06 — Shock Deficit Guard pada Penghapusan & Pengurangan Pemasukan Freelance (2026-11-23 19:47 WIB)
+### Checkpoint 1: Skenario SC-07 — Hard Freeze Mutasi Tabungan pada Barang Impian Berstatus Terbeli (2026-11-23 19:51 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. **Audit & Penyelamatan Saldo Riil (Anti-Magic Money):** Menutup celah di mana Server Actions `allocateSavings` dan `withdrawFromWishlist` belum memvalidasi `wishlist.isPurchased`. Hal ini sebelumnya memungkinkan dana ditarik kembali ke tabungan bebas dari barang yang secara fisik sudah dibeli di toko.
+  2. **Kunci Mutasi Mutlak (*Hard Freeze*):** Menambahkan pemeriksaan `if (targetWishlist.isPurchased) throw new Error("WISHLIST_ALREADY_PURCHASED");` di dalam transaksi atomik dengan pesan edukatif user-friendly.
+  3. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 98/98 PASS (441 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
+- **File Changelog:** [`2026-11-23_sc07_freeze_mutations_on_purchased_wishlists.md`](.changelog/2026-11-23_sc07_freeze_mutations_on_purchased_wishlists.md).
+
+### Checkpoint 2: Skenario SC-06 — Shock Deficit Guard pada Penghapusan & Pengurangan Pemasukan Freelance (2026-11-23 19:47 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -51,7 +60,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 97/97 PASS (439 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc06_shock_deficit_guard_on_income_deletion.md`](.changelog/2026-11-23_sc06_shock_deficit_guard_on_income_deletion.md).
 
-### Checkpoint 2: Skenario SC-05 — Penyesuaian Plafon Bulan Terakhir Cicilan & Relokasi Dana Menganggur ke Uang Bebas (2026-11-23 19:30 WIB • Approved 2026-11-23 19:34 WIB)
+### Checkpoint 3: Skenario SC-05 — Penyesuaian Plafon Bulan Terakhir Cicilan & Relokasi Dana Menganggur ke Uang Bebas (2026-11-23 19:30 WIB • Approved 2026-11-23 19:34 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-23 19:34 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -63,7 +72,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 95/95 PASS (433 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc05_last_month_installment_remaining_principal.md`](.changelog/2026-11-23_sc05_last_month_installment_remaining_principal.md).
 
-### Checkpoint 3: Skenario SC-03 & SC-04 — Zero-Based Budgeting Rebalancing & Custom Category Leak Protection (2026-11-22 22:03 WIB • Approved 2026-11-22 22:05 WIB)
+### Checkpoint 4: Skenario SC-03 & SC-04 — Zero-Based Budgeting Rebalancing & Custom Category Leak Protection (2026-11-22 22:03 WIB • Approved 2026-11-22 22:05 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 22:05 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -76,7 +85,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 92/92 PASS (425 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-22_sc03_sc04_zbb_rebalancing_and_custom_category_leak_protection.md`](.changelog/2026-11-22_sc03_sc04_zbb_rebalancing_and_custom_category_leak_protection.md).
 
-### Checkpoint 4: Skenario SC-14 — Tutup Buku Menyapu Bersih Surplus Realisasi Kas (Total Pemasukan – Total Kas Keluar) (2026-11-22 21:38 WIB • Approved 2026-11-22 21:45 WIB)
+### Checkpoint 5: Skenario SC-14 — Tutup Buku Menyapu Bersih Surplus Realisasi Kas (Total Pemasukan – Total Kas Keluar) (2026-11-22 21:38 WIB • Approved 2026-11-22 21:45 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 21:45 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -90,14 +99,13 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   6. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 92/92 PASS (414 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-22_sc14_real_cashflow_surplus_sweep.md`](.changelog/2026-11-22_sc14_real_cashflow_surplus_sweep.md).
 
-### Checkpoint 5: Skenario 2 (SC-02) — Reopen Month Sweep Reversal & Anti-Double-Counting Tabungan Bebas (2026-11-22 20:58 WIB • Approved 2026-11-22 21:45 WIB)
-- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 21:45 WIB)`
-- **Agent:** Antigravity
-- **Capaian Utama:**
-  1. **Audit & Penyelamatan Integritas Saldo Tabungan (Anti-Double-Counting):** Menyelesaikan celah kritis di mana pembukaan kembali bulan (`reopenMonth`) tidak membatalkan/menarik kembali saldo yang telah disapu (*month sweep*) ke `savings_account.balance`, yang sebelumnya menyebabkan saldo tabungan bertambah ganda saat bulan ditutup ulang.
-  2. **Pencatatan Histori Sweep di Database:** Menambahkan kolom `sweptAmount: integer("swept_amount").default(0).notNull()` pada tabel `months` beserta migrasi DDL `0004_add_months_swept_amount.sql`.
-  3. **Reversal Atomik pada `reopenMonth` (`src/actions/months.ts`):** Menarik kembali (*reverse*) nominal `sweptAmount` dari saldo tabungan bebas secara atomik di dalam `db.transaction` dengan *row-level locking* (`FOR UPDATE`) dan me-reset `sweptAmount = 0`.
-  4. **Anti-Defisit Guard:** Memvalidasi `savings.balance >= targetMonth.sweptAmount`. Jika saldo tabungan bebas sudah terlanjur dialokasikan ke Wishlist atau Dana Darurat sehingga saldo bebas tidak cukup, sistem menolak pembukaan kembali dengan pesan edukatif ramah pengguna.
+---
+
+## 📚 Rekapitulasi Arsip Milestone Lengkap
+
+| Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
+| :--- | :--- | :--- | :--- |
+| **Skenario 2 (SC-02): Reopen Month Sweep Reversal & Anti-Double-Counting** | 2026-11-22 | Kolom sweptAmount di DB, penarikan kembali saldo sweep saat buka buku, dan anti-defisit guard. | [`2026-11-22_sc02_reopen_month_sweep_reversal_anti_double_counting.md`](.changelog/2026-11-22_sc02_reopen_month_sweep_reversal_anti_double_counting.md) |
   5. **Transparansi UI & Dialog Konfirmasi (`AiMonthlyReviewModal.tsx`):** Menampilkan rincian transparan *"Saldo Sweep Ditarik Kembali: -Rp xxx"* pada dialog konfirmasi saat bulan berstatus tertutup, serta notifikasi toast informatif pasca pembukaan kembali siklus.
   6. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 91/91 PASS (410 assertions across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-22_sc02_reopen_month_sweep_reversal_anti_double_counting.md`](.changelog/2026-11-22_sc02_reopen_month_sweep_reversal_anti_double_counting.md).

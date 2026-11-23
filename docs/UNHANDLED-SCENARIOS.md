@@ -14,7 +14,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 | **SC-04** | ZBB Budget | Tambah Pos Anggaran Kustom Tanpa Kuota Uang Bebas (*ZBB Leak*) | 🔴 Kritis | `src/actions/categories.ts` | **COMPLETED ✅** |
 | **SC-05** | Liabilities | Bulan Terakhir Cicilan: Sisa Pokok < Cicilan Normal (*Dana Menganggur*) | 🔴 Kritis | `src/lib/month-generator.ts` | **COMPLETED ✅** |
 | **SC-06** | Incomes | Hapus Pemasukan Freelance saat Kuotanya Sudah Dibelanjakan (*Shock Deficit*) | 🔴 Kritis | `src/actions/incomes.ts` | **COMPLETED ✅** |
-| **SC-07** | Wishlists | Alokasi / Penarikan Dana pada Barang yang Sudah Terbeli (*Magic Money*) | 🔴 Kritis | `src/actions/wishlists.ts` | ⚠️ Open |
+| **SC-07** | Wishlists | Alokasi / Penarikan Dana pada Barang yang Sudah Terbeli (*Magic Money*) | 🔴 Kritis | `src/actions/wishlists.ts` | **COMPLETED ✅** |
 | **SC-08** | Liabilities | Edit Total Pokok Utang < Total Sudah Dibayar (*Inkonsistensi Server*) | 🟡 Sedang | `src/actions/liabilities.ts` | ⚠️ Open |
 | **SC-09** | Liabilities | Hapus Cicilan dengan Riwayat Transaksi Menghasilkan Pos Hantu Bulan Depan | 🟡 Sedang | `src/actions/liabilities.ts` | ⚠️ Open |
 | **SC-10** | Wishlists | Alokasi Wishlist Melebihi Sisa Kebutuhan (*Over-Allocation*) | 🟡 Sedang | `src/actions/wishlists.ts` | ⚠️ Open |
@@ -143,6 +143,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 ---
 
 ### [SC-07] Alokasi atau Penarikan Dana pada Barang yang Sudah Terbeli (*Magic Money*)
+- **Status:** **COMPLETED ✅** (Disetujui Kenzo pada 23 November 2026)
 - **Tingkat Keparahan:** 🔴 **Kritis (Integritas Saldo Tabungan & Anti-Penciptaan Uang)**
 - **Modul Terdampak:** `src/actions/wishlists.ts` (`allocateSavings` & `withdrawFromWishlist`)
 - **Kasus Riil:**
