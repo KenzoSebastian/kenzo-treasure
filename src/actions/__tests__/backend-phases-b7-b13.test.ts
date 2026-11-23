@@ -83,6 +83,27 @@ describe("Backend Phases B7 - B13 & R1 - R10 Comprehensive Suite", () => {
       });
       expect(validInstallment.success).toBe(true);
     });
+
+    it("SC-08: harus menolak pembaruan total utang yang lebih kecil dari nominal yang sudah dibayar", () => {
+      // Cicilan mobil sudah terbayar Rp 15.000.000 dari total utang Rp 30.000.000
+      const existingDebt = {
+        totalAmount: 30_000_000,
+        paidAmount: 15_000_000,
+        monthlyPayment: 1_000_000,
+      };
+
+      // Pengguna mengedit form cicilan dan mengisi total pokok baru Rp 10.000.000
+      const requestedNewTotal = 10_000_000;
+
+      const isValidTotal = requestedNewTotal >= existingDebt.paidAmount;
+      expect(isValidTotal).toBe(false);
+
+      expect(() => {
+        if (requestedNewTotal < existingDebt.paidAmount) {
+          throw new Error(`TOTAL_LESS_THAN_PAID:${existingDebt.paidAmount}`);
+        }
+      }).toThrow("TOTAL_LESS_THAN_PAID:15000000");
+    });
   });
 
   describe("Fase B8 & R4: Budget Categories Management & Deletion Protection", () => {

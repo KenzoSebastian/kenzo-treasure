@@ -15,7 +15,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 | **SC-05** | Liabilities | Bulan Terakhir Cicilan: Sisa Pokok < Cicilan Normal (*Dana Menganggur*) | 🔴 Kritis | `src/lib/month-generator.ts` | **COMPLETED ✅** |
 | **SC-06** | Incomes | Hapus Pemasukan Freelance saat Kuotanya Sudah Dibelanjakan (*Shock Deficit*) | 🔴 Kritis | `src/actions/incomes.ts` | **COMPLETED ✅** |
 | **SC-07** | Wishlists | Alokasi / Penarikan Dana pada Barang yang Sudah Terbeli (*Magic Money*) | 🔴 Kritis | `src/actions/wishlists.ts` | **COMPLETED ✅** |
-| **SC-08** | Liabilities | Edit Total Pokok Utang < Total Sudah Dibayar (*Inkonsistensi Server*) | 🟡 Sedang | `src/actions/liabilities.ts` | ⚠️ Open |
+| **SC-08** | Liabilities | Edit Total Pokok Utang < Total Sudah Dibayar (*Inkonsistensi Server*) | 🟡 Sedang | `src/actions/liabilities.ts` | **COMPLETED ✅** |
 | **SC-09** | Liabilities | Hapus Cicilan dengan Riwayat Transaksi Menghasilkan Pos Hantu Bulan Depan | 🟡 Sedang | `src/actions/liabilities.ts` | ⚠️ Open |
 | **SC-10** | Wishlists | Alokasi Wishlist Melebihi Sisa Kebutuhan (*Over-Allocation*) | 🟡 Sedang | `src/actions/wishlists.ts` | ⚠️ Open |
 | **SC-11** | Wishlists | Ketiadaan Fitur Edit / Hapus Wishlist & Penyelamatan Dana Tersimpan | 🟡 Sedang | `src/actions/wishlists.ts` | ⚠️ Open |
@@ -165,6 +165,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 ## 4. Rincian Skenario Sedang & Rendah (🟡 & 🟢)
 
 ### [SC-08] Edit Total Pokok Utang Menjadi Lebih Kecil dari Total yang Sudah Dibayar
+- **Status:** **COMPLETED ✅** (Disetujui Kenzo pada 23 November 2026)
 - **Tingkat Keparahan:** 🟡 **Sedang (Inkonsistensi Server-Side)**
 - **Modul Terdampak:** `src/actions/liabilities.ts` (`updateLiability`)
 - **Kasus Riil:** Cicilan mobil sudah terbayar Rp 15.000.000 dari total utang Rp 30.000.000. Pengguna mengedit form cicilan dan mengisi total pokok baru Rp 10.000.000.

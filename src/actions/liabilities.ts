@@ -41,6 +41,7 @@ import { executeCategoryTransactionTx } from "@/lib/category-transaction-tx";
 import {
   isDateWithinMonthCycle,
   resolveDefaultCycleDate,
+  formatRupiah,
 } from "@/lib/financial-calculations";
 import { resolveAuthenticatedUserId } from "@/lib/queries/months";
 import {
@@ -735,6 +736,11 @@ export async function updateLiability(
         throw new Error("MONTHLY_EXCEEDS_TOTAL");
       }
 
+      // Invarian SC-08: Total pokok utang tidak boleh lebih kecil dari nominal yang sudah dibayar
+      if (nextTotal < existing.paidAmount) {
+        throw new Error(`TOTAL_LESS_THAN_PAID:${existing.paidAmount}`);
+      }
+
       const nextIsSettled = existing.paidAmount >= nextTotal;
       const nextName = parsed.data.name ?? existing.name;
       const nextIcon = parsed.data.icon
@@ -852,6 +858,14 @@ export async function updateLiability(
         return {
           success: false,
           error: "Cicilan per bulan tidak boleh melebihi total kewajiban utang.",
+        };
+      }
+      if (err.message.startsWith("TOTAL_LESS_THAN_PAID")) {
+        const parts = err.message.split(":");
+        const paid = parts[1] ? Number(parts[1]) : 0;
+        return {
+          success: false,
+          error: `Total pokok utang tidak boleh lebih kecil dari nominal yang sudah dibayar (${formatRupiah(paid)}).`,
         };
       }
       if (

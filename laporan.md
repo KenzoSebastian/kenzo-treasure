@@ -40,7 +40,17 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
 
 ## 📝 Log Checkpoint Terbaru (Maksimal 5 Checkpoint Aktif)
 
-### Checkpoint 1: Skenario SC-07 — Hard Freeze Mutasi Tabungan pada Barang Impian Berstatus Terbeli (2026-11-23 19:51 WIB)
+### Checkpoint 1: Skenario SC-08 — Validasi Server-Side Total Pokok Utang Tidak Boleh Lebih Kecil dari yang Sudah Dibayar (2026-11-23 19:54 WIB)
+- **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. **Audit & Penyelamatan Konsistensi Utang:** Menutup celah di mana pengguna dapat mengedit form cicilan dan mengisi total pokok baru yang lebih kecil dari yang sudah terbayar (`nextTotal < existing.paidAmount`).
+  2. **Validasi Atomik Row-Level Locking:** Menambahkan pengecekan di Server Action `updateLiability` dengan `FOR UPDATE`, melempar error `TOTAL_LESS_THAN_PAID` jika dilanggar.
+  3. **Pesan Edukatif Informatif:** Mengembalikan pesan error ramah pengguna dengan rincian nominal yang sudah dibayar.
+  4. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 99/99 PASS (443 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
+- **File Changelog:** [`2026-11-23_sc08_prevent_total_debt_smaller_than_paid.md`](.changelog/2026-11-23_sc08_prevent_total_debt_smaller_than_paid.md).
+
+### Checkpoint 2: Skenario SC-07 — Hard Freeze Mutasi Tabungan pada Barang Impian Berstatus Terbeli (2026-11-23 19:51 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -49,7 +59,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   3. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 98/98 PASS (441 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc07_freeze_mutations_on_purchased_wishlists.md`](.changelog/2026-11-23_sc07_freeze_mutations_on_purchased_wishlists.md).
 
-### Checkpoint 2: Skenario SC-06 — Shock Deficit Guard pada Penghapusan & Pengurangan Pemasukan Freelance (2026-11-23 19:47 WIB)
+### Checkpoint 3: Skenario SC-06 — Shock Deficit Guard pada Penghapusan & Pengurangan Pemasukan Freelance (2026-11-23 19:47 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -60,7 +70,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 97/97 PASS (439 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc06_shock_deficit_guard_on_income_deletion.md`](.changelog/2026-11-23_sc06_shock_deficit_guard_on_income_deletion.md).
 
-### Checkpoint 3: Skenario SC-05 — Penyesuaian Plafon Bulan Terakhir Cicilan & Relokasi Dana Menganggur ke Uang Bebas (2026-11-23 19:30 WIB • Approved 2026-11-23 19:34 WIB)
+### Checkpoint 4: Skenario SC-05 — Penyesuaian Plafon Bulan Terakhir Cicilan & Relokasi Dana Menganggur ke Uang Bebas (2026-11-23 19:30 WIB • Approved 2026-11-23 19:34 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-23 19:34 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -72,7 +82,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 95/95 PASS (433 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc05_last_month_installment_remaining_principal.md`](.changelog/2026-11-23_sc05_last_month_installment_remaining_principal.md).
 
-### Checkpoint 4: Skenario SC-03 & SC-04 — Zero-Based Budgeting Rebalancing & Custom Category Leak Protection (2026-11-22 22:03 WIB • Approved 2026-11-22 22:05 WIB)
+### Checkpoint 5: Skenario SC-03 & SC-04 — Zero-Based Budgeting Rebalancing & Custom Category Leak Protection (2026-11-22 22:03 WIB • Approved 2026-11-22 22:05 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 22:05 WIB)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -85,19 +95,13 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 92/92 PASS (425 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-22_sc03_sc04_zbb_rebalancing_and_custom_category_leak_protection.md`](.changelog/2026-11-22_sc03_sc04_zbb_rebalancing_and_custom_category_leak_protection.md).
 
-### Checkpoint 5: Skenario SC-14 — Tutup Buku Menyapu Bersih Surplus Realisasi Kas (Total Pemasukan – Total Kas Keluar) (2026-11-22 21:38 WIB • Approved 2026-11-22 21:45 WIB)
-- **Status:** `COMPLETED ✅ — Approved by Kenzo (2026-11-22 21:45 WIB)`
-- **Agent:** Antigravity
-- **Capaian Utama:**
-  1. **Audit & Penyelamatan Sisa Kas Fisik (Anti-Uang Menguap):** Memperbaiki celah finansial di mana `closeMonth` sebelumnya hanya menyapu pos `uang_bebas_tabungan`. Jika ada pos wajib/kebutuhan yang belum terealisasi (kas keluar = Rp 0), selisih kas fisik tersebut (seperti Rp 1.867.000) tidak ikut disapu ke tabungan.
-  2. **Rumus Sweep Berbasis Realisasi Kas (Opsi 1):** Mengubah rumus penutupan buku menjadi berbasis Surplus Kas Riil Bersih:
-     $$\text{Uang Disapu} = \max(0, \text{totalIncome} - \text{totalSpent})$$
-     Memastikan saat kas keluar Rp 0 dari pemasukan Rp 5.000.000, penuh Rp 5.000.000 disapu ke `savings_account.balance` (Tabungan Bebas).
-  3. **Fleksibilitas Fungsi `calculateMonthSweep` (`src/lib/financial-calculations.ts`):** Mendukung parameter tunggal surplus maupun berpasangan `(totalIncome, totalExpenses)` tanpa breaking change.
-  4. **Pembaruan Aksi Server `closeMonth` (`src/actions/months.ts`):** Mengambil `netCashSurplus = Math.max(0, totalIncome - totalSpent)` sebagai dasar penyapuan saldo ke tabungan.
-  5. **Rekonsiliasi Data Aktual Database:** Menyesuaikan data bulan September 2026 (`sweptAmount = 5.000.000`) dan saldo `savings_account.balance = 5.000.000` milik Kenzo agar langsung cocok dengan kondisi riil di antarmuka pengguna.
-  6. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 92/92 PASS (414 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
-- **File Changelog:** [`2026-11-22_sc14_real_cashflow_surplus_sweep.md`](.changelog/2026-11-22_sc14_real_cashflow_surplus_sweep.md).
+---
+
+## 📚 Rekapitulasi Arsip Milestone Lengkap
+
+| Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
+| :--- | :--- | :--- | :--- |
+| **Skenario SC-14: Tutup Buku Menyapu Bersih Surplus Realisasi Kas (Total Pemasukan – Total Kas Keluar)** | 2026-11-22 | Sweep saldo berbasis surplus kas riil bersih (max(0, income - expenses)), anti-uang menguap. | [`2026-11-22_sc14_real_cashflow_surplus_sweep.md`](.changelog/2026-11-22_sc14_real_cashflow_surplus_sweep.md) |
 
 ---
 
