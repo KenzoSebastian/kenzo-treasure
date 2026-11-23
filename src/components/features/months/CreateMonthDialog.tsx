@@ -59,6 +59,7 @@ export function CreateMonthDialog({
   const router = useRouter();
   const { startMonthSwitch } = useMonthNavigation();
   const [open, setOpen] = React.useState(initialTrigger);
+  const [unclosedWarning, setUnclosedWarning] = React.useState<string | null>(null);
   const [isPending, startTransition] = React.useTransition();
 
   const defaultYear = React.useMemo(() => {
@@ -97,9 +98,7 @@ export function CreateMonthDialog({
     setBaseSalary(numericValue);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const executeCreateMonth = (allowUnclosed = false) => {
     if (baseSalary <= 0) {
       toast.error("Gaji pokok harus bernilai positif (lebih besar dari Rp 0)");
       return;
@@ -112,9 +111,14 @@ export function CreateMonthDialog({
           monthIndex,
           baseSalary,
           rolloverSavings,
+          allowUnclosedPrevious: allowUnclosed,
         });
 
         if (!result.success) {
+          if (result.error.includes("belum ditutup buku")) {
+            setUnclosedWarning(result.error);
+            return;
+          }
           toast.error("Gagal membuat bulan baru", {
             description: result.error,
           });
@@ -125,6 +129,7 @@ export function CreateMonthDialog({
           description: `${result.data.name} aktif dengan ${result.data.categoriesCreated} pos anggaran.`,
         });
 
+        setUnclosedWarning(null);
         setOpen(false);
         startMonthSwitch(result.data.monthId, result.data.name, () => {
           router.push(`/dashboard?month=${result.data.monthId}`);
@@ -135,6 +140,11 @@ export function CreateMonthDialog({
         toast.error("Terjadi kesalahan sistem saat membuat bulan baru.");
       }
     });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeCreateMonth(false);
   };
 
   return (
@@ -171,6 +181,35 @@ export function CreateMonthDialog({
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 w-full m-0 p-0">
           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+            {unclosedWarning && (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 space-y-2.5">
+                <div className="flex items-start gap-2 text-xs text-amber-800 dark:text-amber-300">
+                  <AlertCircle className="size-4 shrink-0 text-amber-600 mt-0.5" />
+                  <span className="leading-relaxed">{unclosedWarning}</span>
+                </div>
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setUnclosedWarning(null)}
+                    className="rounded-lg h-7 px-2.5 text-[11px] cursor-pointer"
+                  >
+                    Batal
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={isPending}
+                    onClick={() => executeCreateMonth(true)}
+                    className="rounded-lg h-7 px-2.5 text-[11px] font-semibold bg-amber-600 hover:bg-amber-700 text-white cursor-pointer shadow-xs"
+                  >
+                    Tetap Buat (Lompati Tutup Buku)
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* 1. Baris Pemilih Bulan & Tahun */}
             <div className="grid grid-cols-2 gap-3 items-start">
               <div className="flex flex-col gap-1.5">

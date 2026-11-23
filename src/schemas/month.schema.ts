@@ -37,6 +37,7 @@ export const createMonthSchema = z.object({
     .min(0, { message: "Gaji pokok tidak boleh negatif" })
     .optional(),
   rolloverSavings: z.boolean().default(true),
+  allowUnclosedPrevious: z.boolean().optional().default(false),
 });
 
 /**

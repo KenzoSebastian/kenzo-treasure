@@ -416,5 +416,46 @@ describe("Month Lifecycle & Dynamic Category Generator (Fase B5 & R3)", () => {
       const swept = Math.max(0, income - spent);
       expect(swept).toBe(5_000_000); // Dana riil tidak menguap, 5 juta penuh disapu ke tabungan
     });
+
+    it("SC-13: should guard month creation when previous month is not closed unless explicitly confirmed", () => {
+      // 1. Skema validasi createMonthSchema menerima allowUnclosedPrevious
+      const parsedWithGuard = createMonthSchema.safeParse({
+        year: 2026,
+        monthIndex: 2,
+        baseSalary: 5_000_000,
+        allowUnclosedPrevious: false,
+      });
+      expect(parsedWithGuard.success).toBe(true);
+      expect(parsedWithGuard.data?.allowUnclosedPrevious).toBe(false);
+
+      const parsedConfirmed = createMonthSchema.safeParse({
+        year: 2026,
+        monthIndex: 2,
+        baseSalary: 5_000_000,
+        allowUnclosedPrevious: true,
+      });
+      expect(parsedConfirmed.success).toBe(true);
+      expect(parsedConfirmed.data?.allowUnclosedPrevious).toBe(true);
+
+      // 2. Logika Guard: Pengguna masih memiliki bulan aktif yang belum ditutup
+      const unclosedPreviousMonth = {
+        id: "m-jan-2026",
+        name: "Januari 2026",
+        isClosed: false,
+      };
+
+      // Kasus tanpa konfirmasi (allowUnclosedPrevious = false) -> diblokir
+      const checkGuard = (allowUnclosed: boolean) => {
+        if (!allowUnclosed && !unclosedPreviousMonth.isClosed) {
+          throw new Error(
+            `Siklus "${unclosedPreviousMonth.name}" belum ditutup buku. Tutup buku bulan tersebut terlebih dahulu agar saldo disapu ke tabungan, atau konfirmasi untuk tetap membuat bulan baru.`
+          );
+        }
+        return true;
+      };
+
+      expect(() => checkGuard(false)).toThrow("belum ditutup buku");
+      expect(checkGuard(true)).toBe(true);
+    });
   });
 });

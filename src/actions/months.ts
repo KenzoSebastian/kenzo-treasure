@@ -52,7 +52,8 @@ export { getActiveMonth, getAllMonths };
 export async function createMonthlyCycle(
   param1: string | CreateMonthInput,
   param2?: number,
-  param3?: number
+  param3?: number,
+  explicitAllowUnclosed?: boolean
 ): Promise<
   ActionResponse<{ monthId: string; name: string; categoriesCreated: number }>
 > {
@@ -61,11 +62,13 @@ export async function createMonthlyCycle(
   let monthIndex: number;
   let explicitBaseSalary: number | undefined;
   let customName: string | undefined;
+  let allowUnclosedPrevious = false;
 
   if (typeof param1 === "string") {
     userId = param1;
     year = param2!;
     monthIndex = param3!;
+    allowUnclosedPrevious = Boolean(explicitAllowUnclosed);
   } else {
     const parsed = createMonthSchema.safeParse(param1);
     if (!parsed.success) {
@@ -81,6 +84,7 @@ export async function createMonthlyCycle(
     monthIndex = parsed.data.monthIndex;
     explicitBaseSalary = parsed.data.baseSalary;
     customName = parsed.data.name;
+    allowUnclosedPrevious = Boolean(parsed.data.allowUnclosedPrevious);
   }
 
   const resolvedUserId = await resolveAuthenticatedUserId(userId ?? undefined);
@@ -113,6 +117,32 @@ export async function createMonthlyCycle(
         success: false,
         error: `Siklus bulan untuk ${monthName} sudah pernah dibuat.`,
       };
+    }
+
+    // Invarian SC-13: Periksa apakah ada siklus bulan aktif yang belum ditutup buku
+    if (!allowUnclosedPrevious) {
+      const [unclosedMonth] = await db
+        .select({
+          id: months.id,
+          name: months.name,
+          monthIndex: months.monthIndex,
+          year: months.year,
+        })
+        .from(months)
+        .where(
+          and(
+            eq(months.userId, resolvedUserId),
+            eq(months.isClosed, false)
+          )
+        )
+        .limit(1);
+
+      if (unclosedMonth) {
+        return {
+          success: false,
+          error: `Siklus "${unclosedMonth.name}" belum ditutup buku. Tutup buku bulan tersebut terlebih dahulu agar saldo disapu ke tabungan, atau konfirmasi untuk tetap membuat bulan baru.`,
+        };
+      }
     }
 
     const result = await db.transaction(async (tx) => {

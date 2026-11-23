@@ -20,7 +20,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 | **SC-10** | Wishlists | Alokasi Wishlist Melebihi Sisa Kebutuhan (*Over-Allocation*) | 🟡 Sedang | `src/actions/wishlists.ts` | **COMPLETED ✅** |
 | **SC-11** | Wishlists | Ketiadaan Fitur Edit / Hapus Wishlist & Penyelamatan Dana Tersimpan | 🟡 Sedang | `src/actions/wishlists.ts` | **COMPLETED ✅** |
 | **SC-12** | Liabilities | Mengedit Cicilan Menjadi Lunas Tidak Mengembalikan Kuota Bulan Berjalan | 🟡 Sedang | `src/actions/liabilities.ts` | **COMPLETED ✅** |
-| **SC-13** | Month Lifecycle | Pembuatan Bulan Baru Tanpa Tutup Buku Bulan Lama (*Lompat Bulan*) | 🟡 Sedang | `src/actions/months.ts` | ⚠️ Open |
+| **SC-13** | Month Lifecycle | Pembuatan Bulan Baru Tanpa Tutup Buku Bulan Lama (*Lompat Bulan*) | 🟡 Sedang | `src/actions/months.ts` | **COMPLETED ✅** |
 | **SC-14** | Month Lifecycle | Tutup Buku Tidak Menyapu Sisa Kuota Pos yang Belum Terpakai (*Uang Menguap*) | 🔴 Kritis | `src/actions/months.ts` | **COMPLETED ✅** |
 | **SC-15** | Savings | Transfer Dana Darurat saat Target Rp 0 atau Sudah 100% Tercapai | 🟢 Rendah | `src/actions/savings.ts` | ⚠️ Open |
 | **SC-16** | Transactions | Hard Delete Permanen Menghilangkan Riwayat Jejak Audit Finansial | 🟢 Rendah | `src/actions/transactions.ts` | ⚠️ Open |
@@ -219,6 +219,7 @@ Dokumen ini memetakan seluruh skenario ekstrem, tindakan pengguna tak terduga (*
 ---
 
 ### [SC-13] Pembuatan Bulan Baru Tanpa Tutup Buku Bulan Lama (*Lompat Bulan*)
+- **Status:** **COMPLETED ✅** (Disetujui Kenzo pada 23 November 2026)
 - **Tingkat Keparahan:** 🟡 **Sedang (Integritas Riwayat Finansial)**
 - **Modul Terdampak:** `src/actions/months.ts` (`createMonthlyCycle`)
 - **Kasus Riil:** Pengguna masih berada di bulan Januari 2026. Belum melakukan tutup buku, pengguna langsung membuat bulan Februari 2026 atau Maret 2026.
