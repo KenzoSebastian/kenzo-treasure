@@ -394,7 +394,17 @@ export function buildInheritedMonthCategories(params: {
     });
   }
 
-  return categoriesToInsert;
+  // Invarian: Pos uang_bebas_tabungan selalu ditempatkan di urutan paling akhir
+  const regular = categoriesToInsert.filter(
+    (c) => c.group !== "uang_bebas_tabungan"
+  );
+  const free = categoriesToInsert.filter(
+    (c) => c.group === "uang_bebas_tabungan"
+  );
+  return [...regular, ...free].map((cat, idx) => ({
+    ...cat,
+    sortOrder: idx + 1,
+  }));
 }
 
 export interface InitialTemplateSource {
@@ -517,7 +527,17 @@ export function buildInitialMonthCategories(params: {
     });
   }
 
-  return categoriesToInsert;
+  // Invarian: Pos uang_bebas_tabungan selalu ditempatkan di urutan paling akhir
+  const regular = categoriesToInsert.filter(
+    (c) => c.group !== "uang_bebas_tabungan"
+  );
+  const free = categoriesToInsert.filter(
+    (c) => c.group === "uang_bebas_tabungan"
+  );
+  return [...regular, ...free].map((cat, idx) => ({
+    ...cat,
+    sortOrder: idx + 1,
+  }));
 }
 
 interface GenerateMonthCategoriesParams {

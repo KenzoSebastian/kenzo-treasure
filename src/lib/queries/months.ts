@@ -265,6 +265,15 @@ export async function getMonthDetailById(
     };
   });
 
+  // Pos uang_bebas_tabungan selalu ditempatkan di urutan paling akhir
+  const regularCategories = enrichedCategories.filter(
+    (c) => c.group !== "uang_bebas_tabungan"
+  );
+  const freeCategories = enrichedCategories.filter(
+    (c) => c.group === "uang_bebas_tabungan"
+  );
+  const sortedCategories = [...regularCategories, ...freeCategories];
+
   const netCashflow = calculateNetCashflow(totalIncome, totalSpent);
 
   return {
@@ -272,7 +281,7 @@ export async function getMonthDetailById(
     data: {
       ...targetMonth,
       incomes: monthIncomes,
-      categories: enrichedCategories,
+      categories: sortedCategories,
       totalIncome,
       totalBudget,
       totalSpent,

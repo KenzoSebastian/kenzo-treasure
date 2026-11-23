@@ -129,6 +129,11 @@ export function BudgetCategoryCard({
   }, [category.target]);
 
   const txList = category.transactions ?? [];
+  const canEditTarget =
+    Boolean(category.id) &&
+    !isClosed &&
+    !category.liabilityId &&
+    category.group !== "uang_bebas_tabungan";
   const canDelete =
     Boolean(category.id) &&
     !isClosed &&
@@ -188,6 +193,13 @@ export function BudgetCategoryCard({
     if (category.liabilityId) {
       setTargetError(
         "Pos cicilan terikat kontrak utang. Kelola nominal melalui Tracking Cicilan di bawah."
+      );
+      return;
+    }
+
+    if (category.group === "uang_bebas_tabungan") {
+      setTargetError(
+        "Target Uang Bebas / Tabungan diatur otomatis sebagai penyeimbang anggaran Zero-Based Budgeting."
       );
       return;
     }
@@ -288,7 +300,7 @@ export function BudgetCategoryCard({
                 <span className="text-[11px] text-muted-foreground tabular-nums">
                   Target: {formatRupiah(category.target)}
                 </span>
-                {category.id && !isClosed && !category.liabilityId && (
+                {canEditTarget && (
                   <button
                     type="button"
                     onClick={() => setIsEditingTarget(true)}

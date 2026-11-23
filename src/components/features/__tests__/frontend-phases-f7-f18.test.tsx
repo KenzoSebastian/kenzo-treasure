@@ -21,6 +21,7 @@ import {
   BudgetCategoryCard,
   BudgetCategoryDetailsPanel,
 } from "@/components/features/categories/BudgetCategoryCard";
+import { BudgetCategoryList } from "@/components/features/categories/BudgetCategoryList";
 import { calculateWishlistProgress } from "@/lib/financial-calculations";
 import { TransactionSubList } from "@/components/features/transactions/TransactionSubList";
 import {
@@ -152,6 +153,30 @@ describe("Frontend Phases F7–F18 & R1–R10 Component Suite", () => {
       'aria-label="Ubah target alokasi Cicilan Laptop"'
     );
 
+    // Verifikasi perlindungan pos Uang Bebas / Tabungan (auto-balancing ZBB, tidak boleh diedit/dihapus)
+    const freeCatHtml = renderToString(
+      <BudgetCategoryCard
+        category={{
+          id: "cat-free",
+          name: "Uang Bebas / Tabungan",
+          icon: "wallet",
+          group: "uang_bebas_tabungan",
+          target: 3133000,
+          spent: 0,
+          remaining: 3133000,
+          usagePercent: 0,
+          status: "healthy",
+          transactions: [],
+        }}
+      />
+    );
+    expect(freeCatHtml).not.toContain(
+      'aria-label="Ubah target alokasi Uang Bebas / Tabungan"'
+    );
+    expect(freeCatHtml).not.toContain(
+      'aria-label="Hapus pos anggaran Uang Bebas / Tabungan"'
+    );
+
     // Verifikasi status semantik "Target Terpenuhi" saat spent === target (100% pas)
     const targetMetHtml = renderToString(
       <BudgetCategoryCard
@@ -171,6 +196,58 @@ describe("Frontend Phases F7–F18 & R1–R10 Component Suite", () => {
     );
     expect(targetMetHtml).toContain("Target Terpenuhi");
     expect(targetMetHtml).not.toContain("Mendekati Limit");
+
+    // Verifikasi BudgetCategoryList selalu menempatkan Uang Bebas / Tabungan di urutan kartu paling akhir
+    const listHtml = renderToString(
+      <BudgetCategoryList
+        categories={[
+          {
+            id: "cat-1",
+            name: "Perpuluhan",
+            icon: "banknote",
+            group: "pos_wajib",
+            target: 500000,
+            spent: 0,
+            remaining: 500000,
+            usagePercent: 0,
+            status: "healthy",
+            transactions: [],
+          },
+          {
+            id: "cat-free",
+            name: "Uang Bebas / Tabungan",
+            icon: "wallet",
+            group: "uang_bebas_tabungan",
+            target: 3133000,
+            spent: 0,
+            remaining: 3133000,
+            usagePercent: 0,
+            status: "healthy",
+            transactions: [],
+          },
+          {
+            id: "cat-debt",
+            name: "Tes Cicil",
+            icon: "piggy-bank",
+            group: "pos_wajib",
+            target: 1417000,
+            spent: 1417000,
+            remaining: 0,
+            usagePercent: 100,
+            status: "Target Terpenuhi",
+            transactions: [],
+          },
+        ]}
+        salaryBase={5050000}
+        totalTarget={5050000}
+      />
+    );
+    const perpuluhanIndex = listHtml.indexOf("Perpuluhan");
+    const tesCicilIndex = listHtml.indexOf("Tes Cicil");
+    const uangBebasIndex = listHtml.indexOf("Uang Bebas / Tabungan");
+
+    expect(perpuluhanIndex).toBeLessThan(uangBebasIndex);
+    expect(tesCicilIndex).toBeLessThan(uangBebasIndex);
   });
 
   it("Fase F8, F9 & R7: QuickTransactionDrawer & TransactionSubList render cleanly and pure helpers work", () => {

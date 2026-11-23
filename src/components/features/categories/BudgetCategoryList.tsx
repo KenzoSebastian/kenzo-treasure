@@ -89,9 +89,20 @@ export function BudgetCategoryList({
   const [formError, setFormError] = React.useState<string | null>(null);
   const [isPending, startTransition] = React.useTransition();
 
+  // Pos Uang Bebas / Tabungan selalu diletakkan di urutan paling akhir kartu
+  const orderedCategories = React.useMemo(() => {
+    const regular = categories.filter(
+      (cat) => cat.group !== "uang_bebas_tabungan"
+    );
+    const free = categories.filter(
+      (cat) => cat.group === "uang_bebas_tabungan"
+    );
+    return [...regular, ...free];
+  }, [categories]);
+
   const reassignOptions = React.useMemo(
     () =>
-      categories
+      orderedCategories
         .filter((cat) => Boolean(cat.id))
         .map((cat) => ({
           id: cat.id!,
@@ -99,7 +110,7 @@ export function BudgetCategoryList({
           group: cat.group,
           liabilityId: cat.liabilityId,
         })),
-    [categories]
+    [orderedCategories]
   );
 
   const handleAddCategory = (e: React.FormEvent) => {
@@ -294,7 +305,7 @@ export function BudgetCategoryList({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-        {categories.map((cat) => (
+        {orderedCategories.map((cat) => (
           <BudgetCategoryCard
             key={cat.id ?? cat.name}
             category={cat}
