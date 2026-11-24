@@ -40,7 +40,18 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
 
 ## 📝 Log Checkpoint Terbaru (Maksimal 5 Checkpoint Aktif)
 
-### Checkpoint 1: Skenario SC-16 — Preservasi Soft-Delete Permanen Transaksi untuk Jejak Audit Finansial (2026-11-23 20:22 WIB)
+### Checkpoint 1: Refactor Dashboard Tier 1 — Full-Width Wealth Hero Card & Historical Wealth Trajectory Chart (PLANWEALTHCHART Fase 1–7) (2026-11-24 21:30 WIB)
+- **Status:** `COMPLETED ✅ — Batch Authorized by Kenzo`
+- **Agent:** Antigravity
+- **Capaian Utama:**
+  1. **Visualisasi Time-Series Interaktif:** Mengimplementasikan `WealthTrajectoryChart.tsx` bertenaga Recharts v3 dengan dual mode (Area Gradient Monotone vs Volume Bar), 4 timeframe responsif (Harian 30D, Mingguan 12W, Bulanan 12M, Tahunan All), dan 2-axis dashed crosshair (`ReferenceLine y={hoveredValue}`) yang memproyeksikan nominal Rupiah aktif ke sumbu Y saat kursor melayang (*hover*).
+  2. **Skema & Query Engine Snapshot Finansial:** Membangun tabel `savings_snapshots` dengan RLS & indexing ganda, centralized mutation hooks pada seluruh Server Actions mutasi tabungan/darurat/sweep, serta query time-series murni dengan *same-day collision collapse*, *baseline seeding*, dan *forward-fill gap interpolation*.
+  3. **Modular Primitives Tier 1 & Tier 2:** Merombak layout dashboard menjadi kartu lebar penuh (*Full-Width Viewport-Fitted*): `WealthHeroCard.tsx` di posisi teratas Tier 1 (dengan sub-vault inset chips dan tautan ke detail brankas) dan mereposisi `CashflowCockpitCard.tsx` tepat di bawahnya sebagai Tier 2 (dengan indikator kesehatan anggaran dan progress bar penyerapan kas).
+  4. **Penyelarasan Server Component & Skeleton:** Mengintegrasikan query snapshot ke `src/app/(dashboard)/dashboard/(overview)/page.tsx` secara paralel (`Promise.all`), menerapkan responsive height clamping (`lg:min-h-[480px]` desktop, adaptif mobile), dan memperbarui `DashboardSkeleton.tsx` untuk proteksi zero CLS.
+  5. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 118/118 PASS (608 expect calls across 10 test suites), Turbopack build PASS (11/11 routes), 0 monospace utility font, 0 literal emojis.
+- **File Changelog:** [`2026-11-24_wealth_trajectory_chart.md`](.changelog/2026-11-24_wealth_trajectory_chart.md).
+
+### Checkpoint 2: Skenario SC-16 — Preservasi Soft-Delete Permanen Transaksi untuk Jejak Audit Finansial (2026-11-23 20:22 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -49,7 +60,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   3. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 106/106 PASS (474 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc16_permanent_soft_delete_audit_trail.md`](.changelog/2026-11-23_sc16_permanent_soft_delete_audit_trail.md).
 
-### Checkpoint 2: Skenario SC-15 — Proteksi Transfer Brankas Dana Darurat saat Target Rp 0 atau Sudah 100% Tercapai (2026-11-23 20:19 WIB)
+### Checkpoint 3: Skenario SC-15 — Proteksi Transfer Brankas Dana Darurat saat Target Rp 0 atau Sudah 100% Tercapai (2026-11-23 20:19 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -59,7 +70,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   4. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 105/105 PASS (471 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc15_guard_emergency_fund_transfer_zero_or_full_target.md`](.changelog/2026-11-23_sc15_guard_emergency_fund_transfer_zero_or_full_target.md).
 
-### Checkpoint 3: Skenario SC-13 — Proteksi Pembuatan Siklus Bulan Baru saat Bulan Aktif Belum Ditutup Buku (2026-11-23 20:15 WIB)
+### Checkpoint 4: Skenario SC-13 — Proteksi Pembuatan Siklus Bulan Baru saat Bulan Aktif Belum Ditutup Buku (2026-11-23 20:15 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -69,7 +80,7 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   4. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 104/104 PASS (464 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc13_guard_month_creation_unclosed_previous_cycle.md`](.changelog/2026-11-23_sc13_guard_month_creation_unclosed_previous_cycle.md).
 
-### Checkpoint 4: Skenario SC-12 — Realokasi Kuota Belanja saat Cicilan Dilunasi di Bulan Berjalan (2026-11-23 20:11 WIB)
+### Checkpoint 5: Skenario SC-12 — Realokasi Kuota Belanja saat Cicilan Dilunasi di Bulan Berjalan (2026-11-23 20:11 WIB)
 - **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
 - **Agent:** Antigravity
 - **Capaian Utama:**
@@ -79,22 +90,13 @@ Seluruh fase teknis didokumentasikan di tiga berkas roadmap:
   4. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 103/103 PASS (458 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
 - **File Changelog:** [`2026-11-23_sc12_reallocate_unspent_quota_when_liability_settled.md`](.changelog/2026-11-23_sc12_reallocate_unspent_quota_when_liability_settled.md).
 
-### Checkpoint 5: Skenario SC-11 — Fitur Edit & Hapus Wishlist dengan Penyelamatan Dana Otomatis (Auto-Refund) (2026-11-23 20:07 WIB)
-- **Status:** `COMPLETED ✅ — Approved by Kenzo (Explicit batch authorization)`
-- **Agent:** Antigravity
-- **Capaian Utama:**
-  1. **Audit & Penyelamatan Dana Tersimpan (*Anti-Orphaned Funds*):** Menutup celah ketiadaan aksi modifikasi dan penghapusan barang impian, serta memastikan dana tabungan terkumpul tidak hilang saat barang impian dibatalkan.
-  2. **Validasi Atomik Pembaruan & Penghapusan (`src/actions/wishlists.ts`):** Mengimplementasikan `updateWishlist` (validasi target baru $\ge$ dana terkumpul, lock modifikasi jika sudah dibeli) dan `deleteWishlist` yang secara atomik merefund `savedAmount` ke `savings_account.balance` jika barang belum dibeli.
-  3. **Antarmuka Interaktif Ramah Pengguna (`WishlistCard.tsx`):** Menambahkan tombol Ubah (Pencil) dan Hapus (Trash2) pada setiap kartu barang impian, disertai Modal Dialog Ubah dan Modal Dialog Hapus dengan banner transparansi penyelamatan dana ke Tabungan Bebas.
-  4. **Verifikasi Kualitas:** `tsc --noEmit` PASS (0 errors), `bun test` 102/102 PASS (451 expect calls across 7 test files), Turbopack build PASS (11/11 routes), 0 `font-mono`, 0 literal emojis.
-- **File Changelog:** [`2026-11-23_sc11_wishlist_edit_delete_and_auto_refund.md`](.changelog/2026-11-23_sc11_wishlist_edit_delete_and_auto_refund.md).
-
 ---
 
 ## 📚 Rekapitulasi Arsip Milestone Lengkap
 
 | Milestone / Fase | Tanggal Selesai | Ringkasan Capaian Utama | Berkas Changelog |
 | :--- | :--- | :--- | :--- |
+| **Skenario SC-11: Edit, Hapus & Auto-Refund Wishlist** | 2026-11-23 | Validasi perubahan target, proteksi wishlist dibeli, dan pengembalian atomik dana ke Tabungan Bebas saat dihapus. | [`2026-11-23_sc11_wishlist_edit_delete_and_auto_refund.md`](.changelog/2026-11-23_sc11_wishlist_edit_delete_and_auto_refund.md) |
 | **Skenario SC-10: Over-Allocation Guard pada Wishlists** | 2026-11-23 | Proteksi alokasi melebihi sisa kekurangan barang impian, likuiditas tabungan bebas terlindungi. | [`2026-11-23_sc10_prevent_wishlist_over_allocation.md`](.changelog/2026-11-23_sc10_prevent_wishlist_over_allocation.md) |
 | **Skenario SC-09: Pencegahan Pos Hantu saat Menghapus Cicilan** | 2026-11-23 | Menjaga flag isTemporary: true pada pos yang dilepas keterikatannya agar tidak diwariskan ke siklus baru. | [`2026-11-23_sc09_prevent_ghost_categories_on_liability_deletion.md`](.changelog/2026-11-23_sc09_prevent_ghost_categories_on_liability_deletion.md) |
 | **Skenario SC-08: Validasi Pokok Utang Tidak Boleh < Total Terbayar** | 2026-11-23 | Server-side FOR UPDATE row lock mencegah pokok utang diedit lebih kecil dari yang sudah dibayar. | [`2026-11-23_sc08_prevent_total_debt_smaller_than_paid.md`](.changelog/2026-11-23_sc08_prevent_total_debt_smaller_than_paid.md) |

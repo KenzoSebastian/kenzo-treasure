@@ -11,7 +11,7 @@
  * 3. 2-Axis Dashed Crosshair: Garis putus-putus pada sumbu X & Y dengan proyeksi
  *    nilai nominal Rupiah saat kursor melayang (hover).
  * 4. Mobile Touch Ergonomics: Readout bar aktif saat jari melakukan drag sentuh.
- * 5. Invarian Tipografi: 100% sans-serif dengan `tabular-nums` (Zero `font-mono`).
+ * 5. Invarian Tipografi: 100% sans-serif dengan `tabular-nums` (Zero monospace).
  */
 
 import * as React from "react";

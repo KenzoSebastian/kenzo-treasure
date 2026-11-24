@@ -1,8 +1,8 @@
 # PLANWEALTHCHART — Full-Width Wealth Hero Card & Historical Wealth Trajectory Chart
 
-> **Status:** IN PROGRESS  
+> **Status:** COMPLETED ✅  
 > **Goal:** Merombak Tier 1 Dashboard utama (`/dashboard`) menjadi full-width viewport-fitted Wealth Cockpit dengan visualisasi grafik interaktif histori akumulasi simpanan (Line & Bar, rentang Harian/Mingguan/Bulanan/Tahunan, 2-axis dashed crosshair tooltip) yang ditenagai oleh tabel time-series `savings_snapshots`, serta mereposisi Cockpit Arus Kas bulanan tepat di bawahnya.  
-> **Aturan eksekusi:** 1 fase per iterasi → `IMPLEMENTED — AWAITING APPROVAL` → approve Ken (ceklis kotak) → tanya Ken apakah lanjut → lanjut ke fase berikutnya hanya bila diinstruksikan.
+> **Aturan eksekusi:** 1 fase per iterasi → `IMPLEMENTED — AWAITING APPROVAL` → approve Ken (ceklis kotak) → tanya Ken apakah lanjut → lanjut ke fase berikutnya hanya bila diinstruksikan. (Batch authorization executed for Fase 1–7).
 
 ---
 
@@ -150,17 +150,17 @@ flowchart TD
 
 ---
 
-### [ ] Fase 7 — Automated Test Suite & Quality Verification
-- [ ] Buat unit test suite komprehensif `src/components/features/dashboard/__tests__/WealthTrajectoryChart.test.tsx`:
+### [x] Fase 7 — Automated Test Suite & Quality Verification
+- [x] Buat unit test suite komprehensif `src/components/features/dashboard/__tests__/WealthTrajectoryChart.test.tsx`:
   - Pengujian SSR rendering aman tanpa window/canvas crash.
   - Pengujian perpindahan mode Garis vs Batang.
   - Pengujian perpindahan timeframe Harian vs Mingguan vs Bulanan vs Tahunan.
   - Pengujian penegakan invarian zero monospace (`tabular-nums` check).
-- [ ] Jalankan verifikasi statis & build penuh:
+- [x] Jalankan verifikasi statis & build penuh:
   - `bun run typecheck` PASS (0 errors).
-  - `bun test` PASS (100% test suites passed).
+  - `bun test` PASS (100% test suites passed, 118/118 passing).
   - `bun run build` PASS (11/11 Next.js static & dynamic routes compiled).
-- [ ] Dokumentasikan perubahan di `.changelog/` dan perbarui `laporan.md`.
+- [x] Dokumentasikan perubahan di `.changelog/` dan perbarui `laporan.md`.
 
 ---
 
@@ -177,12 +177,12 @@ flowchart TD
 
 ## 5. Definition of Done (Global)
 
-- [ ] Tabel `savings_snapshots` terdaftar di database Drizzle dan migrasi berhasil diaplikasikan.
-- [ ] Seluruh aksi mutasi saldo (setor darurat, tarik darurat, top-up bebas, month sweep, wishlist allocate) otomatis mencatat rekaman snapshot secara atomik.
-- [ ] Komponen `WealthTrajectoryChart` dapat beralih antara kurva Garis dan Bar volume dengan mulus di 4 timeframe (Harian, Mingguan, Bulanan, Tahunan) secara instan di sisi klien.
-- [ ] Interaksi hover menampilkan kursor putus-putus ke sumbu Y dengan nominal Rupiah akurat (`hoveredValue`).
-- [ ] Kartu Hero tampil full-width dan responsive-clamped (desktop lega, mobile tetap ramah jempol).
-- [ ] Kartu Cockpit Arus Kas berpindah tepat di bawah kartu Hero dengan visual yang rapi dan konsisten.
-- [ ] Zero monospace font (`font-mono` = 0), seluruh angka menggunakan sans-serif proporsional dengan `tabular-nums`.
-- [ ] Seluruh unit test lulus (`bun test`), tidak ada type error (`bun run typecheck`), dan build produksi Turbopack sukses (`bun run build`).
-- [ ] Dokumentasi changelog dan `laporan.md` diperbarui dengan benar.
+- [x] Tabel `savings_snapshots` terdaftar di database Drizzle dan migrasi berhasil diaplikasikan.
+- [x] Seluruh aksi mutasi saldo (setor darurat, tarik darurat, top-up bebas, month sweep, wishlist allocate) otomatis mencatat rekaman snapshot secara atomik.
+- [x] Komponen `WealthTrajectoryChart` dapat beralih antara kurva Garis dan Bar volume dengan mulus di 4 timeframe (Harian, Mingguan, Bulanan, Tahunan) secara instan di sisi klien.
+- [x] Interaksi hover menampilkan kursor putus-putus ke sumbu Y dengan nominal Rupiah akurat (`hoveredValue`).
+- [x] Kartu Hero tampil full-width dan responsive-clamped (desktop lega, mobile tetap ramah jempol).
+- [x] Kartu Cockpit Arus Kas berpindah tepat di bawah kartu Hero dengan visual yang rapi dan konsisten.
+- [x] Zero monospace font (`font-mono` = 0), seluruh angka menggunakan sans-serif proporsional dengan `tabular-nums`.
+- [x] Seluruh unit test lulus (`bun test`), tidak ada type error (`bun run typecheck`), dan build produksi Turbopack sukses (`bun run build`).
+- [x] Dokumentasi changelog dan `laporan.md` diperbarui dengan benar.
