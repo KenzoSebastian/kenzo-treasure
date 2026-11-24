@@ -136,16 +136,16 @@ flowchart TD
 
 ---
 
-### [ ] Fase 6 — Dashboard Orchestrator Integration & Responsive Clamping
-- [ ] Perbarui Server Component `src/app/(dashboard)/dashboard/(overview)/page.tsx`:
+### [x] Fase 6 — Dashboard Orchestrator Integration & Responsive Clamping
+- [x] Perbarui Server Component `src/app/(dashboard)/dashboard/(overview)/page.tsx`:
   - Tambahkan fetch `getAllTimeframeSnapshots(userId)` ke dalam `Promise.all` paralel tanpa menambah latency.
   - Pasang `<WealthHeroCard />` di posisi teratas Tier 1.
   - Pasang `<CashflowCockpitCard />` tepat di bawahnya sebagai Tier 2.
   - Pertahankan batas baris Thin Orchestrator (F-05) dengan mengekstraksi kartu-kartu visual mandiri.
-- [ ] Atur Clamping Tinggi Responsif:
+- [x] Atur Clamping Tinggi Responsif:
   - Desktop: `lg:min-h-[480px]` (memberi ruang kanvas grafik ~300px).
   - Mobile: `h-[360px]` (memberi ruang kanvas grafik ~200px) agar kartu Cashflow Cockpit tetap terlihat di viewport awal.
-- [ ] Perbarui `DashboardSkeleton.tsx`:
+- [x] Perbarui `DashboardSkeleton.tsx`:
   - Susun skeleton Tier 1 Full-Width Card (Hero + Chart Skeleton) dan Tier 2 Full-Width Card (Cockpit Skeleton) untuk mencegah CLS saat loading data.
 
 ---

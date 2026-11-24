@@ -58,61 +58,97 @@ export function DashboardSkeleton({
         </div>
       ) : null}
 
-      {/* 2. Kartu Hero Executive Summary & Cashflow KPI */}
-      <Card className="rounded-2xl border border-border/80 bg-card shadow-xs">
-        <CardHeader className="space-y-2 pb-4 border-b border-border/60">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5">
-              <Skeleton className="size-8 rounded-lg shrink-0" />
-              <div className="space-y-1">
-                <Skeleton className="h-4 w-36 rounded-md" />
-                <Skeleton className="h-3 w-28 rounded-md" />
-              </div>
+      {/* 2. Tier 1: Full-Width Wealth Hero Card with Interactive Trajectory Chart Skeleton */}
+      <Card className="w-full rounded-2xl border border-border/80 bg-card p-5 sm:p-6 space-y-4 shadow-xs lg:min-h-[480px]">
+        {/* Header Row */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3.5">
+          <div className="flex items-center gap-2.5">
+            <Skeleton className="size-8 rounded-xl shrink-0" />
+            <div className="space-y-1">
+              <Skeleton className="h-3 w-32 rounded-md" />
+              <Skeleton className="h-3.5 w-24 rounded-md" />
             </div>
-            <Skeleton className="h-6 w-32 rounded-full self-start sm:self-auto shrink-0" />
           </div>
-        </CardHeader>
-        <CardContent className="space-y-5 pt-4">
-          {/* 3 Metrik Finansial Utama */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 py-1">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="space-y-2">
-                <div className="flex items-center gap-1.5">
-                  <Skeleton className="size-4 rounded shrink-0" />
-                  <Skeleton className="h-3.5 w-28 rounded-md" />
-                </div>
-                <Skeleton className="h-8 w-40 rounded-lg" />
-                <Skeleton className="h-3 w-32 rounded-md" />
-              </div>
-            ))}
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-6 w-28 rounded-full" />
+            <Skeleton className="h-8 w-24 rounded-xl" />
+          </div>
+        </div>
+
+        {/* Display Numeral & Sub-Vault Inset Chips */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="space-y-1.5">
+            <Skeleton className="h-10 w-56 rounded-xl" />
+            <Skeleton className="h-3.5 w-72 rounded-md" />
           </div>
 
-          {/* Progress Bar Status Kesehatan Anggaran */}
-          <div className="space-y-2 pt-2 border-t border-border/50">
-            <div className="flex justify-between">
-              <Skeleton className="h-3 w-24 rounded-md" />
-              <Skeleton className="h-3 w-16 rounded-md" />
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="rounded-xl border border-border/70 bg-muted/20 px-3 py-1.5 flex items-center gap-2">
+              <Skeleton className="size-4 rounded shrink-0" />
+              <div className="space-y-1">
+                <Skeleton className="h-2.5 w-16 rounded-md" />
+                <Skeleton className="h-4 w-24 rounded-md" />
+              </div>
             </div>
-            <Skeleton className="h-2.5 w-full rounded-full" />
+            <div className="rounded-xl border border-border/70 bg-muted/20 px-3 py-1.5 flex items-center gap-2">
+              <Skeleton className="size-4 rounded shrink-0" />
+              <div className="space-y-1">
+                <Skeleton className="h-2.5 w-16 rounded-md" />
+                <Skeleton className="h-4 w-24 rounded-md" />
+              </div>
+            </div>
           </div>
-        </CardContent>
+        </div>
+
+        {/* Chart Canvas Skeleton Area */}
+        <div className="pt-2 flex-1 space-y-3">
+          <div className="flex justify-between items-center">
+            <Skeleton className="h-8 w-44 rounded-lg" />
+            <Skeleton className="h-8 w-32 rounded-lg" />
+          </div>
+          <Skeleton className="h-[220px] sm:h-[260px] w-full rounded-xl bg-muted/20" />
+        </div>
       </Card>
 
-      {/* 3. Kartu Pilar Arus Kas (Total Simpanan, Realisasi Kas, Sisa Kuota Uang Bebas) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="rounded-2xl border border-border/80 bg-card p-5 space-y-3 shadow-xs"
-          >
-            <Skeleton className="h-3.5 w-32 rounded-md" />
-            <Skeleton className="h-8 w-44 rounded-lg" />
-            <div className="pt-2 border-t border-border/50">
-              <Skeleton className="h-3 w-full rounded-md" />
+      {/* 3. Tier 2: Full-Width Cashflow Cockpit Card Skeleton */}
+      <Card className="w-full rounded-2xl border border-border/80 bg-card p-5 sm:p-6 space-y-4 shadow-xs">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3.5">
+          <div className="flex items-center gap-2">
+            <Skeleton className="size-8 rounded-xl shrink-0" />
+            <div className="space-y-1">
+              <Skeleton className="h-3 w-28 rounded-md" />
+              <Skeleton className="h-3 w-20 rounded-md" />
             </div>
           </div>
-        ))}
-      </div>
+          <Skeleton className="h-6 w-24 rounded-full" />
+        </div>
+
+        <div className="space-y-1.5">
+          <Skeleton className="h-3 w-36 rounded-md" />
+          <Skeleton className="h-8 w-44 rounded-lg" />
+          <Skeleton className="h-3 w-60 rounded-md" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+          <div className="flex justify-between items-center rounded-xl border border-border/60 bg-muted/20 p-2.5 px-3">
+            <Skeleton className="h-3.5 w-28 rounded-md" />
+            <Skeleton className="h-4 w-24 rounded-md" />
+          </div>
+          <div className="flex justify-between items-center rounded-xl border border-border/60 bg-muted/20 p-2.5 px-3">
+            <Skeleton className="h-3.5 w-28 rounded-md" />
+            <Skeleton className="h-4 w-24 rounded-md" />
+          </div>
+        </div>
+
+        <div className="pt-2 border-t border-border/60 space-y-2">
+          <div className="flex justify-between">
+            <Skeleton className="h-2.5 w-28 rounded-md" />
+            <Skeleton className="h-2.5 w-24 rounded-md" />
+          </div>
+          <Skeleton className="h-1.5 w-full rounded-full" />
+          <Skeleton className="h-2.5 w-full rounded-md" />
+        </div>
+      </Card>
 
       {/* 4. Grid Pos Anggaran Bulanan */}
       <div className="space-y-3.5 pt-2">

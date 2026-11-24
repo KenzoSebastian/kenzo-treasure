@@ -51,10 +51,11 @@ import {
   MonthNavigationProvider,
   DashboardMonthShell,
 } from "@/components/features/months";
+import { getAllTimeframeSnapshots } from "@/lib/queries/savings-snapshots";
 import {
-  CashflowSummaryCard,
   DashboardHubCard,
-  ExecutiveSummaryCard,
+  WealthHeroCard,
+  CashflowCockpitCard,
 } from "@/components/features/dashboard";
 import {
   BudgetCategoryList,
@@ -63,9 +64,9 @@ import {
 import { QuickTransactionDrawer } from "@/components/features/transactions";
 import { IncomeSection } from "@/components/features/incomes";
 import { LiabilityTrackerCard } from "@/components/features/liabilities";
-import { EmergencyVaultCard } from "@/components/features/savings";
 import { AiMonthlyReviewModal } from "@/components/features/ai";
 import type { SavingsVaultSummary } from "@/types/savings";
+import type { AllTimeframeSnapshots } from "@/types/savings-snapshots";
 
 interface DashboardPageProps {
   searchParams?: Promise<{
@@ -107,7 +108,7 @@ async function DashboardMonthContent({
   firstName,
   selectedMonthId,
 }: DashboardMonthContentProps) {
-  const [monthsResult, liabilitiesRes, savingsRes, wishlistsRes, setup] =
+  const [monthsResult, liabilitiesRes, savingsRes, wishlistsRes, setup, snapshotsRes] =
     userId
       ? await Promise.all([
           getAllMonths(userId),
@@ -115,6 +116,7 @@ async function DashboardMonthContent({
           getSavingsAccount(userId),
           getWishlists(userId),
           getUserFinanceSetup(userId).catch(() => null),
+          getAllTimeframeSnapshots(userId).catch(() => null),
         ])
       : [
           { success: false as const, error: "", data: [] },
@@ -122,7 +124,16 @@ async function DashboardMonthContent({
           { success: false as const, error: "" },
           { success: false as const, error: "" },
           null,
+          null,
         ];
+
+  const defaultSnapshots: AllTimeframeSnapshots = {
+    daily: [],
+    weekly: [],
+    monthly: [],
+    yearly: [],
+  };
+  const snapshotsData = snapshotsRes ?? defaultSnapshots;
 
   const monthsList =
     monthsResult.success && monthsResult.data ? monthsResult.data : [];
@@ -469,72 +480,25 @@ async function DashboardMonthContent({
           </div>
         )}
 
-        {/* 2. Executive Summary Card & Cashflow KPI (Fase F6) */}
-        <ExecutiveSummaryCard
-          totalIncome={salaryBase}
-          totalSpent={totalSpent}
-          baseSalary={baseSalary}
-          additionalIncomes={additionalIncomes}
-          monthName={currentMonthDetail?.name}
-          isClosed={currentMonthDetail?.isClosed}
+        {/* 2. Tier 1: Full-Width Wealth Hero Card with Interactive Trajectory Chart */}
+        <WealthHeroCard
+          vault={activeVault}
+          snapshotsByTimeframe={snapshotsData}
         />
 
-        {/* 3. Kartu Pilar Arus Kas (Cashflow Summary Breakdown) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <CashflowSummaryCard
-            title="Total Brankas Simpanan"
-            amount={activeVault.totalVaultBalance}
-            footer={
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">Ketahanan Darurat:</span>
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                  {activeVault.safetyMonths.toLocaleString("id-ID")} Bulan Aman
-                </span>
-              </div>
-            }
-          />
+        {/* 3. Tier 2: Full-Width Cashflow Cockpit Card */}
+        <CashflowCockpitCard
+          monthName={currentMonthDetail?.name}
+          isClosed={currentMonthDetail?.isClosed}
+          totalIncome={salaryBase}
+          totalSpent={totalSpent}
+          remainingCash={remainingCash}
+          usageRatio={usageRatio}
+          baseSalary={baseSalary}
+          additionalIncomes={additionalIncomes}
+        />
 
-          <CashflowSummaryCard
-            title="Realisasi Pengeluaran Kas"
-            amount={totalSpent}
-            footer={
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-xs">
-                  <span className="text-muted-foreground">
-                    Terpakai dari Pemasukan:
-                  </span>
-                  <span className="font-semibold text-foreground tabular-nums">
-                    {usageRatio}%
-                  </span>
-                </div>
-                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-foreground/80 transition-all duration-300"
-                    style={{ width: `${Math.min(100, usageRatio)}%` }}
-                  />
-                </div>
-              </div>
-            }
-          />
-
-          <CashflowSummaryCard
-            title="Sisa Kuota Uang Bebas"
-            amount={remainingCash}
-            amountClassName="text-emerald-600 dark:text-emerald-400"
-            footer={
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">
-                  Total Pemasukan Bulan Ini:
-                </span>
-                <span className="font-semibold text-foreground tabular-nums">
-                  {formatRupiah(salaryBase)}
-                </span>
-              </div>
-            }
-          />
-        </div>
-
-        {/* 4. Seksi Pemasukan: Gaji Pokok vs Freelance (Fase F10) */}
+        {/* 3. Seksi Pemasukan: Gaji Pokok vs Freelance (Fase F10) */}
         <IncomeSection
           monthId={currentMonthDetail?.id}
           isClosed={currentMonthDetail?.isClosed}
@@ -544,7 +508,7 @@ async function DashboardMonthContent({
           cycleMonthIndex={currentMonthDetail?.monthIndex}
         />
 
-        {/* 5. Seksi Pos Anggaran & Sub-List Transaksi (Fase F7 & F9) */}
+        {/* 4. Seksi Pos Anggaran & Sub-List Transaksi (Fase F7 & F9) */}
         <BudgetCategoryList
           categories={activeCategories}
           salaryBase={salaryBase}
@@ -553,7 +517,7 @@ async function DashboardMonthContent({
           isClosed={currentMonthDetail?.isClosed}
         />
 
-        {/* 6. Seksi Tracking Cicilan / Utang Bertarget Lunas (Fase F11 & R8) */}
+        {/* 5. Seksi Tracking Cicilan / Utang Bertarget Lunas (Fase F11 & R8) */}
         <LiabilityTrackerCard
           liabilities={activeLiabilities}
           monthId={currentMonthDetail?.id}
@@ -562,10 +526,7 @@ async function DashboardMonthContent({
           isClosed={currentMonthDetail?.isClosed}
         />
 
-        {/* 7. Seksi Brankas Dana Darurat & Safety Months Meter (Fase F14) */}
-        <EmergencyVaultCard vault={activeVault} />
-
-        {/* 8. Seksi Hub Sinking Fund & Analitik */}
+        {/* 6. Seksi Hub Sinking Fund & Analitik */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
           <DashboardHubCard
             icon={<Sparkles className="size-4 text-amber-500" />}
