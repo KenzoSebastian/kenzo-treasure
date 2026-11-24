@@ -272,6 +272,31 @@ export const userBudgetTemplates = pgTable(
 );
 
 /* ══════════════════════════════════════════════════════════════════════════════
+   11. TABEL: savings_snapshots (Rekaman Time-Series Saldo & Dana Darurat)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+export const savingsSnapshots = pgTable(
+  "savings_snapshots",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    snapshotDate: date("snapshot_date").notNull(),
+    freeSavingsBalance: integer("free_savings_balance").default(0).notNull(),
+    emergencyFundBalance: integer("emergency_fund_balance").default(0).notNull(),
+    totalBalance: integer("total_balance").default(0).notNull(),
+    deltaAmount: integer("delta_amount").default(0).notNull(),
+    sourceEvent: text("source_event").notNull(), // 'initial' | 'month_sweep' | 'month_reopen' | 'top_up' | 'emergency_transfer' | 'emergency_withdraw' | 'wishlist_allocate' | 'wishlist_withdraw'
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("savings_snapshots_user_date_idx").on(table.userId, table.snapshotDate),
+    index("savings_snapshots_user_created_idx").on(table.userId, table.createdAt),
+  ]
+);
+
+/* ══════════════════════════════════════════════════════════════════════════════
    RELASI DRIZZLE ORM (Relational Queries Support)
    ══════════════════════════════════════════════════════════════════════════════ */
 
@@ -284,6 +309,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   wishlists: many(wishlists),
   wishlistAllocations: many(wishlistAllocations),
   budgetTemplates: many(userBudgetTemplates),
+  savingsSnapshots: many(savingsSnapshots),
 }));
 
 export const userBudgetTemplatesRelations = relations(
@@ -379,6 +405,13 @@ export const wishlistAllocationsRelations = relations(
   })
 );
 
+export const savingsSnapshotsRelations = relations(savingsSnapshots, ({ one }) => ({
+  user: one(users, {
+    fields: [savingsSnapshots.userId],
+    references: [users.id],
+  }),
+}));
+
 /* ══════════════════════════════════════════════════════════════════════════════
    TYPE INFERENCE EXPORTS
    ══════════════════════════════════════════════════════════════════════════════ */
@@ -412,6 +445,9 @@ export type NewWishlistAllocation = typeof wishlistAllocations.$inferInsert;
 
 export type UserBudgetTemplate = typeof userBudgetTemplates.$inferSelect;
 export type NewUserBudgetTemplate = typeof userBudgetTemplates.$inferInsert;
+
+export type SavingsSnapshot = typeof savingsSnapshots.$inferSelect;
+export type NewSavingsSnapshot = typeof savingsSnapshots.$inferInsert;
 
 export type CategoryGroup = (typeof categoryGroupEnum.enumValues)[number];
 export type TransactionMethod = (typeof transactionMethodEnum.enumValues)[number];
