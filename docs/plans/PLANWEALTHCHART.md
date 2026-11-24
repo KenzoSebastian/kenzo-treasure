@@ -103,22 +103,22 @@ flowchart TD
 
 ---
 
-### [ ] Fase 4 — Recharts Wealth Trajectory Chart (`WealthTrajectoryChart.tsx`)
-- [ ] Buat komponen klien `src/components/features/dashboard/WealthTrajectoryChart.tsx`:
+### [x] Fase 4 — Recharts Wealth Trajectory Chart (`WealthTrajectoryChart.tsx`)
+- [x] Buat komponen klien `src/components/features/dashboard/WealthTrajectoryChart.tsx`:
   - Props: `snapshotsByTimeframe: AllTimeframeSnapshots`, `initialTimeframe?: TimeframeOption`.
   - State lokal klien: `selectedTimeframe` (`daily` | `weekly` | `monthly` | `yearly`) dan `chartMode` (`line` | `bar`). Pergantian tab berjalan 100% instan (0ms) dari pre-fetched series tanpa network waterfall.
   - Tampilan Tab Timeframe Responsif (F-06): Di desktop menggunakan label panjang (`Harian`, `Mingguan`, `Bulanan`, `Tahunan`), di layar ponsel (`< sm`) otomatis beralih ke label kompak (`30D`, `12W`, `12M`, `All`).
   - Toggle Mode Visualisasi: `Garis` vs `Batang` menggunakan `SlidingSegmentedControl` kompak.
-- [ ] Implementasi Mode Garis (Area Chart):
+- [x] Implementasi Mode Garis (Area Chart):
   - Area kurva halus (`type="monotone"`) dengan gradient warna hijau emerald semantik (`emerald-500` ke transparan).
-- [ ] Implementasi Mode Batang (Bar Chart):
+- [x] Implementasi Mode Batang (Bar Chart):
   - Bar volume akumulasi/delta dengan rounded top corners (`radius={[6, 6, 0, 0]}`).
-- [ ] Implementasi Interaktivitas 2-Axis Dashed Crosshair (F-09):
+- [x] Implementasi Interaktivitas 2-Axis Dashed Crosshair (F-09):
   - Vertical crosshair: `cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeDasharray: '4 4' }}`.
   - Horizontal Y-axis crosshair: dynamic `<ReferenceLine y={hoveredValue} strokeDasharray="4 4" />` yang mengikuti nominal Rupiah aktif saat kursor mouse melayang di atas titik data (`onMouseMove`).
   - Custom Tooltip mengambang dengan format mata uang sans-serif `tabular-nums` (`formatRupiah`) dan tanggal bahasa Indonesia.
   - Floating sticky readout strip untuk navigasi drag sentuh di layar ponsel (*mobile touch ergonomics*).
-- [ ] Invarian Desain: 100% sans-serif dengan `tabular-nums`, 0% `font-mono`, 0 literal emojis.
+- [x] Invarian Desain: 100% sans-serif dengan `tabular-nums`, 0% `font-mono`, 0 literal emojis.
 
 ---
 
