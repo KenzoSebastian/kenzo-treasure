@@ -29,6 +29,7 @@ import {
   calculateMonthSweep,
   DEFAULT_EMERGENCY_FUND_TARGET,
 } from "@/lib/financial-calculations";
+import { recordSavingsSnapshot } from "@/lib/savings-snapshots";
 import {
   generateMonthCategories,
   INDONESIAN_MONTH_NAMES,
@@ -315,13 +316,24 @@ export async function closeMonth(
 
     await db.transaction(async (tx) => {
       if (sweptAmount > 0 && surplusAction === "sweep_to_savings") {
-        await tx
+        const [updatedAccount] = await tx
           .update(savingsAccount)
           .set({
             balance: sql`${savingsAccount.balance} + ${sweptAmount}`,
             updatedAt: new Date(),
           })
-          .where(eq(savingsAccount.userId, resolvedUserId));
+          .where(eq(savingsAccount.userId, resolvedUserId))
+          .returning();
+
+        if (updatedAccount) {
+          await recordSavingsSnapshot(tx, {
+            userId: resolvedUserId,
+            freeSavingsBalance: updatedAccount.balance,
+            emergencyFundBalance: updatedAccount.emergencyFundBalance,
+            deltaAmount: sweptAmount,
+            sourceEvent: "month_sweep",
+          });
+        }
       }
 
       await tx
@@ -433,13 +445,24 @@ export async function reopenMonth(
         }
 
         // Potong kembali saldo tabungan bebas sebesar previousSwept
-        await tx
+        const [updatedAccount] = await tx
           .update(savingsAccount)
           .set({
             balance: currentSavings - previousSwept,
             updatedAt: new Date(),
           })
-          .where(eq(savingsAccount.userId, resolvedUserId));
+          .where(eq(savingsAccount.userId, resolvedUserId))
+          .returning();
+
+        if (updatedAccount) {
+          await recordSavingsSnapshot(tx, {
+            userId: resolvedUserId,
+            freeSavingsBalance: updatedAccount.balance,
+            emergencyFundBalance: updatedAccount.emergencyFundBalance,
+            deltaAmount: -previousSwept,
+            sourceEvent: "month_reopen",
+          });
+        }
       }
 
       // 2. Buka kembali siklus bulan dan reset sweptAmount ke 0

@@ -37,6 +37,7 @@ import {
 import { resolveAuthenticatedUserId } from "@/lib/queries/months";
 import { getWishlists, enrichWishlist } from "@/lib/queries/wishlists";
 import { revalidateDashboardRoutes } from "@/lib/revalidate";
+import { recordSavingsSnapshot } from "@/lib/savings-snapshots";
 import type { ActionResponse, WishlistWithProgress } from "@/types";
 
 export { getWishlists };
@@ -192,13 +193,24 @@ export async function allocateSavings(
       }
 
       // 1. Kurangi saldo tabungan bebas
+      const newBalance = availableBalance - amount;
+      const currentEmergency = savingsRow?.emergencyFundBalance ?? 0;
+
       await tx
         .update(savingsAccount)
         .set({
-          balance: availableBalance - amount,
+          balance: newBalance,
           updatedAt: new Date(),
         })
         .where(eq(savingsAccount.userId, userId));
+
+      await recordSavingsSnapshot(tx, {
+        userId,
+        freeSavingsBalance: newBalance,
+        emergencyFundBalance: currentEmergency,
+        deltaAmount: -amount,
+        sourceEvent: "wishlist_allocate",
+      });
 
       // 2. Tambah saved_amount di wishlists
       const [updatedWishlist] = await tx
@@ -370,13 +382,24 @@ export async function withdrawFromWishlist(
         .returning();
 
       // 2. Kembalikan ke saldo tabungan bebas
+      const newFreeBalance = (savingsRow?.balance ?? 0) + parsed.data.amount;
+      const currentEmergency = savingsRow?.emergencyFundBalance ?? 0;
+
       await tx
         .update(savingsAccount)
         .set({
-          balance: (savingsRow?.balance ?? 0) + parsed.data.amount,
+          balance: newFreeBalance,
           updatedAt: new Date(),
         })
         .where(eq(savingsAccount.userId, userId));
+
+      await recordSavingsSnapshot(tx, {
+        userId,
+        freeSavingsBalance: newFreeBalance,
+        emergencyFundBalance: currentEmergency,
+        deltaAmount: parsed.data.amount,
+        sourceEvent: "wishlist_withdraw",
+      });
 
       // 3. Catat entri negatif (-) di wishlist_allocations
       await tx.insert(wishlistAllocations).values({

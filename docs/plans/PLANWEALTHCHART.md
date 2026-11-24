@@ -77,16 +77,16 @@ flowchart TD
 
 ---
 
-### [ ] Fase 2 — Centralized Snapshot Mutation Hooks & Initial Backfill
-- [ ] Buat modul pembantu atomik `src/lib/savings-snapshots.ts`:
+### [x] Fase 2 — Centralized Snapshot Mutation Hooks & Initial Backfill
+- [x] Buat modul pembantu atomik `src/lib/savings-snapshots.ts`:
   - Fungsi `recordSavingsSnapshot(tx, params)` untuk mencatat snapshot saat terjadi mutasi tabungan/darurat di dalam transaksi Drizzle secara deterministik (`totalBalance = freeSavingsBalance + emergencyFundBalance`).
-- [ ] Pasang hook `recordSavingsSnapshot` pada Server Actions terkait:
+- [x] Pasang hook `recordSavingsSnapshot` pada Server Actions terkait:
   - `src/actions/savings.ts`: `transferToEmergencyFund`, `withdrawFromEmergencyFund`, `topUpFreeSavings`.
   - `src/actions/months.ts`: `closeMonth` (saat month sweep saldo), `reopenMonth` (saat pembatalan sweep).
   - `src/actions/wishlists.ts`: `allocateSavings`, `withdrawFromWishlist`.
-- [ ] Buat Server Action backfill terisolasi `backfillInitialSnapshots(userId)` di `src/actions/savings.ts`:
+- [x] Buat Server Action backfill terisolasi `backfillInitialSnapshots(userId)` di `src/actions/savings.ts`:
   - Beroperasi murni pada lapisan write (terpisah dari read queries) untuk menyintesis snapshot baseline dari akumulasi `months.sweptAmount` masa lalu dan saldo `savings_account` saat ini.
-- [ ] Verifikasi Server Actions: `bun test src/actions/__tests__/` PASS.
+- [x] Verifikasi Server Actions: `bun test src/actions/__tests__/` PASS.
 
 ---
 

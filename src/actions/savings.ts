@@ -25,6 +25,10 @@ import { DEFAULT_EMERGENCY_FUND_TARGET } from "@/lib/financial-calculations";
 import { resolveAuthenticatedUserId } from "@/lib/queries/months";
 import { getSavingsAccount } from "@/lib/queries/savings";
 import { revalidateDashboardRoutes } from "@/lib/revalidate";
+import {
+  recordSavingsSnapshot,
+  ensureInitialSavingsSnapshots,
+} from "@/lib/savings-snapshots";
 import type { ActionResponse, SavingsVaultSummary } from "@/types";
 
 export { getSavingsAccount };
@@ -129,6 +133,14 @@ export async function transferToEmergencyFund(
           updatedAt: new Date(),
         })
         .where(eq(savingsAccount.userId, userId));
+
+      await recordSavingsSnapshot(tx, {
+        userId,
+        freeSavingsBalance: account.balance - amount,
+        emergencyFundBalance: account.emergencyFundBalance + amount,
+        deltaAmount: 0,
+        sourceEvent: "emergency_transfer",
+      });
     });
 
     revalidateDashboardRoutes();
@@ -217,6 +229,14 @@ export async function withdrawFromEmergencyFund(
           updatedAt: new Date(),
         })
         .where(eq(savingsAccount.userId, userId));
+
+      await recordSavingsSnapshot(tx, {
+        userId,
+        freeSavingsBalance: account.balance + amount,
+        emergencyFundBalance: account.emergencyFundBalance - amount,
+        deltaAmount: 0,
+        sourceEvent: "emergency_withdraw",
+      });
     });
 
     revalidateDashboardRoutes();
@@ -345,6 +365,9 @@ export async function topUpFreeSavings(
         .where(eq(savingsAccount.userId, userId))
         .limit(1);
 
+      const newFree = (existing ? existing.balance : 0) + parsed.data.amount;
+      const currentEmergency = existing ? existing.emergencyFundBalance : 0;
+
       if (!existing) {
         await tx.insert(savingsAccount).values({
           userId,
@@ -361,6 +384,14 @@ export async function topUpFreeSavings(
           })
           .where(eq(savingsAccount.userId, userId));
       }
+
+      await recordSavingsSnapshot(tx, {
+        userId,
+        freeSavingsBalance: newFree,
+        emergencyFundBalance: currentEmergency,
+        deltaAmount: parsed.data.amount,
+        sourceEvent: "top_up",
+      });
     });
 
     revalidateDashboardRoutes();
@@ -371,6 +402,40 @@ export async function topUpFreeSavings(
     return {
       success: false,
       error: "Gagal menambah saldo tabungan bebas.",
+    };
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   5. SERVER ACTION: backfillInitialSnapshots (Sintesis Snapshot Baseline)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+export async function backfillInitialSnapshots(
+  explicitUserId?: string
+): Promise<ActionResponse<{ message: string }>> {
+  try {
+    const userId = await resolveAuthenticatedUserId(explicitUserId);
+    if (!userId) {
+      return {
+        success: false,
+        error: "Pengguna tidak terautentikasi.",
+      };
+    }
+
+    await db.transaction(async (tx) => {
+      await ensureInitialSavingsSnapshots(tx, userId);
+    });
+
+    revalidateDashboardRoutes();
+    return {
+      success: true,
+      data: { message: "Backfill snapshot saldo berhasil disintesis." },
+    };
+  } catch (err) {
+    console.error("Gagal melakukan backfill snapshot saldo:", err);
+    return {
+      success: false,
+      error: "Gagal melakukan backfill snapshot saldo.",
     };
   }
 }
