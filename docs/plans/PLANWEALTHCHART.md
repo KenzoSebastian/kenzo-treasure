@@ -90,16 +90,16 @@ flowchart TD
 
 ---
 
-### [ ] Fase 3 — Query Layer, Baseline Seeding & Forward-Fill Interpolator
-- [ ] Buat kontrak tipe data time-series di `src/types/savings-snapshots.ts` dan ekspor di `src/types/index.ts`:
+### [x] Fase 3 — Query Layer, Baseline Seeding & Forward-Fill Interpolator
+- [x] Buat kontrak tipe data time-series di `src/types/savings-snapshots.ts` dan ekspor di `src/types/index.ts`:
   - `TimeframeOption = 'daily' | 'weekly' | 'monthly' | 'yearly'`.
   - `WealthSnapshotPoint = { date: string; label: string; freeSavings: number; emergencyFund: number; totalWealth: number; delta: number }`.
   - `AllTimeframeSnapshots = Record<TimeframeOption, WealthSnapshotPoint[]>`.
-- [ ] Implementasikan query read-only `getAllTimeframeSnapshots(userId)` di `src/lib/queries/savings-snapshots.ts`:
+- [x] Implementasikan query read-only `getAllTimeframeSnapshots(userId)` di `src/lib/queries/savings-snapshots.ts`:
   - **Penanganan Collision Tanggal Sama (F-03):** Menciutkan multiple snapshots pada tanggal yang sama dengan mengambil baris snapshot penutupan terakhir di hari tersebut (highest `createdAt` / `id`).
   - **Penanganan Inaktivitas & Baseline Seeding (F-02):** Mengambil snapshot terakhir *pada atau sebelum* tanggal awal jendela timeframe (`snapshotDate <= startDate`) sebagai baseline saldo awal. Jika belum ada snapshot, gunakan saldo `savings_account` berjalan.
   - **Forward-Fill Gap Interpolation:** Mengisi kekosongan tanggal antar mutasi pada rentang harian (30D) dan mingguan (12W) dengan meneruskan nilai saldo terakhir (*last known balance*), menghasilkan titik data kontinyu untuk Recharts.
-- [ ] Buat unit test query layer `src/lib/queries/__tests__/savings-snapshots.test.ts` untuk memvalidasi algoritma forward-fill dan deduplikasi tanggal.
+- [x] Buat unit test query layer `src/lib/queries/__tests__/savings-snapshots.test.ts` untuk memvalidasi algoritma forward-fill dan deduplikasi tanggal.
 
 ---
 
