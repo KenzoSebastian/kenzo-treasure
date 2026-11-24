@@ -122,17 +122,17 @@ flowchart TD
 
 ---
 
-### [ ] Fase 5 — Modular Primitives (`WealthHeroCard.tsx` & `CashflowCockpitCard.tsx`)
-- [ ] Buat `src/components/features/dashboard/WealthHeroCard.tsx`:
+### [x] Fase 5 — Modular Primitives (`WealthHeroCard.tsx` & `CashflowCockpitCard.tsx`)
+- [x] Buat `src/components/features/dashboard/WealthHeroCard.tsx`:
   - Container kartu lebar penuh (`w-full rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs`).
   - Header: Label `Total Brankas Simpanan`, Badge `Safety Months`, dan tautan `Buka Detail Brankas` ke `/dashboard/vault`.
   - Headline angka total saldo (`text-3xl sm:text-4xl font-extrabold tabular-nums`).
   - **Sub-Vault Inset Chips (F-07):** Menyajikan 2 chip metrik kompak untuk *Tabungan Bebas* (`freeSavingsBalance`) dan *Dana Darurat* (`emergencyFundBalance`) agar pengguna tetap dapat melihat proporsi likuid vs cadangan darurat.
   - Sematkan `<WealthTrajectoryChart snapshotsByTimeframe={snapshots} />` di area konten utama.
-- [ ] Buat `src/components/features/dashboard/CashflowCockpitCard.tsx`:
+- [x] Buat `src/components/features/dashboard/CashflowCockpitCard.tsx`:
   - Container kartu lebar penuh (`w-full rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs`).
   - Menampilkan ringkasan arus kas siklus berjalan: Badge Status Kesehatan Anggaran (*Sehat / Waspada / Defisit*), headline *Sisa Kuota Uang Bebas (Surplus)*, rincian 2 baris Pemasukan vs Belanja, dan progress bar penyerapan kas.
-- [ ] Ekspor kedua komponen baru di `src/components/features/dashboard/index.ts`.
+- [x] Ekspor kedua komponen baru di `src/components/features/dashboard/index.ts`.
 
 ---
 
