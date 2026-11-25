@@ -25,12 +25,12 @@ flowchart TD
 - [x] Perbarui `getAnalyticsDashboardData` di `src/lib/queries/analytics.ts` untuk menyuplai data per bulan (`monthId` & `"all"`) dalam 1 query paralel.
 - [x] Verifikasi `bun run typecheck` PASS.
 
-### [ ] Fase A2 — Komponen Modular Tier 1–4 (`src/components/features/analytics/`)
-- [ ] Buat `AnalyticsKpiGrid.tsx` (4 KPI card `tabular-nums`, 0 monospace).
-- [ ] Buat `MonthlyCashflowChart.tsx` (Grouped Bar Chart Recharts dengan `var(--border)`/`var(--muted-foreground)`, custom dark-aware tooltip, dan empty state).
-- [ ] Buat `ExpenseDonutSection.tsx` (Selector Bulan + Donut Chart Top 5–6 + *Lainnya* dengan Total Belanja di tengah donat + Ranked List berikon `AppCategoryIcon`).
-- [ ] Buat `BudgetDisciplineSection.tsx` (Target vs Realisasi Anggaran per pos + Tren Savings Rate % AreaChart).
-- [ ] Rombak `AnalyticsDashboard.tsx` & perbarui `index.ts` barrel export.
+### [x] Fase A2 — Komponen Modular Tier 1–4 (`src/components/features/analytics/`)
+- [x] Buat `AnalyticsKpiGrid.tsx` (4 KPI card `tabular-nums`, 0 monospace).
+- [x] Buat `MonthlyCashflowChart.tsx` (Grouped Bar Chart Recharts dengan `var(--border)`/`var(--muted-foreground)`, custom dark-aware tooltip, dan empty state).
+- [x] Buat `ExpenseDonutSection.tsx` (Selector Bulan + Donut Chart Top 5–6 + *Lainnya* dengan Total Belanja di tengah donat + Ranked List berikon `AppCategoryIcon`).
+- [x] Buat `BudgetDisciplineSection.tsx` (Target vs Realisasi Anggaran per pos + Tren Savings Rate % AreaChart).
+- [x] Rombak `AnalyticsDashboard.tsx` & perbarui `index.ts` barrel export.
 
 ### [ ] Fase A3 — Integrasi Page Orchestrator, Skeleton, Tests & Dokumentasi
 - [ ] Perbarui `src/app/(dashboard)/dashboard/analytics/page.tsx` (dukung `searchParams.year` + `Suspense` fallback `AnalyticsSkeleton`).
