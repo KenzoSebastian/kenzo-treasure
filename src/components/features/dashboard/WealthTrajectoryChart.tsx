@@ -316,7 +316,7 @@ export function WealthTrajectoryChart({
                 tickLine={false}
                 axisLine={false}
                 dy={6}
-                interval="preserveStartEnd"
+                interval={timeframe === "daily" ? 2 : 0}
               />
 
               <YAxis
@@ -384,7 +384,7 @@ export function WealthTrajectoryChart({
                 tickLine={false}
                 axisLine={false}
                 dy={6}
-                interval="preserveStartEnd"
+                interval={timeframe === "daily" ? 2 : 0}
               />
 
               <YAxis
