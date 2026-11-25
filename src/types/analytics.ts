@@ -48,11 +48,20 @@ export interface CategoryDistributionItem {
   percentageOfTotal: number;
 }
 
+export interface AnalyticsMonthOption {
+  id: string;
+  name: string;
+  shortMonth: string;
+  monthIndex: number;
+}
+
 export interface AnalyticsDashboardData {
   selectedYear: number;
   availableYears: number[];
+  availableMonths?: AnalyticsMonthOption[];
   savingsGrowth: SavingsGrowthPoint[];
   monthlyCashflow: MonthlyCashflowPoint[];
   yearlyComparison: YearlyComparisonItem[];
   categoryDistribution: CategoryDistributionItem[];
+  categoryDistributionByMonth?: Record<string, CategoryDistributionItem[]>;
 }

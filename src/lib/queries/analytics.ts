@@ -24,6 +24,7 @@ import type {
   MonthlyCashflowPoint,
   YearlyComparisonItem,
   CategoryDistributionItem,
+  AnalyticsMonthOption,
   AnalyticsDashboardData,
 } from "@/types";
 
@@ -411,6 +412,139 @@ export async function getCategoryExpenseDistribution(
 }
 
 /**
+ * Mengambil distribusi pengeluaran per kategori untuk seluruh bulan dalam 1 tahun
+ * sekaligus agregasi tahunan ("all") dalam satu batch query efisien.
+ */
+async function getYearCategoryDistributions(
+  resolvedUserId: string,
+  targetYear: number
+): Promise<{
+  availableMonths: AnalyticsMonthOption[];
+  byMonth: Record<string, CategoryDistributionItem[]>;
+  latestMonthItems: CategoryDistributionItem[];
+}> {
+  const yearMonths = await db
+    .select()
+    .from(months)
+    .where(and(eq(months.userId, resolvedUserId), eq(months.year, targetYear)))
+    .orderBy(asc(months.monthIndex));
+
+  if (yearMonths.length === 0) {
+    return { availableMonths: [], byMonth: {}, latestMonthItems: [] };
+  }
+
+  const monthIds = yearMonths.map((m) => m.id);
+  const [allCategories, allTx] = await Promise.all([
+    db
+      .select()
+      .from(budgetCategories)
+      .where(inArray(budgetCategories.monthId, monthIds))
+      .orderBy(asc(budgetCategories.sortOrder)),
+    db
+      .select()
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.userId, resolvedUserId),
+          eq(transactions.isDeleted, false)
+        )
+      ),
+  ]);
+
+  const spentByCat = new Map<string, number>();
+  for (const tx of allTx) {
+    spentByCat.set(tx.categoryId, (spentByCat.get(tx.categoryId) ?? 0) + tx.amount);
+  }
+
+  const availableMonths: AnalyticsMonthOption[] = yearMonths.map((m) => ({
+    id: m.id,
+    name: m.name,
+    shortMonth:
+      SHORT_MONTH_LABELS[m.monthIndex - 1] ??
+      INDONESIAN_MONTH_NAMES[m.monthIndex - 1]?.slice(0, 3) ??
+      "Bln",
+    monthIndex: m.monthIndex,
+  }));
+
+  const byMonth: Record<string, CategoryDistributionItem[]> = {};
+  const yearlyAgg = new Map<
+    string,
+    {
+      categoryId: string;
+      categoryName: string;
+      icon: string;
+      group: CategoryDistributionItem["group"];
+      amount: number;
+      target: number;
+    }
+  >();
+
+  for (const m of yearMonths) {
+    const cats = allCategories.filter((c) => c.monthId === m.id);
+    let monthTotal = 0;
+    for (const c of cats) {
+      monthTotal += spentByCat.get(c.id) ?? 0;
+    }
+
+    const items: CategoryDistributionItem[] = cats
+      .map((c) => {
+        const amount = spentByCat.get(c.id) ?? 0;
+        const percentageOfTotal =
+          monthTotal > 0 ? Math.round((amount / monthTotal) * 100) : 0;
+
+        const aggKey = c.name.trim().toLowerCase();
+        const existingAgg = yearlyAgg.get(aggKey);
+        if (existingAgg) {
+          existingAgg.amount += amount;
+          existingAgg.target += c.targetBudget;
+        } else {
+          yearlyAgg.set(aggKey, {
+            categoryId: c.id,
+            categoryName: c.name,
+            icon: c.icon ?? "wallet",
+            group: c.group,
+            amount,
+            target: c.targetBudget,
+          });
+        }
+
+        return {
+          categoryId: c.id,
+          categoryName: c.name,
+          icon: c.icon ?? "wallet",
+          group: c.group,
+          amount,
+          target: c.targetBudget,
+          percentageOfTotal,
+        };
+      })
+      .sort((a, b) => b.amount - a.amount);
+
+    byMonth[m.id] = items;
+  }
+
+  let yearlyGrandTotal = 0;
+  for (const entry of yearlyAgg.values()) {
+    yearlyGrandTotal += entry.amount;
+  }
+
+  byMonth["all"] = Array.from(yearlyAgg.values())
+    .map((entry) => ({
+      ...entry,
+      percentageOfTotal:
+        yearlyGrandTotal > 0
+          ? Math.round((entry.amount / yearlyGrandTotal) * 100)
+          : 0,
+    }))
+    .sort((a, b) => b.amount - a.amount);
+
+  const latestMonth = yearMonths[yearMonths.length - 1];
+  const latestMonthItems = latestMonth ? byMonth[latestMonth.id] ?? [] : [];
+
+  return { availableMonths, byMonth, latestMonthItems };
+}
+
+/**
  * Mengambil bundel lengkap data analitik untuk halaman AnalyticsDashboard.
  */
 export async function getAnalyticsDashboardData(
@@ -427,13 +561,13 @@ export async function getAnalyticsDashboardData(
 
   const currentYear = year ?? new Date().getFullYear();
 
-  const [cashflowRes, yearlyRes, categoryDistRes] = await Promise.all([
+  const [cashflowRes, yearlyRes, yearCategoryData] = await Promise.all([
     getMonthlyCashflowSummary(resolvedUserId, currentYear),
     getYearlyComparison(resolvedUserId),
-    getCategoryExpenseDistribution(undefined, resolvedUserId),
+    getYearCategoryDistributions(resolvedUserId, currentYear),
   ]);
 
-  if (!cashflowRes.success || !yearlyRes.success || !categoryDistRes.success) {
+  if (!cashflowRes.success || !yearlyRes.success) {
     return {
       success: false,
       error: "Gagal memuat sebagian data analitik finansial.",
@@ -457,7 +591,6 @@ export async function getAnalyticsDashboardData(
 
   const availableYearsSet = new Set<number>([
     currentYear,
-    currentYear + 1,
     ...yearlyRes.data.map((y) => y.year),
   ]);
   const availableYears = Array.from(availableYearsSet).sort((a, b) => a - b);
@@ -467,10 +600,12 @@ export async function getAnalyticsDashboardData(
     data: {
       selectedYear: currentYear,
       availableYears,
+      availableMonths: yearCategoryData.availableMonths,
       savingsGrowth,
       monthlyCashflow: cashflowRes.data,
       yearlyComparison: yearlyRes.data,
-      categoryDistribution: categoryDistRes.data,
+      categoryDistribution: yearCategoryData.latestMonthItems,
+      categoryDistributionByMonth: yearCategoryData.byMonth,
     },
   };
 }
