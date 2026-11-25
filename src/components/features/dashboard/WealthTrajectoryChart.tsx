@@ -71,6 +71,10 @@ export function WealthTrajectoryChart({
     return snapshotsByTimeframe[timeframe] || [];
   }, [snapshotsByTimeframe, timeframe]);
 
+  const hasWealthData = React.useMemo(() => {
+    return activeData.length > 0 && activeData.some((d) => d.totalWealth > 0);
+  }, [activeData]);
+
   // Hitung min dan max domain Y untuk padding visual yang proporsional
   const { minDomain, maxDomain } = React.useMemo(() => {
     if (activeData.length === 0) {
@@ -258,8 +262,23 @@ export function WealthTrajectoryChart({
         )}
       </div>
 
-      {/* 3. Kanvas Recharts Responsive */}
-      <div className="w-full flex-1 min-h-[190px] sm:min-h-[240px] lg:min-h-[280px]">
+      {/* 3. Kanvas Recharts Responsive atau Empty State */}
+      <div className="w-full h-[210px] sm:h-[260px] lg:h-[300px]">
+        {!hasWealthData ? (
+          <div className="h-full w-full rounded-xl border border-dashed border-border/70 bg-muted/15 flex flex-col items-center justify-center text-center px-4 gap-2">
+            <div className="size-10 rounded-full bg-muted/40 border border-border/60 flex items-center justify-center text-muted-foreground">
+              <TrendingUp className="size-4" />
+            </div>
+            <div className="space-y-1 max-w-sm">
+              <p className="text-xs sm:text-sm font-semibold text-foreground">
+                Belum ada data riwayat simpanan
+              </p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
+                Grafik akan terisi otomatis saat Anda memiliki saldo tabungan, dana darurat, atau melakukan tutup buku bulanan.
+              </p>
+            </div>
+          </div>
+        ) : (
         <ResponsiveContainer width="100%" height="100%">
           {chartMode === "line" ? (
             <AreaChart
@@ -286,13 +305,13 @@ export function WealthTrajectoryChart({
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                stroke="hsl(var(--border))"
+                stroke="var(--border)"
                 strokeOpacity={0.6}
               />
 
               <XAxis
                 dataKey="label"
-                stroke="hsl(var(--muted-foreground))"
+                stroke="var(--muted-foreground)"
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
@@ -303,7 +322,7 @@ export function WealthTrajectoryChart({
               <YAxis
                 domain={[minDomain, maxDomain]}
                 tickFormatter={formatYAxisTick}
-                stroke="hsl(var(--muted-foreground))"
+                stroke="var(--muted-foreground)"
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
@@ -312,7 +331,7 @@ export function WealthTrajectoryChart({
 
               <Tooltip
                 cursor={{
-                  stroke: "hsl(var(--muted-foreground))",
+                  stroke: "var(--muted-foreground)",
                   strokeDasharray: "4 4",
                   strokeWidth: 1.5,
                 }}
@@ -323,7 +342,7 @@ export function WealthTrajectoryChart({
               {hoveredValue !== null && (
                 <ReferenceLine
                   y={hoveredValue}
-                  stroke="hsl(var(--muted-foreground))"
+                  stroke="var(--muted-foreground)"
                   strokeDasharray="4 4"
                   strokeWidth={1.5}
                 />
@@ -339,7 +358,7 @@ export function WealthTrajectoryChart({
                 activeDot={{
                   r: 5,
                   fill: "hsl(142.1 76.2% 36.3%)",
-                  stroke: "hsl(var(--background))",
+                  stroke: "var(--background)",
                   strokeWidth: 2,
                 }}
               />
@@ -354,13 +373,13 @@ export function WealthTrajectoryChart({
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                stroke="hsl(var(--border))"
+                stroke="var(--border)"
                 strokeOpacity={0.6}
               />
 
               <XAxis
                 dataKey="label"
-                stroke="hsl(var(--muted-foreground))"
+                stroke="var(--muted-foreground)"
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
@@ -371,7 +390,7 @@ export function WealthTrajectoryChart({
               <YAxis
                 domain={[minDomain, maxDomain]}
                 tickFormatter={formatYAxisTick}
-                stroke="hsl(var(--muted-foreground))"
+                stroke="var(--muted-foreground)"
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
@@ -380,7 +399,8 @@ export function WealthTrajectoryChart({
 
               <Tooltip
                 cursor={{
-                  fill: "hsl(var(--muted)/0.3)",
+                  fill: "var(--muted)",
+                  fillOpacity: 0.3,
                 }}
                 content={<WealthChartCustomTooltip />}
                 isAnimationActive={false}
@@ -389,7 +409,7 @@ export function WealthTrajectoryChart({
               {hoveredValue !== null && (
                 <ReferenceLine
                   y={hoveredValue}
-                  stroke="hsl(var(--muted-foreground))"
+                  stroke="var(--muted-foreground)"
                   strokeDasharray="4 4"
                   strokeWidth={1.5}
                 />
@@ -404,6 +424,7 @@ export function WealthTrajectoryChart({
             </BarChart>
           )}
         </ResponsiveContainer>
+        )}
       </div>
     </div>
   );

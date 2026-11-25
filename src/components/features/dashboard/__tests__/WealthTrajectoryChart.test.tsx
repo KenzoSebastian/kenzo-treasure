@@ -136,6 +136,25 @@ describe("WealthTrajectoryChart (Interactive Recharts)", () => {
     const forbiddenMono = ["font", "mono"].join("-");
     expect(html).not.toContain(forbiddenMono);
   });
+
+  it("renders informative empty state when no wealth history exists", () => {
+    const emptySnapshots: AllTimeframeSnapshots = {
+      daily: [],
+      weekly: [],
+      monthly: [],
+      yearly: [],
+    };
+    const rawHtml = renderToString(
+      <WealthTrajectoryChart
+        snapshotsByTimeframe={emptySnapshots}
+        initialTimeframe="monthly"
+      />
+    );
+    const html = stripHtmlComments(rawHtml);
+
+    expect(html).toContain("Belum ada data riwayat simpanan");
+    expect(html).toContain("Grafik akan terisi otomatis");
+  });
 });
 
 describe("WealthHeroCard (Full-Width Tier 1 Hero)", () => {
