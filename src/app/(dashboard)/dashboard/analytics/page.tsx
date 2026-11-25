@@ -1,6 +1,8 @@
+import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AnalyticsSkeleton } from "@/components/layout/AnalyticsSkeleton";
 import { getCachedAuthenticatedSession } from "@/lib/queries/auth";
 import { getAnalyticsDashboardData } from "@/lib/queries/analytics";
 import { AnalyticsDashboard } from "@/components/features/analytics";
@@ -8,26 +10,47 @@ import type { AnalyticsDashboardData } from "@/types/analytics";
 
 export const metadata = {
   title: "Analitik Finansial • Kenzo Treasury",
-  description: "Grafik historis dan analisis arus kas bulanan.",
+  description: "Grafik arus kas, komposisi pengeluaran, dan disiplin anggaran.",
 };
 
-export default async function AnalyticsPage() {
+interface AnalyticsPageProps {
+  searchParams?: Promise<{
+    year?: string;
+  }>;
+}
+
+export default async function AnalyticsPage(props: AnalyticsPageProps) {
+  const searchParams = await props.searchParams;
+  const parsedYear = searchParams?.year ? Number(searchParams.year) : NaN;
+  const currentYear =
+    Number.isInteger(parsedYear) && parsedYear >= 2020 && parsedYear <= 2100
+      ? parsedYear
+      : new Date().getFullYear();
+
+  return (
+    <React.Suspense fallback={<AnalyticsSkeleton />}>
+      <AnalyticsPageContent targetYear={currentYear} />
+    </React.Suspense>
+  );
+}
+
+async function AnalyticsPageContent({ targetYear }: { targetYear: number }) {
   const sessionRes = await getCachedAuthenticatedSession();
   const userId = sessionRes.success ? sessionRes.data.userId : undefined;
-  const currentYear = new Date().getFullYear();
 
   const analyticsRes = userId
-    ? await getAnalyticsDashboardData(userId, currentYear)
+    ? await getAnalyticsDashboardData(userId, targetYear)
     : { success: false as const, error: "" };
 
   const emptyAnalytics: AnalyticsDashboardData = {
-    selectedYear: currentYear,
-    availableYears: [currentYear],
+    selectedYear: targetYear,
+    availableYears: [targetYear],
+    availableMonths: [],
     savingsGrowth: [],
     monthlyCashflow: [],
     yearlyComparison: [
       {
-        year: currentYear,
+        year: targetYear,
         totalIncome: 0,
         totalExpense: 0,
         totalNetSavings: 0,
@@ -36,6 +59,7 @@ export default async function AnalyticsPage() {
       },
     ],
     categoryDistribution: [],
+    categoryDistributionByMonth: {},
   };
 
   const activeData =
@@ -51,8 +75,7 @@ export default async function AnalyticsPage() {
             Grafik & Analitik Finansial
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-            Visualisasi interaktif tren tabungan, perbandingan arus kas bulanan,
-            dan rekap tahunan.
+            Pantau arus kas bulanan, komposisi pos pengeluaran, dan konsistensi menabung Anda.
           </p>
         </div>
 

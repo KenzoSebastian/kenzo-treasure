@@ -1,8 +1,8 @@
 # PLANANALYTICS — Perombakan Halaman Analitik Finansial 4-Tier
 
-> **Status:** PLANNING — AWAITING APPROVAL  
+> **Status:** COMPLETED ✅  
 > **Goal:** Merombak halaman `/dashboard/analytics` menjadi pusat analitik arus kas, komposisi pengeluaran, dan disiplin anggaran berbasis prinsip **1 Grafik = 1 Pertanyaan Finansial** dalam 4 Tier (KPI Ringkas → Grouped Bar Arus Kas → Donut + Ranking Pos → Budget vs Aktual & Tren Savings Rate), bebas redundansi dengan Dashboard utama.  
-> **Aturan eksekusi:** 1 fase per iterasi → `IMPLEMENTED — AWAITING APPROVAL` → approve Ken (ceklis kotak) → lanjut ke fase berikutnya hanya bila diinstruksikan.
+> **Aturan eksekusi:** 1 fase per iterasi → `IMPLEMENTED — AWAITING APPROVAL` → approve Ken (ceklis kotak) → lanjut ke fase berikutnya hanya bila diinstruksikan. (Batch authorization executed for Fase A1–A3).
 
 ---
 
@@ -32,9 +32,9 @@ flowchart TD
 - [x] Buat `BudgetDisciplineSection.tsx` (Target vs Realisasi Anggaran per pos + Tren Savings Rate % AreaChart).
 - [x] Rombak `AnalyticsDashboard.tsx` & perbarui `index.ts` barrel export.
 
-### [ ] Fase A3 — Integrasi Page Orchestrator, Skeleton, Tests & Dokumentasi
-- [ ] Perbarui `src/app/(dashboard)/dashboard/analytics/page.tsx` (dukung `searchParams.year` + `Suspense` fallback `AnalyticsSkeleton`).
-- [ ] Selaraskan `AnalyticsSkeleton` di `src/components/layout/PageSectionSkeleton.tsx`.
-- [ ] Buat `src/components/features/analytics/__tests__/AnalyticsDashboard.test.tsx` dan selaraskan `frontend-phases-f7-f18.test.tsx`.
-- [ ] Jalankan `bun run typecheck && bun test && bun run build` (semua PASS).
-- [ ] Perbarui `.changelog/` dan `laporan.md`.
+### [x] Fase A3 — Integrasi Page Orchestrator, Skeleton, Tests & Dokumentasi
+- [x] Perbarui `src/app/(dashboard)/dashboard/analytics/page.tsx` (dukung `searchParams.year` + `Suspense` fallback `AnalyticsSkeleton`).
+- [x] Selaraskan `AnalyticsSkeleton` di `src/components/layout/PageSectionSkeleton.tsx`.
+- [x] Buat `src/components/features/analytics/__tests__/AnalyticsDashboard.test.tsx` dan selaraskan `frontend-phases-f7-f18.test.tsx`.
+- [x] Jalankan `bun run typecheck && bun test && bun run build` (semua PASS).
+- [x] Perbarui `.changelog/` dan `laporan.md`.

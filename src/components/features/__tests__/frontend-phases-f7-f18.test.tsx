@@ -552,8 +552,11 @@ describe("Frontend Phases F7–F18 & R1–R10 Component Suite", () => {
         }}
       />
     );
-    expect(analyticsHtml).toContain("Grafik Batang (Bar)");
-    expect(analyticsHtml).toContain("Grafik Garis (Line)");
+    expect(analyticsHtml).toContain("Periode Analisis Tahun");
+    expect(analyticsHtml).toContain("Rata-rata Savings Rate");
+    expect(analyticsHtml).toContain("Arus Kas Bulanan");
+    expect(analyticsHtml).toContain("Kemana Uang Pergi");
+    expect(analyticsHtml).toContain("Target vs Realisasi Anggaran");
     expect(analyticsHtml).not.toContain(FORBIDDEN_MONO_CLASS);
 
     const aiHtml = renderToString(
