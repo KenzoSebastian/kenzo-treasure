@@ -14,7 +14,7 @@
  * 3. `reopenMonth`: Membuka kembali bulan yang telah ditutup untuk koreksi catatan.
  */
 
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, desc } from "drizzle-orm";
 import { db } from "@/db";
 import { months, incomes, savingsAccount, users } from "@/db/schema";
 import {
@@ -118,6 +118,31 @@ export async function createMonthlyCycle(
         success: false,
         error: `Siklus bulan untuk ${monthName} sudah pernah dibuat.`,
       };
+    }
+
+    // Invarian Kronologis: Cegah pembuatan bulan lebih lama dari siklus terakhir di DB
+    const [latestExistingMonth] = await db
+      .select({
+        name: months.name,
+        year: months.year,
+        monthIndex: months.monthIndex,
+      })
+      .from(months)
+      .where(eq(months.userId, resolvedUserId))
+      .orderBy(desc(months.year), desc(months.monthIndex))
+      .limit(1);
+
+    if (latestExistingMonth) {
+      const requestedSerial = year * 12 + monthIndex;
+      const latestSerial =
+        latestExistingMonth.year * 12 + latestExistingMonth.monthIndex;
+
+      if (requestedSerial < latestSerial) {
+        return {
+          success: false,
+          error: `Tidak dapat membuat siklus "${monthName}" karena lebih lama dari siklus terakhir ("${latestExistingMonth.name}").`,
+        };
+      }
     }
 
     // Invarian SC-13: Periksa apakah ada siklus bulan aktif yang belum ditutup buku

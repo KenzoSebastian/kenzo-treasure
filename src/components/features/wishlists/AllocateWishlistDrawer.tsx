@@ -109,11 +109,8 @@ export function AllocateWishlistDrawer({
   const handleShortcutPercent = (ratio: number) => {
     setErrorMsg(null);
     if (mode === "allocate") {
-      const base = freeSavingsBalance > 0 ? freeSavingsBalance : remainingNeeded;
-      const calculated = Math.min(
-        Math.round(base * ratio),
-        remainingNeeded > 0 ? remainingNeeded : base
-      );
+      const base = maxAllocate;
+      const calculated = Math.round(base * ratio);
       setAmountRaw(String(Math.max(0, calculated)));
     } else {
       const calculated = Math.round(wishlist.savedAmount * ratio);
@@ -327,21 +324,31 @@ export function AllocateWishlistDrawer({
                 { label: "25%", ratio: 0.25 },
                 { label: "50%", ratio: 0.5 },
                 { label: "Semua Saldo", ratio: 1 },
-              ].map((pill) => (
-                <button
-                  key={pill.label}
-                  type="button"
-                  onClick={() => handleShortcutPercent(pill.ratio)}
-                  className="rounded-full border border-border/70 bg-muted/40 px-3 py-1 text-[11px] font-semibold text-foreground/80 hover:bg-muted hover:text-foreground transition-colors"
-                >
-                  {pill.label}
-                </button>
-              ))}
+              ].map((pill) => {
+                const isDisabled =
+                  mode === "allocate"
+                    ? maxAllocate <= 0
+                    : wishlist.savedAmount <= 0;
+                return (
+                  <button
+                    key={pill.label}
+                    type="button"
+                    disabled={isDisabled}
+                    onClick={() => handleShortcutPercent(pill.ratio)}
+                    className="rounded-full border border-border/70 bg-muted/40 px-3 py-1 text-[11px] font-semibold text-foreground/80 hover:bg-muted hover:text-foreground transition-colors cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed"
+                  >
+                    {pill.label}
+                  </button>
+                );
+              })}
               {mode === "allocate" && maxAllocate > 0 && (
                 <button
                   type="button"
-                  onClick={() => setAmountRaw(String(maxAllocate))}
-                  className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400"
+                  onClick={() => {
+                    setErrorMsg(null);
+                    setAmountRaw(String(maxAllocate));
+                  }}
+                  className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 transition-colors cursor-pointer"
                 >
                   Lunasi ({formatRupiah(maxAllocate)})
                 </button>

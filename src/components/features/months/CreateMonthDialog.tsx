@@ -79,6 +79,7 @@ export function CreateMonthDialog({
   const [baseSalary, setBaseSalary] = React.useState<number>(
     defaultBaseSalary && defaultBaseSalary > 0 ? defaultBaseSalary : 0
   );
+  const [hasEditedSalary, setHasEditedSalary] = React.useState<boolean>(false);
   const [rolloverSavings, setRolloverSavings] = React.useState<boolean>(true);
 
   React.useEffect(() => {
@@ -87,18 +88,38 @@ export function CreateMonthDialog({
   }, [defaultYear, defaultMonthIndex]);
 
   React.useEffect(() => {
-    if (defaultBaseSalary && defaultBaseSalary > 0 && baseSalary === 0) {
+    if (!hasEditedSalary && defaultBaseSalary && defaultBaseSalary > 0) {
       setBaseSalary(defaultBaseSalary);
     }
-  }, [defaultBaseSalary, baseSalary]);
+  }, [defaultBaseSalary, hasEditedSalary]);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (nextOpen) {
+      setHasEditedSalary(false);
+      setBaseSalary(defaultBaseSalary && defaultBaseSalary > 0 ? defaultBaseSalary : 0);
+      setUnclosedWarning(null);
+    }
+  };
 
   const handleSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setHasEditedSalary(true);
     const rawValue = e.target.value;
     const numericValue = parseRupiah(rawValue);
     setBaseSalary(numericValue);
   };
 
+  const isBeforeLatestMonth = React.useMemo(() => {
+    if (!latestMonth) return false;
+    return year * 12 + monthIndex < latestMonth.year * 12 + latestMonth.monthIndex;
+  }, [latestMonth, year, monthIndex]);
+
   const executeCreateMonth = (allowUnclosed = false) => {
+    if (isBeforeLatestMonth) {
+      toast.error("Tidak dapat memilih bulan sebelum siklus terakhir.");
+      return;
+    }
+
     if (baseSalary <= 0) {
       toast.error("Gaji pokok harus bernilai positif (lebih besar dari Rp 0)");
       return;
@@ -148,7 +169,7 @@ export function CreateMonthDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger || (
           <Button
@@ -231,11 +252,23 @@ export function CreateMonthDialog({
                     className="rounded-xl max-h-56"
                     position="popper"
                   >
-                    {INDONESIAN_MONTH_NAMES.map((name, idx) => (
-                      <SelectItem key={idx + 1} value={String(idx + 1)}>
-                        {name}
-                      </SelectItem>
-                    ))}
+                    {INDONESIAN_MONTH_NAMES.map((name, idx) => {
+                      const candidateMonthIndex = idx + 1;
+                      const isPastOrCurrentLatest = Boolean(
+                        latestMonth &&
+                          year * 12 + candidateMonthIndex <=
+                            latestMonth.year * 12 + latestMonth.monthIndex
+                      );
+                      return (
+                        <SelectItem
+                          key={candidateMonthIndex}
+                          value={String(candidateMonthIndex)}
+                          disabled={isPastOrCurrentLatest}
+                        >
+                          {name}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
@@ -247,7 +280,7 @@ export function CreateMonthDialog({
                 <Input
                   id="year-input"
                   type="number"
-                  min={2020}
+                  min={latestMonth ? latestMonth.year : 2020}
                   max={2100}
                   value={year}
                   onChange={(e) => setYear(Number(e.target.value))}
@@ -257,6 +290,12 @@ export function CreateMonthDialog({
                 />
               </div>
             </div>
+
+            {isBeforeLatestMonth && (
+              <p className="text-[11px] font-medium text-rose-600 dark:text-rose-400">
+                Tidak dapat memilih bulan sebelum siklus terakhir ({INDONESIAN_MONTH_NAMES[(latestMonth?.monthIndex ?? 1) - 1]} {latestMonth?.year}).
+              </p>
+            )}
 
             {/* 2. Gaji Pokok Rutin */}
             <div className="flex flex-col gap-1.5">
@@ -341,8 +380,8 @@ export function CreateMonthDialog({
             <Button
               type="submit"
               size="sm"
-              disabled={isPending}
-              className="h-9 px-4 rounded-xl gap-1.5 font-medium cursor-pointer shadow-xs"
+              disabled={isPending || baseSalary <= 0 || isBeforeLatestMonth}
+              className="h-9 px-4 rounded-xl gap-1.5 font-medium cursor-pointer shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPending ? (
                 <>

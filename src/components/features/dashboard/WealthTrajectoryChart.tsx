@@ -440,28 +440,28 @@ function WealthChartCustomTooltip({ active, payload }: any) {
   const data = payload[0].payload as WealthSnapshotPoint;
 
   return (
-    <div className="rounded-xl border border-border/80 bg-popover/95 p-3 shadow-md backdrop-blur-md text-xs space-y-1.5 min-w-[190px]">
-      <div className="flex items-center justify-between gap-2 border-b border-border/60 pb-1">
+    <div className="rounded-xl border border-border/80 bg-popover/95 p-3 shadow-md backdrop-blur-md text-xs space-y-1.5 min-w-[220px]">
+      <div className="flex items-center justify-between gap-4 border-b border-border/60 pb-1">
         <span className="font-semibold text-foreground">{data.label}</span>
-        <span className="text-[10px] text-muted-foreground">{data.date}</span>
+        <span className="text-[10px] text-muted-foreground tabular-nums">{data.date}</span>
       </div>
 
       <div className="space-y-1 pt-0.5">
-        <div className="flex justify-between items-center text-muted-foreground">
+        <div className="flex justify-between items-center gap-4 text-muted-foreground">
           <span>Tabungan Bebas:</span>
           <span className="font-semibold text-foreground tabular-nums">
             {formatRupiah(data.freeSavings)}
           </span>
         </div>
 
-        <div className="flex justify-between items-center text-muted-foreground">
+        <div className="flex justify-between items-center gap-4 text-muted-foreground">
           <span>Dana Darurat:</span>
           <span className="font-semibold text-foreground tabular-nums">
             {formatRupiah(data.emergencyFund)}
           </span>
         </div>
 
-        <div className="flex justify-between items-center pt-1 border-t border-border/50 text-foreground font-bold">
+        <div className="flex justify-between items-center gap-4 pt-1 border-t border-border/50 text-foreground font-bold">
           <span>Total Simpanan:</span>
           <span className="text-primary tabular-nums">
             {formatRupiah(data.totalWealth)}

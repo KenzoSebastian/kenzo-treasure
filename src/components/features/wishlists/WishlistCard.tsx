@@ -207,7 +207,7 @@ export function WishlistCard({
   }
 
   return (
-    <Card className="rounded-2xl border border-border/80 bg-card overflow-hidden flex flex-col justify-between shadow-xs transition-all hover:border-foreground/25">
+    <Card className="pt-0 rounded-2xl border border-border/80 bg-card overflow-hidden flex flex-col justify-between shadow-xs transition-all hover:border-foreground/25">
       <div>
         {/* Area Foto Barang Impian */}
         <div className="relative h-44 w-full bg-muted/40 border-b border-border/60 overflow-hidden flex items-center justify-center">
