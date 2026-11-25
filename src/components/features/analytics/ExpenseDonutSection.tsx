@@ -12,15 +12,15 @@
 
 import * as React from "react";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
-import { PieChart as PieChartIcon } from "lucide-react";
+import { PieChart as PieChartIcon, Calendar, ChevronDown, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { AppCategoryIcon } from "@/components/common/AppCategoryIcon";
 import { formatRupiah } from "@/lib/financial-calculations";
 import type {
@@ -110,19 +110,58 @@ export function ExpenseDonutSection({
         </div>
 
         {availableMonths.length > 0 && (
-          <Select value={selectedMonthKey} onValueChange={onSelectMonthKey}>
-            <SelectTrigger className="h-9 w-full sm:w-48 rounded-xl text-xs">
-              <SelectValue placeholder="Pilih Periode" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              <SelectItem value="all">Semua Bulan ({selectedYear})</SelectItem>
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 w-full sm:w-52 justify-between rounded-xl border-border/80 bg-background/60 px-3 text-xs font-medium text-foreground shadow-2xs"
+              >
+                <span className="inline-flex items-center gap-2 truncate">
+                  <Calendar className="size-3.5 text-muted-foreground shrink-0" />
+                  <span className="truncate">
+                    {selectedMonthKey === "all"
+                      ? `Semua Bulan (${selectedYear})`
+                      : availableMonths.find((m) => m.id === selectedMonthKey)?.name ??
+                        "Pilih Periode"}
+                  </span>
+                </span>
+                <ChevronDown className="size-3.5 text-muted-foreground opacity-60 shrink-0" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              sideOffset={6}
+              className="z-30 w-52 rounded-xl border-border/80 p-1.5 shadow-md"
+            >
+              <DropdownMenuItem
+                onClick={() => onSelectMonthKey("all")}
+                className="flex items-center justify-between text-xs py-2 px-2.5 rounded-lg cursor-pointer"
+              >
+                <span className="font-medium text-foreground">
+                  Semua Bulan ({selectedYear})
+                </span>
+                {selectedMonthKey === "all" && (
+                  <Check className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                )}
+              </DropdownMenuItem>
               {availableMonths.map((m) => (
-                <SelectItem key={m.id} value={m.id}>
-                  {m.name}
-                </SelectItem>
+                <DropdownMenuItem
+                  key={m.id}
+                  onClick={() => onSelectMonthKey(m.id)}
+                  className="flex items-center justify-between text-xs py-2 px-2.5 rounded-lg cursor-pointer"
+                >
+                  <span className="font-medium text-foreground truncate">
+                    {m.name}
+                  </span>
+                  {selectedMonthKey === m.id && (
+                    <Check className="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  )}
+                </DropdownMenuItem>
               ))}
-            </SelectContent>
-          </Select>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
 
